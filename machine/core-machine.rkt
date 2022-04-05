@@ -20,22 +20,16 @@
          run core:examples)
 
 ;; TODO
-;;   use syntax/parameter
+;;   (1) use redex parameter
 ;;
+;;   (2) toy benchmark
 ;;   loopするメタレベル関数コード&loopする展開先コード&ループで無限にフェーズが大きくなる
 ;;   letrec, letrec-syntaxes? --> とりあえず μ を入れておく
-
-;;   eval, expand の small-step reduction化をとりあえずphases-machineまで
-;;     * local-expand以降は，evalとexpandの相互再帰．それを有限回に抑える方法は？ということを
-;;       local-expandを考慮すべきことや抽象化の工夫点として論文に書く．
-;;       core, phasesでは expand から eval を呼び出すだけなので個々を有限にすれば十分ということも書く．
-;;       --> coreでは無理だけどphasesでは相互再帰できそうな気がしてきた．
-;;           let-syntaxのrhsをexpandする中でまたlet-syntaxすればいい？
-;;       - 方針1: あらゆるeval, expand呼び出しで同じ探索空間を共有
-;;       - 方針2: ADIの方法を流用．(call x 探索空間)でキャッシュ．
-;;         呼出しも有限なのでキャッシュサイズも有限．方針1よりは精度が良さそう．
-
-;;   構文オブジェクトの抽象化(abstraction function)
+;;
+;;   (3) 抽象インナプリタ化(AAMでやる)
+;;       まずはRedexに頼らずにworklist方式でnondeterministicな実行を可能にしておく．
+;;       できればyieldを呼び出したときだけスイッチする方が効率良い？
+;;   (4) 構文オブジェクトの抽象化(abstraction function)
 ;;     * コード部分
 ;;       - あまりおおざっぱだとevalやexpandが回らなくなりそう
 ;;       - 方針1: シンボルとリストは正確なまま．それ以外は近似．
@@ -47,6 +41,22 @@
 ;;       - use/def相当の情報をidにつけるにはどんなデータ構造が良い？
 ;;         それとも，単にスコープセットのセットにしてしまってぼやけてしまうことを
 ;;         問題提起しておわりにするか．．．
+;;
+;;   (5) Racketへの移植(大きめのベンチマークに必要)
+;;
+
+;;   eval, expand の small-step reduction化をとりあえずphases-machineまで
+;;     * local-expand以降は，evalとexpandの相互再帰．
+;;       それを有限回に抑える方法は？ということを
+;;       local-expandを考慮すべきことや抽象化の工夫点として論文に書く．
+;;       core, phasesでは expand から eval を呼び出すだけなので個々を
+;;       有限にすれば十分ということも書く．
+;;       --> coreでは無理だけどphasesでは相互再帰できそうな気がしてきた．
+;;           let-syntaxのrhsをexpandする中でまたlet-syntaxすればいい？
+;;       - 方針1: あらゆるeval, expand呼び出しで同じ探索空間を共有
+;;       - 方針2: ADIの方法を流用．(call x 探索空間)でキャッシュ．
+;;         呼出しも有限なのでキャッシュサイズも有限．方針1よりは精度が良さそう．
+
 
 (define-language L
   ;; Executable AST and values:
@@ -165,14 +175,12 @@
        (Stx (Cons STX stl∘) ctx)
        (Stx (Cons stx∘ STL) ctx)]
   [STL ::=
-       hole
        STX
        (Cons STX stl∘)
        (Cons stx∘ STL)]
   [κ ::=
      •
-     (STX ex? loc)
-     ]
+     (STX ex? loc)]
 
   [ex? ::=
        ∘ ;; to be expanded
@@ -184,6 +192,10 @@
        (stx∘ ex? κ σ Σ)
        (in-eval state cfg)]
 
+  ;; for signatures only
+  [continuation ::= cont κ]
+  [configuration ::= state cfg]
+
   ;; Use names for vars, addrs, and scopes
   [nam ::= desc-name] ; `desc-name' typesets as prose
   [desc-name ::= variable-not-otherwise-mentioned]
@@ -193,14 +205,11 @@
   [boxes ::= any] ; refined in a later model
   [def-envs ::= any]  ; refined in a later model
   [addr ::= nam]  ; used in a later model
-
-  [nam-or-false ::=
-                nam
-                #f])
+  )
 
 
 ;; ----------------------------------------
-;; stx Utils
+;; stx utils
 
 (define-metafunction L
   stl->seq : stl -> (stx ...)
@@ -306,14 +315,14 @@
    (update-σ* (update-σ σ loc_0 u_0) (loc u) ...)])
 
 (define-metafunction L
-  push-cont : any u -> (values loc σ)
-  [(push-cont any u)
+  push-cont : configuration continuation -> (values loc σ)
+  [(push-cont configuration continuation)
    (values loc σ_1)
-   (where (values loc σ) (alloc-loc any))
-   (where σ_1 (update-σ σ loc u))])
+   (where (values loc σ) (alloc-loc configuration))
+   (where σ_1 (update-σ σ loc continuation))])
 
 (define-metafunction L
-  alloc-loc : any -> (values loc σ)
+  alloc-loc : configuration -> (values loc σ)
   ;; for eval-time continuation
   [(alloc-loc ((App val ... clo_0 clo ...) cont (Heap number [loc u] ...)))
    (values ,(string->symbol (format "vapp:~a" (term number)))
@@ -328,6 +337,7 @@
            (Heap ,(add1 (term number)) [loc u] ...))])
 
 ;; for eval-time value binding
+#;
 (define-metafunction L
   alloc-loc* : (loc ...) (nam ...) σ -> (values (loc ...) σ)
   [(alloc-loc* (loc ...) () σ) (values (loc ...) σ)]
@@ -335,6 +345,16 @@
    (alloc-loc* (loc_new ... loc_0) (nam ...)
                (Heap ,(add1 (term number)) [loc u] ...))
    (where loc_0 ,(string->symbol (format "~a:~a" (term nam_0) (term number))))])
+
+(define-metafunction L
+  alloc-loc* : (nam ...) σ -> (values (loc ...) σ)
+  [(alloc-loc* () σ) (values () σ)]
+  [(alloc-loc* (nam_0 nam ...) (Heap number [loc u] ...))
+   (values (loc_0 loc_new ...) σ_new)
+   (where loc_0 ,(string->symbol (format "~a:~a" (term nam_0) (term number))))
+   (where (values (loc_new ...) σ_new)
+          (alloc-loc* (nam ...) (Heap ,(add1 (term number)) [loc u] ...)))])
+
 
 (define -->c
   (reduction-relation
@@ -375,7 +395,7 @@
    (--> ((App (Fun ((Var nam) ...) ast ρ) val ...) cont σ)
         ((ast ρ_new) cont σ_2)
 
-        (where (values (loc ...) σ_1) (alloc-loc* () (nam ...) σ))
+        (where (values (loc ...) σ_1) (alloc-loc* (nam ...) σ))
         (where ρ_new (ext ρ ((Var nam) loc) ...))
         (where σ_2 (update-σ* σ_1 (loc val) ...))
         ev-β)
@@ -517,7 +537,7 @@
   [(lookup-Σ Σ nam) (Set)])
 
 (define-metafunction L
-  binding-lookup : (Set (StoBind scps nam) ...) scps -> nam-or-false
+  binding-lookup : (Set (StoBind scps nam) ...) scps -> nam ∪ #f
   [(binding-lookup (Set _ ... (StoBind scps nam) _ ...) scps) nam]
   [(binding-lookup _ scps) #f])
 

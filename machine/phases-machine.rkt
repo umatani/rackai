@@ -107,14 +107,14 @@
    (update-σ* (update-σ σ loc_0 u_0) (loc u) ...)])
 
 (define-metafunction Lph
-  push-cont : any u -> (values loc σ)
-  [(push-cont any u)
+  push-cont : configuration continuation -> (values loc σ)
+  [(push-cont configuration continuation)
    (values loc σ_1)
-   (where (values loc σ) (alloc-loc any))
-   (where σ_1 (update-σ σ loc u))])
+   (where (values loc σ) (alloc-loc configuration))
+   (where σ_1 (update-σ σ loc continuation))])
 
 (define-metafunction Lph
-  alloc-loc : any -> (values loc σ)
+  alloc-loc : configuration -> (values loc σ)
   ;; for eval-time continuation
   [(alloc-loc ((App val ... clo_0 clo ...) cont (Heap number [loc u] ...)))
    (values ,(string->symbol (format "vapp:~a" (term number)))
@@ -130,7 +130,7 @@
 
 ;; for eval-time value binding
 (define-metafunction/extension core:alloc-loc* Lph
-  alloc-loc* : (loc ...) (nam ...) σ -> (values (loc ...) σ))
+  alloc-loc* : (nam ...) σ -> (values (loc ...) σ))
 
 ;; same as core-machine
 (define -->c
@@ -172,7 +172,7 @@
    (--> ((App (Fun ((Var nam) ...) ast ρ) val ...) cont σ)
         ((ast ρ_new) cont σ_2)
 
-        (where (values (loc ...) σ_1) (alloc-loc* () (nam ...) σ))
+        (where (values (loc ...) σ_1) (alloc-loc* (nam ...) σ))
         (where ρ_new (ext ρ ((Var nam) loc) ...))
         (where σ_2 (update-σ* σ_1 (loc val) ...))
         ev-β)
