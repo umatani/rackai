@@ -81,7 +81,7 @@
                    result))]
        [else (run (cadr example) mode)]))))
 
-(define ((run-all-examples all-runs all-examples) [mode 'eval])
+(define ((run-all-examples all-runs all-examples) [mode 'check])
   (parameterize ([fail-count (if (eq? mode 'check) 0 #f)])
     (for ([run (in-list all-runs)]
           [idx (in-naturals 1)])
