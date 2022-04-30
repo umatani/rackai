@@ -145,9 +145,15 @@
   ;; Expand-time store:
   [Σ ::= (Sto number      ; for alloc
                (binds ...) ; binding store
-               boxes       ; for later model
-               def-ξs)]  ; for later model
-  [binds ::= [nam (StoBind scps nam) ...]]
+               )]
+  [binds ::=
+         [nam (StoBind scps nam) ...]
+         [addr val]
+         [addr ξ]]
+  ;; used in a later model
+  ;[boxes ([addr val] ...)]
+  ;[def-ξs ([addr ξ] ...)]
+  [addr ::= nam]
 
   ;; Expand-time continuation:
   [stx∘ ::=
@@ -185,12 +191,7 @@
 
   ;; Use names for vars, addrs, and scopes
   [nam ::= variable-not-otherwise-mentioned]
-  [scp ::= nam]
-
-  ;; used in a later model
-  [boxes ([addr val] ...)]
-  [def-ξs ([addr ξ] ...)]
-  [addr ::= nam])
+  [scp ::= nam])
 
 
 ;; ----------------------------------------
@@ -476,31 +477,24 @@
   ;; Add a binding using the name and scopes of an identifier, mapping
   ;; them in the store to a given name
   [(bind (Sto number
-              (binds_1 ... [nam_1 (StoBind ctx_2 nam_2) ...] binds_2 ...)
-              boxes
-              def-ξs)
+              (binds_1 ... [nam_1 (StoBind ctx_2 nam_2) ...] binds_2 ...))
          (Stx (Sym nam_1) ctx_1)
          nam_3)
    (Sto number
         (binds_1 ...
          [nam_1 (StoBind ctx_1 nam_3) (StoBind ctx_2 nam_2) ...]
-         binds_2 ...)
-        boxes
-        def-ξs)]
-  [(bind (Sto number (binds ...) boxes def-ξs)
+         binds_2 ...))]
+  [(bind (Sto number (binds ...))
          (Stx (Sym nam_1) ctx_1)
          nam_3)
    (Sto number
-        ([nam_1 (StoBind ctx_1 nam_3)] binds ...)
-        boxes
-        def-ξs)])
+        ([nam_1 (StoBind ctx_1 nam_3)] binds ...))])
 
 (define-metafunction* L
   lookup-Σ : Σ nam -> (Set (StoBind scps nam) ...)
   [(lookup-Σ (Sto number
-                      (_ ... [nam (StoBind scps_bind nam_bind) ...] _ ...)
-                      _ _)
-                 nam)
+                   (_ ... [nam (StoBind scps_bind nam_bind) ...] _ ...))
+              nam)
    (Set (StoBind scps_bind nam_bind) ...)]
   [(lookup-Σ Σ nam) (Set)])
 
@@ -676,15 +670,15 @@
 
 (define-metafunction L
   alloc-name : id Σ -> (values nam Σ)
-  [(alloc-name (Stx (Sym nam) ctx) (Sto number (binds ...) boxes def-ξs))
+  [(alloc-name (Stx (Sym nam) ctx) (Sto number (binds ...)))
    (values ,(string->symbol (format "~a:~a" (term nam) (term number)))
-           (Sto ,(add1 (term number)) (binds ...) boxes def-ξs))])
+           (Sto ,(add1 (term number)) (binds ...)))])
 
 (define-metafunction L
   alloc-scope : Σ -> (values scp Σ)
-  [(alloc-scope (Sto number any boxes def-ξs))
+  [(alloc-scope (Sto number any))
    (values ,(string->symbol (format "scp:~a" (term number)))
-           (Sto ,(add1 (term number)) any boxes def-ξs))])
+           (Sto ,(add1 (term number)) any))])
 
 (define-metafunction L
   regist-vars : scp stl ξ Σ -> (values stl ξ Σ)
@@ -1069,7 +1063,7 @@
 
 (define-metafunction L
   init-Σ : -> Σ
-  [(init-Σ) (Sto 0 () () ())])
+  [(init-Σ) (Sto 0 ())])
 
 (define-helpers L (Set)
   reader printer)

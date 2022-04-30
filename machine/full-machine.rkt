@@ -110,40 +110,40 @@
 
 (define-metafunction Lfull
   alloc-box : Σ -> (values addr Σ)
-  [(alloc-box (Sto number (binds ...) boxes def-ξs))
+  [(alloc-box (Sto number (binds ...)))
    (values ,(string->symbol (format "bx:~a" (term number)))
-           (Sto ,(add1 (term number)) (binds ...) boxes def-ξs))])
+           (Sto ,(add1 (term number)) (binds ...)))])
 
 (define-metafunction Lfull
   box-lookup : Σ addr -> val
-  [(box-lookup (Sto _ _ (_ ... [addr val] _ ...) _) addr) val])
+  [(box-lookup (Sto _ (_ ... [addr val] _ ...)) addr) val])
 
 (define-metafunction Lfull
   box-update : Σ addr val -> Σ
-  [(box-update (Sto number (binds ...) (any_1 ... [addr _] any_2 ...) def-ξs) addr val)
-   (Sto number (binds ...) (any_1 ... [addr val] any_2 ...) def-ξs)]
-  [(box-update (Sto number (binds ...) (any_1 ...) def-ξs) addr val)
-   (Sto number (binds ...) ([addr val] any_1 ...) def-ξs)])
+  [(box-update (Sto number (binds_1 ... [addr _] binds_2 ...)) addr val)
+   (Sto number (binds_1 ... [addr val] binds_2 ...))]
+  [(box-update (Sto number (binds ...)) addr val)
+   (Sto number ([addr val] binds ...))])
 
 ;; ----------------------------------------
 ;; Definition-context environment allocations and updates:
 
 (define-metafunction Lfull
   alloc-def-ξ : Σ -> (values addr Σ)
-  [(alloc-def-ξ (Sto number (binds ...) boxes def-ξs))
+  [(alloc-def-ξ (Sto number (binds ...)))
    (values ,(string->symbol (format "ξ:~a" (term number)))
-           (Sto ,(add1 (term number)) (binds ...) boxes def-ξs))])
+           (Sto ,(add1 (term number)) (binds ...)))])
 
 (define-metafunction Lfull
   def-ξ-lookup : Σ addr -> ξ
-  [(def-ξ-lookup (Sto _ _ _ (_ ... [addr ξ] _ ...)) addr) ξ])
+  [(def-ξ-lookup (Sto _ (_ ... [addr ξ] _ ...)) addr) ξ])
 
 (define-metafunction Lfull
   def-ξ-update : Σ addr ξ -> Σ
-  [(def-ξ-update (Sto number (binds ...) boxes (any_1 ... [addr _] any_2 ...)) addr ξ)
-   (Sto number (binds ...) boxes (any_1 ... [addr ξ] any_2 ...))]
-  [(def-ξ-update (Sto number (binds ...) boxes (any_1 ...)) addr ξ)
-   (Sto number (binds ...) boxes ([addr ξ] any_1 ...))])
+  [(def-ξ-update (Sto number (binds_1 ... [addr _] binds_2 ...)) addr ξ)
+   (Sto number (binds_1 ... [addr ξ] binds_2 ...))]
+  [(def-ξ-update (Sto number (binds ...)) addr ξ)
+   (Sto number ([addr ξ] binds ...))])
 
 
 (define-reduction-relation -->c Lfull

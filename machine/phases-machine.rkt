@@ -169,25 +169,19 @@
   ;; the identifier
   [(bind ph
          (Sto number
-              (binds_1 ... [nam_1 (StoBind scps_2 nam_2) ...] binds_2 ...)
-              boxes
-              def-ξs)
+              (binds_1 ... [nam_1 (StoBind scps_2 nam_2) ...] binds_2 ...))
          (Stx (Sym nam_1) (Map _ ... [ph scps_1] _ ...))
          nam_3)
    (Sto number
         (binds_1 ...
          [nam_1 (StoBind scps_1 nam_3) (StoBind scps_2 nam_2) ...]
-         binds_2 ...)
-        boxes
-        def-ξs)]
+         binds_2 ...))]
   [(bind ph
-         (Sto number (binds ...) boxes def-ξs)
+         (Sto number (binds ...))
          (Stx (Sym nam_1) (Map _ ... [ph scps_1] _ ...))
          nam_3)
    (Sto number
-        ([nam_1 (StoBind scps_1 nam_3)] binds ...)
-        boxes
-        def-ξs)])
+        ([nam_1 (StoBind scps_1 nam_3)] binds ...))])
 
 (define-metafunction Lph
   at-phase : ctx ph -> scps
