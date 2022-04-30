@@ -16,7 +16,7 @@
  push-cont
  -->c eval
  δ strip lookup-ξ extend-ξ
- alloc-𝓁 lookup-σ update-σ push-κ
+ alloc-κ lookup-κ update-κ push-κ
  alloc-name alloc-scope stripper
  ;; for local-machine, full-machine
  run)
@@ -629,18 +629,18 @@
 ;; Expand-time store operations:
 
 (define-metafunction* L
-  alloc-𝓁 : σ -> (values 𝓁 σ)
-  [(alloc-𝓁 (ℋ number [𝓁 κ] ...))
-   (values ,(string->symbol (format "𝓁~a" (term number)))
+  alloc-κ : σ -> (values 𝓁 σ)
+  [(alloc-κ (ℋ number [𝓁 κ] ...))
+   (values ,(string->symbol (format "k~a" (term number)))
            (ℋ ,(add1 (term number)) [𝓁 κ] ...))])
 
 (define-metafunction* L
-  lookup-σ : σ 𝓁 -> κ
-  [(lookup-σ (ℋ number _ ... [𝓁 κ] _ ...) 𝓁) κ])
+  lookup-κ : σ 𝓁 -> κ
+  [(lookup-κ (ℋ number _ ... [𝓁 κ] _ ...) 𝓁) κ])
 
 (define-metafunction* L
-  update-σ : σ 𝓁 κ -> σ
-  [(update-σ (ℋ number
+  update-κ : σ 𝓁 κ -> σ
+  [(update-κ (ℋ number
                     [𝓁_0 κ_0] ...
                     [𝓁 κ_old]
                     [𝓁_1 κ_1] ...) 𝓁 κ_new)
@@ -648,17 +648,17 @@
          [𝓁_0 κ_0] ...
          [𝓁 κ_new]
          [𝓁_1 κ_1] ...)]
-  [(update-σ (ℋ number [𝓁_0 κ_0] ...) 𝓁 κ_new)
+  [(update-κ (ℋ number [𝓁_0 κ_0] ...) 𝓁 κ_new)
    (ℋ number [𝓁 κ_new] [𝓁_0 κ_0] ...)])
 
 (define-metafunction* L
-  #:parameters ([gen:update-σ update-σ]
-                [gen:alloc-𝓁 alloc-𝓁])
+  #:parameters ([gen:update-κ update-κ]
+                [gen:alloc-κ alloc-κ])
   push-κ : σ κ -> (values 𝓁 σ)
   [(push-κ σ κ)
    (values 𝓁 σ_2)
-   (where (values 𝓁 σ_1) (gen:alloc-𝓁 σ))
-   (where σ_2 (gen:update-σ σ_1 𝓁 κ))])
+   (where (values 𝓁 σ_1) (gen:alloc-κ σ))
+   (where σ_2 (gen:update-κ σ_1 𝓁 κ))])
 
 
 ;; ----------------------------------------
@@ -701,7 +701,7 @@
 (define-reduction-relation* ==>c
   L
   #:parameters ([gen:push-κ push-κ]
-                [gen:lookup-σ lookup-σ])
+                [gen:lookup-κ lookup-κ])
   #:domain cfg #:arrow ==>
 
   ;; lambda
@@ -963,7 +963,7 @@
   (==> (stx • (STX ex? 𝓁) σ Σ)
        ((in-hole STX stx) ex? κ σ Σ)
 
-       (where κ (gen:lookup-σ σ 𝓁))
+       (where κ (gen:lookup-κ σ 𝓁))
        ex-pop-κ)
 
   ;; expression sequence

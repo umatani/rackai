@@ -23,9 +23,9 @@
                   [strip core:strip]
                   [lookup-ξ core:lookup-ξ]
                   [extend-ξ core:extend-ξ]
-                  [lookup-σ core:lookup-σ]
-                  [update-σ core:update-σ]
-                  [alloc-𝓁 core:alloc-𝓁]
+                  [lookup-κ core:lookup-κ]
+                  [update-κ core:update-κ]
+                  [alloc-κ core:alloc-κ]
                   [push-κ core:push-κ]
                   [alloc-name core:alloc-name]
                   [alloc-scope core:alloc-scope]
@@ -289,14 +289,14 @@
 ;; ----------------------------------------
 ;; Expand-time store operations:
 
-(define-extended-metafunction* core:alloc-𝓁 Lph
-  alloc-𝓁 : σ  -> (values 𝓁 σ))
+(define-extended-metafunction* core:alloc-κ Lph
+  alloc-κ : σ  -> (values 𝓁 σ))
 
-(define-metafunction/extension core:lookup-σ Lph
-  lookup-σ : σ 𝓁 -> κ)
+(define-metafunction/extension core:lookup-κ Lph
+  lookup-κ : σ 𝓁 -> κ)
 
-(define-extended-metafunction* core:update-σ Lph
-  update-σ : σ 𝓁 κ -> σ)
+(define-extended-metafunction* core:update-κ Lph
+  update-κ : σ 𝓁 κ -> σ)
 
 (define-extended-metafunction* core:push-κ Lph
   push-κ : σ κ -> (values 𝓁 σ))
@@ -611,7 +611,7 @@
   (==> (stx • (STX ex? 𝓁) σ Σ)
        ((in-hole STX stx) ex? κ σ Σ)
 
-       (where κ (lookup-σ σ 𝓁))
+       (where κ (lookup-κ σ 𝓁))
        ex-pop-κ)
 
   ;; expression sequence

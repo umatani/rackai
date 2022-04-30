@@ -12,9 +12,9 @@
                   [alloc-loc core:alloc-loc]
                   [alloc-loc* core:alloc-loc*]
                   [push-cont core:push-cont]
-                  [alloc-𝓁 core:alloc-𝓁]
-                  [lookup-σ core:lookup-σ]
-                  [update-σ core:update-σ]
+                  [alloc-κ core:alloc-κ]
+                  [lookup-κ core:lookup-κ]
+                  [update-κ core:update-κ]
                   [push-κ core:push-κ])
          (only-in "phases-machine.rkt"
                   Lph unzip zip snoc
@@ -438,14 +438,14 @@
 ;; ----------------------------------------
 ;; Expand-time store operations:
 
-(define-extended-metafunction* core:alloc-𝓁 Lfull
-  alloc-𝓁 : σ  -> (values 𝓁 σ))
+(define-extended-metafunction* core:alloc-κ Lfull
+  alloc-κ : σ  -> (values 𝓁 σ))
 
-(define-metafunction/extension core:lookup-σ Lfull
-  lookup-σ : σ 𝓁 -> κ)
+(define-metafunction/extension core:lookup-κ Lfull
+  lookup-κ : σ 𝓁 -> κ)
 
-(define-extended-metafunction* core:update-σ Lfull
-  update-σ : σ 𝓁 κ -> σ)
+(define-extended-metafunction* core:update-κ Lfull
+  update-κ : σ 𝓁 κ -> σ)
 
 (define-extended-metafunction* core:push-κ Lfull
   push-κ : σ κ -> (values 𝓁 σ))
@@ -755,7 +755,7 @@
   (==> (stx • (STX ex? (Tup _ scps_p scps_u) 𝓁) σ (Tup Σ _ _))
        ((in-hole STX stx) ex? κ σ (Tup Σ scps_p scps_u))
 
-       (where κ (lookup-σ σ 𝓁))
+       (where κ (lookup-κ σ 𝓁))
        ex-pop-κ)
 
   ;; expression sequence
