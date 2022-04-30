@@ -27,9 +27,16 @@
   
   ;; local value
   [(eval ph (App syntax-local-value ast_id) scp_i env Σ*)
-   (values (lookup-env env (resolve ph id_result Σ_2)) Σ*_2)
+   (values val Σ*_2)
+   (side-condition (printf "local-value start: ~a\n" (term ph)))
    (where (values id_result Σ*_2) (eval ph ast_id scp_i env Σ*))
-   (where (Tup Σ_2 _ _) Σ*_2)]
+   (where (Tup Σ_2 _ _) Σ*_2)
+   (where nam (resolve ph id_result Σ_2))
+   (side-condition (printf "local-value id_result: ~a\n" (term id_result)))
+   (side-condition (printf "local-value nam: ~a\n" (term nam)))
+   (side-condition (printf "local-value Σ_2: ~a\n" (term Σ_2)))
+   (side-condition (printf "local-value nam: ~a\n" (term nam)))
+   (where val (lookup-env env nam))]
 
   ;; local expand
   [(eval ph (App local-expand ast any_contextv ast_stops) scp_i env Σ*)
@@ -299,7 +306,15 @@
                                   #'here
                                   (syntax-local-value (second (syntax-e stx)))))))])
           (x a))))])
-
+(define (raw-local-value)
+  (let-syntax ([a '8])
+    (let-syntax ([b '9])
+      (let-syntax
+          ([x (lambda (stx)
+                (syntax-case stx ()
+                  [(x id)
+                   #`(quote #,(syntax-local-value #'id))]))])
+        (x a)))))
 
 (define ex-local-expand
   '[local-expand

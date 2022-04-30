@@ -1,19 +1,19 @@
 #lang racket
-(require redex redex/parameter
+(require redex/reduction-semantics redex/parameter
          "common.rkt"
          (only-in "core-machine.rkt"
                   L
                   plus addremove subtract
                   biggest-subset lookup-Σ binding-lookup
-                  primitives-env init-Σ union
+                  primitives-ξ init-Σ union
                   core:examples
                   [stl->seq core:stl->seq]
                   [unzip core:unzip]
                   [zip   core:zip]
                   [snoc   core:snoc]
-                  [lookup-σ core:lookup-σ]
-                  [update-σ core:update-σ]
-                  [update-σ* core:update-σ*]
+                  [lookup-store core:lookup-store]
+                  [update-store core:update-store]
+                  [update-store* core:update-store*]
                   [alloc-loc core:alloc-loc]
                   [alloc-loc* core:alloc-loc*]
                   [push-cont core:push-cont]
@@ -21,8 +21,12 @@
                   [eval core:eval]
                   [δ core:δ]
                   [strip core:strip]
-                  [lookup-env core:lookup-env]
-                  [extend-env core:extend-env]
+                  [lookup-ξ core:lookup-ξ]
+                  [extend-ξ core:extend-ξ]
+                  [lookup-σ core:lookup-σ]
+                  [update-σ core:update-σ]
+                  [alloc-𝓁 core:alloc-𝓁]
+                  [push-κ core:push-κ]
                   [alloc-name core:alloc-name]
                   [alloc-scope core:alloc-scope]
                   [stripper core:stripper])
@@ -31,24 +35,22 @@
 (provide Lph unzip zip snoc
          δ flip add strip prune
          bind resolve parse
-         lookup-env extend-env
+         lookup-ξ extend-ξ
          alloc-scope alloc-name regist-vars
          phases:examples
          run)
 
 (define-extended-language Lph L
   [ph integer] ; new
-  [ctx desc-ctx]
-  [desc-ctx (Map [ph scps] ...) ; updated scps -> (Map [ph scps] ...)
-            ]
-
+  [ctx (Map [ph scps] ...) ; updated scps -> (Map [ph scps] ...)
+       ]
   [stx∘ ::=
         stx
-        (ph stx env scps) ; updated (ph scps)
+        (ph stx ξ scps) ; updated (ph scps)
         (Stx (Cons stx∘ stl∘) ctx)]
   [STX ::=
        hole
-       (ph STX env scps) ; updated (ph scps)
+       (ph STX ξ scps) ; updated (ph scps)
        (Stx (Cons STX stl∘) ctx)
        (Stx (Cons stx∘ STL) ctx)])
 
@@ -73,24 +75,24 @@
 ;; ----------------------------------------
 ;; Evaluating AST:
 
-(define-extended-metafunction* core:lookup-σ Lph
-  lookup-σ : σ loc -> u)
+(define-extended-metafunction* core:lookup-store Lph
+  lookup-store : store loc -> u)
 
-(define-extended-metafunction* core:update-σ Lph
-  update-σ : σ loc u -> σ)
+(define-extended-metafunction* core:update-store Lph
+  update-store : store loc u -> store)
 
-(define-extended-metafunction* core:update-σ* Lph
-  update-σ* : σ (loc u) ... -> σ)
+(define-extended-metafunction* core:update-store* Lph
+  update-store* : store (loc u) ... -> store)
 
 (define-extended-metafunction* core:alloc-loc Lph
-  alloc-loc : σ -> (values loc σ))
+  alloc-loc : store -> (values loc store))
 
 ;; for eval-time value binding
 (define-extended-metafunction* core:alloc-loc* Lph
-  alloc-loc* : (nam ...) σ -> (values (loc ...) σ))
+  alloc-loc* : (nam ...) store -> (values (loc ...) store))
 
 (define-extended-metafunction* core:push-cont Lph
-  push-cont : σ continuation -> (values loc σ))
+  push-cont : store cont -> (values loc store))
 
 (define-extended-reduction-relation* -->c core:-->c Lph)
 
@@ -99,8 +101,10 @@
 
 ;; for debug
 
-(define (trace--> form)
-  (traces -->c (term ((,(run form 'parse) ()) • (Heap 0)))))
+(module+ gui
+  (require redex/gui)
+  (define (trace--> form)
+    (traces -->c (term ((,(run form 'parse) ()) • (Heap 0))))))
 
 (define (eval--> form)
   (apply-reduction-relation* -->c (term ((,(run form 'parse) ()) • (Heap 0)))))
@@ -167,7 +171,7 @@
          (Sto number
               (binds_1 ... [nam_1 (StoBind scps_2 nam_2) ...] binds_2 ...)
               boxes
-              def-envs)
+              def-ξs)
          (Stx (Sym nam_1) (Map _ ... [ph scps_1] _ ...))
          nam_3)
    (Sto number
@@ -175,15 +179,15 @@
          [nam_1 (StoBind scps_1 nam_3) (StoBind scps_2 nam_2) ...]
          binds_2 ...)
         boxes
-        def-envs)]
+        def-ξs)]
   [(bind ph
-         (Sto number (binds ...) boxes def-envs)
+         (Sto number (binds ...) boxes def-ξs)
          (Stx (Sym nam_1) (Map _ ... [ph scps_1] _ ...))
          nam_3)
    (Sto number
         ([nam_1 (StoBind scps_1 nam_3)] binds ...)
         boxes
-        def-envs)])
+        def-ξs)])
 
 (define-metafunction Lph
   at-phase : ctx ph -> scps
@@ -192,12 +196,13 @@
   [(at-phase ctx ph)
    (Set)])
 
-(define-metafunction Lph
+(define-metafunction* Lph
+  #:parameters ([gen:lookup-Σ lookup-Σ])
   resolve : ph id Σ -> nam
   ;; Like the one-phase `resolve`, but at a particular phase
   [(resolve ph (Stx (Sym nam) ctx) Σ)
    nam_biggest
-   (where (Set (StoBind scps_bind nam_bind) ...) (lookup-Σ Σ nam))
+   (where (Set (StoBind scps_bind nam_bind) ...) (gen:lookup-Σ Σ nam))
    (where scps_biggest (biggest-subset (at-phase ctx ph) (Set scps_bind ...)))
    (where nam_biggest (binding-lookup (Set (StoBind scps_bind nam_bind) ...)
                                       scps_biggest))]
@@ -281,11 +286,26 @@
 ;; ----------------------------------------
 ;; Expand-time environment operations:
 
-(define-metafunction/extension core:lookup-env Lph
-  lookup-env : env nam -> all-transform)
+(define-metafunction/extension core:lookup-ξ Lph
+  lookup-ξ : ξ nam -> all-transform)
 
-(define-metafunction/extension core:extend-env Lph
-  extend-env : env nam all-transform -> env)
+(define-metafunction/extension core:extend-ξ Lph
+  extend-ξ : ξ nam all-transform -> ξ)
+
+;; ----------------------------------------
+;; Expand-time store operations:
+
+(define-extended-metafunction* core:alloc-𝓁 Lph
+  alloc-𝓁 : σ  -> (values 𝓁 σ))
+
+(define-metafunction/extension core:lookup-σ Lph
+  lookup-σ : σ 𝓁 -> κ)
+
+(define-extended-metafunction* core:update-σ Lph
+  update-σ : σ 𝓁 κ -> σ)
+
+(define-extended-metafunction* core:push-κ Lph
+  push-κ : σ κ -> (values 𝓁 σ))
 
 ;; ----------------------------------------
 ;; Alloc name & scope helpers for expander:
@@ -297,20 +317,20 @@
   alloc-scope : Σ -> (values scp Σ))
 
 (define-metafunction Lph
-  regist-vars : ph scp stl env Σ -> (values stl env Σ)
+  regist-vars : ph scp stl ξ Σ -> (values stl ξ Σ)
   ;; This is the same as the single-phase one, but with `ph`
   ;; threaded through to `add` & `bind`
 
-  [(regist-vars ph scp () env Σ) (values () env Σ)]
+  [(regist-vars ph scp () ξ Σ) (values () ξ Σ)]
 
-  [(regist-vars ph scp (Cons id stl) env Σ)
-   (values (Cons id_new stl_reg) env_2 Σ_3)
+  [(regist-vars ph scp (Cons id stl) ξ Σ)
+   (values (Cons id_new stl_reg) ξ_2 Σ_3)
 
-   (where (values stl_reg env_1 Σ_1) (regist-vars ph scp stl env Σ))
+   (where (values stl_reg ξ_1 Σ_1) (regist-vars ph scp stl ξ Σ))
    (where (values nam_new Σ_2) (alloc-name id Σ_1))
    (where id_new (add ph id scp))
    (where Σ_3 (bind ph Σ_2 id_new nam_new))
-   (where env_2 (extend-env env_1 nam_new (TVar id_new)))])
+   (where ξ_2 (extend-ξ ξ_1 nam_new (TVar id_new)))])
 
 ;; ----------------------------------------
 ;; The expander:
@@ -326,74 +346,74 @@
 
   ;; lambda
   (==> ((ph (Stx (Cons id_lam (Cons (Stx stl_args ctx_0)
-                                    (Cons stx_body ()))) ctx) env scps_p)
+                                    (Cons stx_body ()))) ctx) ξ scps_p)
         ∘ κ σ Σ)
-       ((ph (add ph stx_body scp_new) env_new (union (Set scp_new) scps_p))
+       ((ph (add ph stx_body scp_new) ξ_new (union (Set scp_new) scps_p))
         ∘
         ((Stx (Cons id_lam (Cons (Stx stl_args2 ctx_0)
-                                 (Cons hole ()))) ctx) • loc_new)
+                                 (Cons hole ()))) ctx) • 𝓁_new)
         σ_1 Σ_2)
 
        (where lambda (resolve ph id_lam Σ))
        (where (values scp_new Σ_1) (alloc-scope Σ))
-       (where (values stl_args2 env_new Σ_2)
-              (regist-vars ph scp_new stl_args env Σ_1))
-       (where (values loc_new σ_1) (push-cont σ κ))
+       (where (values stl_args2 ξ_new Σ_2)
+              (regist-vars ph scp_new stl_args ξ Σ_1))
+       (where (values 𝓁_new σ_1) (push-κ σ κ))
        ex-lam-body)
 
   ;; let
   (==> ((ph (Stx (Cons id_let
                        (Cons (Stx stl_binds ctx_1)
-                             (Cons stx_body ()))) ctx) env scps_p)
+                             (Cons stx_body ()))) ctx) ξ scps_p)
         ∘ κ σ Σ)
-       ((ph (add ph stx_body scp_new) env_new (union (Set scp_new) scps_p))
+       ((ph (add ph stx_body scp_new) ξ_new (union (Set scp_new) scps_p))
         ∘
         ((Stx (Cons id-kont
                     (Cons id_let
                           (Cons (Stx (Cons
                                       (Stx stl_vars2 ctx_1)
-                                      (ph (Stx stl_rhs ctx_1) env scps_p))
+                                      (ph (Stx stl_rhs ctx_1) ξ scps_p))
                                      ctx_1)
                                 (Cons hole ())))) ctx)
-         ∘ loc_new)
+         ∘ 𝓁_new)
         σ_1 Σ_2)
 
        (where let (resolve ph id_let Σ))
        (where (values stl_vars stl_rhs) (unzip stl_binds))
        (where (values scp_new Σ_1) (alloc-scope Σ))
-       (where (values stl_vars2 env_new Σ_2)
-              (regist-vars ph scp_new stl_vars env Σ_1))
-       (where (values loc_new σ_1) (push-cont σ κ))
+       (where (values stl_vars2 ξ_new Σ_2)
+              (regist-vars ph scp_new stl_vars ξ Σ_1))
+       (where (values 𝓁_new σ_1) (push-κ σ κ))
        ex-let-body)
 
   (==> ((Stx (Cons id_kont
                    (Cons id_let
                          (Cons (Stx (Cons
                                      (Stx stl_vars ctx_1)
-                                     (ph (Stx stl_rhs ctx_1) env scps_p))
+                                     (ph (Stx stl_rhs ctx_1) ξ scps_p))
                                     ctx_1)
                                (Cons stx_body ())))) ctx)
         ∘ κ σ Σ)
-       ((ph (Stx (Cons id-seq (Cons stx-nil stl_rhs)) ctx_1) env scps_p)
+       ((ph (Stx (Cons id-seq (Cons stx-nil stl_rhs)) ctx_1) ξ scps_p)
         ∘
         ((ph (Stx (Cons id_kont
                         (Cons id_let
                               (Cons (Stx (Cons (Stx stl_vars ctx_1)
                                                hole) ctx_1)
-                                    (Cons stx_body ())))) ctx) env scps_p)
-         ∘ loc_new)
+                                    (Cons stx_body ())))) ctx) ξ scps_p)
+         ∘ 𝓁_new)
         σ_1 Σ)
 
        (where let (resolve ph id_let Σ))
        (where #%kont (resolve ph id_kont Σ))
-       (where (values loc_new σ_1) (push-cont σ κ))
+       (where (values 𝓁_new σ_1) (push-κ σ κ))
        ex-let-rhs)
 
   (==> ((ph (Stx (Cons id_kont
                        (Cons id_let
                              (Cons (Stx (Cons (Stx stl_vars ctx_1)
                                               (Stx val_rhs ctx_1)) ctx_1)
-                                   (Cons stx_body ())))) ctx) env scps_p)
+                                   (Cons stx_body ())))) ctx) ξ scps_p)
         ∘ κ σ Σ)
        ((Stx (Cons id_let
                    (Cons (Stx (zip stl_vars val_rhs ctx_1) ctx_1)
@@ -405,14 +425,14 @@
        ex-let-rhs2)
 
   ;; quote
-  (==> ((ph (Stx (Cons id_quote (Cons stx ())) ctx) env scps_p) ∘ κ σ Σ)
+  (==> ((ph (Stx (Cons id_quote (Cons stx ())) ctx) ξ scps_p) ∘ κ σ Σ)
        ((Stx (Cons id_quote (Cons stx ())) ctx) • κ σ Σ)
 
        (where quote (resolve ph id_quote Σ))
        ex-quote)
 
   ;; syntax
-  (==> ((ph (Stx (Cons id_syntax (Cons stx ())) ctx) env scps_p) ∘ κ σ Σ)
+  (==> ((ph (Stx (Cons id_syntax (Cons stx ())) ctx) ξ scps_p) ∘ κ σ Σ)
        ((Stx (Cons id_syntax (Cons stx_pruned ())) ctx) • κ σ Σ)
 
        (where syntax (resolve ph id_syntax Σ))
@@ -423,31 +443,31 @@
   (==> ((ph (Stx (Cons id_ls
                        (Cons (Stx (Cons (Stx (Cons id (Cons stx_rhs ()))
                                              ctx_0) ()) ctx_1)
-                             (Cons stx_body ()))) ctx) env scps_p)
+                             (Cons stx_body ()))) ctx) ξ scps_p)
         ∘ κ σ Σ)
        ((Stx (Cons id_ls
                    (Cons (Stx (Cons (Stx (Cons id (Cons stx_rhs ()))
                                          ctx_0) ()) ctx_1)
-                         (Cons (ph stx_body env scps_p) ()))) ctx)
+                         (Cons (ph stx_body ξ scps_p) ()))) ctx)
         ∘ κ σ Σ)
 
        (where let-syntax (resolve ph id_ls Σ))
-       ex-env-ls)
+       ex-ξ-ls)
 
   (==> ((Stx (Cons id_ls
                    (Cons (Stx (Cons (Stx (Cons id (Cons stx_rhs ()))
                                          ctx_0) ()) ctx_1)
-                         (Cons (ph stx_body env scps_p) ()))) ctx)
+                         (Cons (ph stx_body ξ scps_p) ()))) ctx)
         ∘ κ σ Σ)
-       (((plus ph 1) stx_rhs (primitives-env) (Set))
+       (((plus ph 1) stx_rhs (primitives-ξ) (Set))
         ∘
         ((Stx (Cons
                id-kont
                (Cons id_ls
                      (Cons (Stx (Cons (Stx (Cons id_new (Cons hole ()))
                                            ctx_0) ()) ctx_1)
-                           (Cons (ph stx_body2 env scps_p2) ())))) ctx)
-         ∘ loc_new)
+                           (Cons (ph stx_body2 ξ scps_p2) ())))) ctx)
+         ∘ 𝓁_new)
         σ_1 Σ_3)
 
        (where let-syntax (resolve ph id_ls Σ))
@@ -457,7 +477,7 @@
        (where Σ_3 (bind ph Σ_2 id_new nam_new))
        (where stx_body2 (add ph stx_body scp_new))
        (where scps_p2 (union (Set scp_new) scps_p))
-       (where (values loc_new σ_1) (push-cont σ κ))
+       (where (values 𝓁_new σ_1) (push-κ σ κ))
        ex-ls-push-rhs)
 
   (==> ((Stx
@@ -466,11 +486,11 @@
                 id_ls
                 (Cons (Stx (Cons (Stx (Cons id_new (Cons stx_exp ()))
                                       ctx_0) ()) ctx_1)
-                      (Cons (ph stx_body2 env scps_p2) ())))) ctx)
+                      (Cons (ph stx_body2 ξ scps_p2) ())))) ctx)
         ∘ κ σ Σ)
        (in-eval (((parse (plus ph 1) stx_exp Σ) ()) • (Heap 0))
                 ((Stx (Cons (Stx (Sym nam_new) (Map))
-                            (Cons (ph stx_body2 env scps_p2) ())) (Map))
+                            (Cons (ph stx_body2 ξ scps_p2) ())) (Map))
                  ∘ κ σ Σ))
 
        (where let-syntax (resolve ph id_ls Σ))
@@ -478,50 +498,50 @@
        (where nam_new (resolve ph id_new Σ))
        ex-ls-eval)
 
-  (==> (in-eval (val • σ_0)
+  (==> (in-eval (val • store_0)
                 ((Stx (Cons (Stx (Sym nam_new) (Map))
-                            (Cons (ph stx_body2 env scps_p2) ())) (Map))
+                            (Cons (ph stx_body2 ξ scps_p2) ())) (Map))
                  ∘ κ σ Σ))
-       ((ph stx_body2 env_new scps_p2) ∘ κ σ Σ)
+       ((ph stx_body2 ξ_new scps_p2) ∘ κ σ Σ)
 
-       (where env_new (extend-env env nam_new val))
-       ex-ls-env)
+       (where ξ_new (extend-ξ ξ nam_new val))
+       ex-ls-ξ)
 
   ;; macro invocation
-  (==> ((ph stx_macapp env scps_p) ∘ κ σ Σ)
+  (==> ((ph stx_macapp ξ scps_p) ∘ κ σ Σ)
        (in-eval
         (((App val stx_macapp2) ())
          • (Heap 0))
-        ((ph (Stx #f (Map [ph (Set scp_i)])) env (union (Set scp_u) scps_p))
+        ((ph (Stx #f (Map [ph (Set scp_i)])) ξ (union (Set scp_u) scps_p))
          ∘ κ σ Σ_2))
 
        (where (Stx (Cons id_mac stl_args) ctx) stx_macapp)
-       (where val (lookup-env env (resolve ph id_mac Σ)))
+       (where val (lookup-ξ ξ (resolve ph id_mac Σ)))
        (where (values scp_u Σ_1) (alloc-scope Σ))
        (where (values scp_i Σ_2) (alloc-scope Σ_1))
        (where stx_macapp2 (flip ph (add ph stx_macapp scp_u) scp_i))
        ex-macapp-eval)
 
-  (==> (in-eval (stx_exp • σ_0)
-                ((ph (Stx #f (Map [ph (Set scp_i)])) env scps_p) ∘ κ σ Σ))
-       ((ph (flip ph stx_exp scp_i) env scps_p) ∘ κ σ Σ)
+  (==> (in-eval (stx_exp • store_0)
+                ((ph (Stx #f (Map [ph (Set scp_i)])) ξ scps_p) ∘ κ σ Σ))
+       ((ph (flip ph stx_exp scp_i) ξ scps_p) ∘ κ σ Σ)
        ex-macapp-flip)
 
   ;; if
-  (==> ((ph (Stx (Cons id_if stl_exps) ctx) env scps_p)
+  (==> ((ph (Stx (Cons id_if stl_exps) ctx) ξ scps_p)
         ∘ κ σ Σ)
-       ((ph (Stx (Cons id-seq (Cons stx-nil stl_exps)) ctx) env scps_p)
+       ((ph (Stx (Cons id-seq (Cons stx-nil stl_exps)) ctx) ξ scps_p)
         ∘
-        ((ph (Stx (Cons id-kont (Cons id_if hole)) ctx) env scps_p)
-         ∘ loc_new)
+        ((ph (Stx (Cons id-kont (Cons id_if hole)) ctx) ξ scps_p)
+         ∘ 𝓁_new)
         σ_1 Σ)
 
        (where if (resolve ph id_if Σ))
-       (where (values loc_new σ_1) (push-cont σ κ))
+       (where (values 𝓁_new σ_1) (push-κ σ κ))
        ex-if)
 
   (==> ((ph (Stx (Cons id_kont
-                       (Cons id_if (Stx val_exps ctx))) ctx) env scps_p)
+                       (Cons id_if (Stx val_exps ctx))) ctx) ξ scps_p)
         ∘ κ σ Σ)
        ((Stx (Cons id_if val_exps) ctx) • κ σ Σ)
 
@@ -530,63 +550,63 @@
        ex-if-kont)
 
   ;; application (non-canonical #%app version)
-  (==> ((ph (Stx (Cons id_app (Cons stx_fun stl_args)) ctx) env scps_p)
+  (==> ((ph (Stx (Cons id_app (Cons stx_fun stl_args)) ctx) ξ scps_p)
         ∘ κ σ Σ)
        ((ph (Stx (Cons id-seq
                        (Cons stx-nil
-                             (Cons stx_fun stl_args))) ctx) env scps_p)
+                             (Cons stx_fun stl_args))) ctx) ξ scps_p)
         ∘
-        ((Stx (Cons id_app hole) ctx) • loc_new)
+        ((Stx (Cons id_app hole) ctx) • 𝓁_new)
         σ_1 Σ)
 
        (where #%app (resolve ph id_app Σ))
-       (where (values loc_new σ_1) (push-cont σ κ))
+       (where (values 𝓁_new σ_1) (push-κ σ κ))
        ex-#%app)
 
   ;; application (canonical #%app version)
   (==> ((ph (Stx (Cons id_app
-                       (Stx (Cons stx_fun stl_args) ctx_1)) ctx) env scps_p)
+                       (Stx (Cons stx_fun stl_args) ctx_1)) ctx) ξ scps_p)
         ∘ κ σ Σ)
        ((ph (Stx (Cons id-seq
                        (Cons stx-nil
-                             (Cons stx_fun stl_args))) ctx) env scps_p)
+                             (Cons stx_fun stl_args))) ctx) ξ scps_p)
         ∘
-        ((Stx (Cons id_app hole) ctx) • loc_new)
+        ((Stx (Cons id_app hole) ctx) • 𝓁_new)
         σ_1 Σ)
 
        (where #%app (resolve ph id_app Σ))
-       (where (values loc_new σ_1) (push-cont σ κ))
+       (where (values 𝓁_new σ_1) (push-κ σ κ))
        ex-#%app2)
 
   ;; application
-  (==> ((ph (Stx (Cons stx_fun stl_args) ctx) env scps_p) ∘ κ σ Σ)
+  (==> ((ph (Stx (Cons stx_fun stl_args) ctx) ξ scps_p) ∘ κ σ Σ)
        ((ph (Stx (Cons id-seq
                        (Cons stx-nil
-                             (Cons stx_fun stl_args))) ctx) env scps_p)
+                             (Cons stx_fun stl_args))) ctx) ξ scps_p)
         ∘
-        ((Stx (Cons id_app hole) ctx) • loc_new)
+        ((Stx (Cons id_app hole) ctx) • 𝓁_new)
         σ_1 Σ)
 
        (side-condition
         (or (not (redex-match? Lph id (term stx_fun)))
             (let ([name (term (resolve ph stx_fun Σ))])
-              (and (redex-match? Lph not-found (term (lookup-env env ,name)))
+              (and (redex-match? Lph not-found (term (lookup-ξ ξ ,name)))
                    (not (member name
                                 '(lambda let quote syntax let-syntax if
                                    #%app #%kont #%seq #%ls-kont #%snoc)))))))
        (where id_app (Stx (Sym #%app) ctx))
-       (where (values loc_new σ_1) (push-cont σ κ))
+       (where (values 𝓁_new σ_1) (push-κ σ κ))
        ex-app)
 
   ;; reference
-  (==> ((ph id env scps_p) ∘ κ σ Σ)
+  (==> ((ph id ξ scps_p) ∘ κ σ Σ)
        (id_new • κ σ Σ)
 
-       (where (TVar id_new) (lookup-env env (resolve ph id Σ)))
+       (where (TVar id_new) (lookup-ξ ξ (resolve ph id Σ)))
        ex-var)
 
   ;; literal
-  (==> ((ph (Stx atom ctx) env scps_p) ∘ κ σ Σ)
+  (==> ((ph (Stx atom ctx) ξ scps_p) ∘ κ σ Σ)
        ((Stx (Cons (Stx (Sym quote) ctx) (Cons (Stx atom ctx) ())) ctx)
         • κ σ Σ)
 
@@ -594,16 +614,16 @@
        ex-lit)
 
   ;; pop κ
-  (==> (stx • (STX ex? loc) σ Σ)
+  (==> (stx • (STX ex? 𝓁) σ Σ)
        ((in-hole STX stx) ex? κ σ Σ)
 
-       (where κ (lookup-σ σ loc))
+       (where κ (lookup-σ σ 𝓁))
        ex-pop-κ)
 
   ;; expression sequence
   ;;  (expand (seq (exped ...))) --> (exped ...)
   (==> ((ph (Stx (Cons id_seq
-                       (Cons (Stx val_expeds (Map)) ())) ctx) env scps_p)
+                       (Cons (Stx val_expeds (Map)) ())) ctx) ξ scps_p)
         ∘ κ σ Σ)
        ((Stx val_expeds ctx) • κ σ Σ)
 
@@ -614,9 +634,9 @@
   ;;   (expand (seq (done ... (expand exp0)) exp ...))
   (==> ((ph (Stx (Cons id_seq
                        (Cons (Stx val_dones (Map))
-                             (Cons stx_exp0 stl_exps))) ctx) env scps_p)
+                             (Cons stx_exp0 stl_exps))) ctx) ξ scps_p)
         ∘ κ σ Σ)
-       ((ph stx_exp0 env scps_p)
+       ((ph stx_exp0 ξ scps_p)
         ∘
         ((ph (Stx (Cons id-kont
                         (Cons id_seq
@@ -624,11 +644,11 @@
                                (Stx (Cons id-snoc
                                           (Cons (Stx val_dones (Map)) hole))
                                     (Map))
-                               stl_exps))) ctx) env scps_p) ∘ loc_new)
+                               stl_exps))) ctx) ξ scps_p) ∘ 𝓁_new)
         σ_1 Σ)
 
        (where #%seq (resolve ph id_seq Σ))
-       (where (values loc_new σ_1) (push-cont σ κ))
+       (where (values 𝓁_new σ_1) (push-κ σ κ))
        ex-seq-cons)
 
   (==> ((ph (Stx (Cons id_kont
@@ -637,11 +657,11 @@
                                               (Cons (Stx val_exps ctx_1)
                                                     (Stx val_exp ctx_2)))
                                         (Map))
-                                   stl_exps))) ctx) env scps_p)
+                                   stl_exps))) ctx) ξ scps_p)
         ∘ κ σ Σ)
        ((ph (Stx (Cons id_seq
                        (Cons (Stx val_exps2 ctx_1)
-                             stl_exps)) ctx) env scps_p)
+                             stl_exps)) ctx) ξ scps_p)
         ∘ κ σ Σ)
 
        (where #%seq (resolve ph id_seq Σ))
@@ -662,30 +682,31 @@
    (-->c s1 s2)))
 
 (define-metafunction Lph
-  expand : ph stx env scps Σ -> (values stx Σ)
-  [(expand ph stx env scps_p Σ)
+  expand : ph stx ξ scps Σ -> (values stx Σ)
+  [(expand ph stx ξ scps_p Σ)
    (values stx_new Σ_new)
    (where ((stx_new • • σ_new Σ_new))
           ,(apply-reduction-relation*
             ==>c
-            (term ((ph stx env scps_p) ∘ • (Heap 0) Σ))))])
+            (term ((ph stx ξ scps_p) ∘ • (ℋ 0) Σ))))])
 
 ;; for debug
 
-(define (step==> form)
-  (stepper
-   ==>c (term ((0 ,(run form 'read) (primitives-env) (Set))
-               ∘ • (Heap 0) (init-Σ)))))
+(module+ gui
+  (define (step==> form)
+    (stepper
+     ==>c (term ((0 ,(run form 'read) (primitives-ξ) (Set))
+                 ∘ • (ℋ 0) (init-Σ)))))
 
-(define (trace==> form)
-  (traces
-   ==>c (term ((0 ,(run form 'read) (primitives-env) (Set))
-               ∘ • (Heap 0) (init-Σ)))))
+  (define (trace==> form)
+    (traces
+     ==>c (term ((0 ,(run form 'read) (primitives-ξ) (Set))
+                 ∘ • (ℋ 0) (init-Σ))))))
 
 (define (expand==> form)
   (apply-reduction-relation*
-   ==>c (term ((0 ,(run form 'read) (primitives-env) (Set))
-               ∘ • (Heap 0) (init-Σ)))))
+   ==>c (term ((0 ,(run form 'read) (primitives-ξ) (Set))
+               ∘ • (ℋ 0) (init-Σ)))))
 
 (define (expand&parse form)
   (let ([r (expand==> form)])
@@ -704,7 +725,7 @@
 
 (define-metafunction Lph
   expander : stx -> (values stx Σ)
-  [(expander stx) (expand 0 stx (primitives-env) (Set) (init-Σ))])
+  [(expander stx) (expand 0 stx (primitives-ξ) (Set) (init-Σ))])
 
 (define-metafunction Lph
   parse/values : (values stx Σ) -> ast

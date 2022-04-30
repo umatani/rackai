@@ -29,7 +29,7 @@
   
   ;; create definition binding (for a variable)
   [(eval ph (App syntax-local-bind-syntaxes ast_ids ast_stx ast_defs) scp_i env Σ*)
-   (values 0 (Tup Σ_7 scps_p4 scps_u4))
+   (values (Cons id_defs ()) (Tup Σ_7 scps_p4 scps_u4))
    (where (values (Defs scp_defs addr) Σ*_2) (eval ph ast_defs scp_i env Σ*))
    (where (values (Cons id_arg ()) Σ*_3) (eval ph ast_ids scp_i env Σ*_2))
    (where (values #f Σ*_4) (eval ph ast_stx scp_i env Σ*_3))
@@ -42,7 +42,8 @@
 
   ;; create macro definition binding
   [(eval ph (App syntax-local-bind-syntaxes ast_ids ast_stx ast_defs) scp_i env Σ*)
-   (values 0 Σ*_9)
+   (values (Cons id_defs ()) Σ*_9)
+   ;(side-condition (printf "bind-syntaxes start: ~a\n" (term ph)))
    (where (values (Defs scp_defs addr) Σ*_2) (eval ph ast_defs scp_i env Σ*))
    (where (values (Cons id_arg ()) Σ*_3) (eval ph ast_ids scp_i env Σ*_2))
    (where (values stx_arg Σ*_4) (eval ph ast_stx scp_i env Σ*_3))
@@ -55,6 +56,8 @@
    (where (Tup Σ_6 _ _) Σ*_6)
    (where env_defs (def-env-lookup Σ_6 addr))
    (where id_defs (add ph (prune ph (flip ph id_arg scp_i) scps_u4) scp_defs))
+   ;(side-condition (printf "bind-syntaxes id_arg: ~a\n" (term id_arg)))
+   ;(side-condition (printf "bind-syntaxes id_defs: ~a\n" (term id_defs)))
    (where (values nam_new Σ_7) (alloc-name id_defs Σ_6))
    (where Σ_8 (bind ph Σ_7 id_defs nam_new))
    (where Σ*_9 (Tup (def-env-update Σ_8 addr (extend-env env_defs nam_new val_exp)) scps_p4 scps_u4))]
@@ -64,9 +67,11 @@
   ;;   definition context's scope and using its environment
   [(eval ph (App local-expand ast_expr any_contextv ast_stops ast_defs) scp_i env Σ*)
    (values stx_exp2 Σ*_5)
+   ;(side-condition (printf "local-expand2 start: ~a ~a\n" (term ph) (term scp_i)))
    (where (values stx Σ*_2) (eval ph ast_expr scp_i env Σ*))
    (where (values val_idstops Σ*_3) (eval ph ast_stops scp_i env Σ*_2))
    (where (values (Defs scp_defs addr) Σ*_4) (eval ph ast_defs scp_i env Σ*_3))
+   ;(side-condition (printf "local-expand2 stx: ~a\n" (term stx)))
    (where (Tup Σ_4 _ _) Σ*_4)
    (where env_defs (def-env-lookup Σ_4 addr))
    (where env_unstops
@@ -74,9 +79,34 @@
    (where (nam_stop ...) (resolve* ph val_idstops Σ_4))
    (where env_stops
           (extend-env* env_unstops ((nam_stop (TStop (lookup-env env_unstops nam_stop))) ...)))
+   ; TODO?: 下の(flip ph stx scp_i)は間違い？？しかしdefsを使わない場合にもこれはある．．．
+   ;   これがあると，少なくともunit-4が通らない
+   ;   しかし，flipしなければdefs-begin-with-defnの挙動が実際の処理系と異なってしまう．
    (where (values stx_exp Σ*_5) (expand ph (add ph (flip ph stx scp_i) scp_defs) env_stops Σ*_4))
+   ;(where (values stx_exp Σ*_5) (expand ph (add ph stx scp_defs) env_stops Σ*_4))
    (where stx_exp2 (flip ph stx_exp scp_i))]
   
+  ;; local value with definition context
+  ;; - similar to the basic local value case, but using definition
+  ;;   context's environment
+  ;; - Unlike the fourth argument to local-expand, the scopes associated with
+  ;;   the provided definition contexts are not used to enrich id-stx’s
+  ;;   lexical information.
+  [(eval ph (App syntax-local-value ast_id #f ast_defs) scp_i env Σ*)
+   (values val Σ*_3)
+   ;(side-condition (printf "local-value2 start: ~a\n" (term ph)))
+   (where (values id_result Σ*_2) (eval ph ast_id scp_i env Σ*))
+   (where (values (Defs scp_defs addr) Σ*_3) (eval ph ast_defs scp_i env Σ*_2))
+   (where (Tup Σ_3 _ _) Σ*_3)
+   (where env_defs (def-env-lookup Σ_3 addr))
+   (where nam (resolve ph id_result Σ_3))
+   ;(side-condition (printf "local-value2 id_result: ~a\n" (term id_result)))
+   ;(side-condition (printf "local-value2 Σ_3: ~a\n" (term Σ_3)))
+   ;(side-condition (printf "local-value2 nam: ~a\n" (term nam)))
+   (where val (lookup-env env_defs nam))
+   ]
+
+
   ;; ----------------------------------------
   ;; Including boxes lets us implement recursive definitions as a
   ;; macro, including variable definitions that are in a recursive
@@ -104,9 +134,15 @@
   
   ;; local value
   [(eval ph (App syntax-local-value ast_id) scp_i env Σ*)
-   (values (lookup-env env (resolve ph id_result Σ_2)) Σ*_2)
+   (values val Σ*_2)
+   ;(side-condition (printf "local-value start: ~a\n" (term ph)))
    (where (values id_result Σ*_2) (eval ph ast_id scp_i env Σ*))
-   (where (Tup Σ_2 _ _) Σ*_2)]
+   (where (Tup Σ_2 _ _) Σ*_2)
+   (where nam (resolve ph id_result Σ_2))
+   ;(side-condition (printf "local-value id_result: ~a\n" (term id_result)))
+   ;(side-condition (printf "local-value Σ_2: ~a\n" (term Σ_2)))
+   ;(side-condition (printf "local-value nam: ~a\n" (term nam)))
+   (where val (lookup-env env nam))]
 
   ;; local expand
   [(eval ph (App local-expand ast_expr any_contextv ast_stops) scp_i env Σ*)
@@ -349,7 +385,12 @@
   [(expand ph stx_macapp env (Tup Σ scps_p scps_u))
    (expand ph (flip ph stx_exp scp_i) env Σ*_3)
    (where (Stx (Cons id_mac stl_args) ctx) stx_macapp)
-   (where val (lookup-env env (resolve ph id_mac Σ)))
+   (where nam_mac (resolve ph id_mac Σ))
+   ;(side-condition (printf "macro-inv start: ~a\n" (term ph)))
+   ;(side-condition (printf "macro-inv id_mac: ~a\n" (term id_mac)))
+   ;(side-condition (printf "macro-inv Σ: ~a\n" (term Σ)))
+   ;(side-condition (printf "macro-inv nam_mac: ~a\n" (term nam_mac)))
+   (where val (lookup-env env nam_mac))
    (where (values scp_u Σ_1) (alloc-scope Σ))
    (where (values scp_i Σ_2) (alloc-scope Σ_1))
    (where Σ*_2 (Tup Σ_2 (union (Set scp_u) scps_p) (union (Set scp_u) scps_u)))
@@ -929,3 +970,65 @@
        (WR (metafunction->pict add #:contract? #t)))
      (parameterize ([compact-metafunction #t])
        (WR (metafunction->pict flip #:contract? #t))))))
+
+
+;;;; unit tests
+
+(define (unit-0)
+ (run '(let-syntax
+           ([f (lambda (stx)
+                 (let ([defs (syntax-local-make-definition-context)])
+                   (let ([id (syntax-local-bind-syntaxes
+                              (list #'id) #f defs)])
+                     #'(+ 1 2))))])
+         (f)) 'eval))
+
+
+;; これは本物の処理系でもダメ
+(define (unit-1)
+  (run '(let-syntax
+            ([f (lambda (stx)
+                  (syntax-case stx ()
+                    [(f x)
+                     (let ([defs (syntax-local-make-definition-context)])
+                       (let ([ignored (syntax-local-bind-syntaxes
+                                       (list #'x) #'#''id defs)])
+                         (syntax-local-value #'x #f defs)))]))])
+          (f a)) 'eval))
+
+(define (unit-2)
+  (run '(let-syntax
+            ([m (lambda (stx)
+                  (let ([defs (syntax-local-make-definition-context)])
+                    (let ([ids (syntax-local-bind-syntaxes
+                                (list #'f) #'#''id defs)])
+                      (syntax-local-value (car ids) #f defs))))])
+          (m)) 'eval))
+
+(define (unit-3)
+  (run '(let-syntax
+            ([m (lambda (stx)
+                  (let ([defs (syntax-local-make-definition-context)])
+                    (let ([ignored (syntax-local-bind-syntaxes
+                                    (list (second (syntax-e stx)))
+                                    #'(lambda (stx) #'(+ 1 2))
+                                    defs)])
+                      (local-expand (datum->syntax
+                                     #'here
+                                     (list (second (syntax-e stx))))
+                                    'expression '() defs))))])
+          (m f)) 'eval))
+
+(define (unit-4)
+  (run '(let-syntax
+            ([m (lambda (stx)
+                  (let ([defs (syntax-local-make-definition-context)])
+                    (let ([ids (syntax-local-bind-syntaxes
+                                (list #'f)
+                                #'(lambda (stx) #'(+ 1 2))
+                                defs)])
+                      (local-expand (datum->syntax
+                                     #'here
+                                     (list (car ids)))
+                                    'expression '() defs))))])
+          (m)) 'eval))

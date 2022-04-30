@@ -1,7 +1,6 @@
 #lang racket
-(require redex redex/parameter
+(require redex/reduction-semantics redex/parameter
          "common.rkt"
-         slideshow/pict
          (only-in "core-machine.rkt"
                   plus biggest-subset
                   primitives-env init-Σ union
@@ -23,20 +22,14 @@
                   [run phases:run])
          (for-syntax racket/list))
 
-(provide Lloc
-         extend-env*
-         unstop
-         run local:examples
-         (all-from-out "phases-machine.rkt"))
-
 (define-extended-language Lloc Lph
   [maybe-scp ::= scp no-scope] ; new
   [Σ* ::= (Tup Σ scps scps)] ; new
 
   [cont ::=
         •
-        (App (ph maybe-scp env) val ... [] clo ... loc) ; updated (ph maybe-scp env)
-        (If [] clo clo loc)]
+        (App (ph maybe-scp env) val ... hole clo ... loc) ; updated (ph maybe-scp env)
+        (If hole clo clo loc)]
   [ser ::=
        (ph ast ρ maybe-scp env) ; updated (ph ρ maybe-scp env)
        (App (ph maybe-scp env) clo ...) ; updated (ph maybe-scp env)
@@ -63,8 +56,7 @@
      ]
   [cfg ::=
        (stx∘ ex? κ σ Σ*) ; updated (Σ -> Σ*)
-       (in-eval state cfg)]
-  )
+       (in-eval state cfg)])
 
 ;; ----------------------------------------
 ;; Evaluating AST:
@@ -104,31 +96,61 @@
    ((resolve ph id Σ) nam ...)
    (where (nam ...) (resolve* ph val Σ))])
 
-(define-reduction-relation -->c
-  Lloc #:domain state
+(define-reduction-relation -->c Lloc
+  #:domain state
 
   ;; propagate ρ into subterms
-  (--> ((ph (If ast_test ast_then ast_else) ρ maybe-scp env) cont σ Σ*)
+  [--> ((ph (If ast_test ast_then ast_else) ρ maybe-scp env) cont σ Σ*)
        ((If (ph ast_test ρ maybe-scp env)
             (ph ast_then ρ maybe-scp env)
             (ph ast_else ρ maybe-scp env)) cont σ Σ*)
-       ev-ρ-if)
+       ev-ρ-if]
 
-  (--> ((ph (App ast_fun ast_arg ...) ρ maybe-scp env) cont σ Σ*)
+  [--> ((ph (App ast_fun ast_arg ...) ρ maybe-scp env) cont σ Σ*)
        ((App (ph maybe-scp env)
              (ph ast_fun ρ maybe-scp env)
              (ph ast_arg ρ maybe-scp env) ...) cont σ Σ*)
-       ev-ρ-app)
+       ev-ρ-app]
+
+  ;; value
+  [--> ((ph val ρ maybe-scp env) cont σ Σ*)
+       (val cont σ Σ*)
+       ev-val]
+
+  ;; reference
+  [--> ((ph var ρ maybe-scp env) cont σ Σ*)
+       ((ph (lookup-σ σ (find ρ var)) ρ maybe-scp env) cont σ Σ*)
+       ev-x]
+
+  ;; lambda
+  [--> ((ph (Fun (var ...) ast) ρ maybe-scp env) cont σ Σ*)
+       ((ph (Fun (var ...) ast ρ) ρ maybe-scp env) cont σ Σ*)
+       ev-lam]
+
+  ;; application
+  [--> ((App (ph maybe-scp env)
+             val ... ser clo ...) cont σ Σ*)
+       (ser (App (ph maybe-scp env)
+                 val ... hole clo ... loc_new) σ_1 Σ*)
+
+       (where (values loc_new σ_1) (push-cont σ cont))
+       ev-push-app]
+
+  [--> (val_0 (App (ph maybe-scp env)
+                   val ... hole clo ... loc_cont) σ Σ*)
+       ((App (ph maybe-scp env)
+             val ... val_0 clo ...) (lookup-σ σ loc_cont) σ Σ*)
+       ev-pop-app]
 
   ;; local value
-  (--> ((App (ph maybe-scp env)
+  [--> ((App (ph maybe-scp env)
              syntax-local-value id) cont σ Σ*)
        ((lookup-env env (resolve ph id Σ)) cont σ Σ*)
        (where (Tup Σ _ _) Σ*)
-       ev-lval)
+       ev-lval]
 
   ;; local expand
-  (--> ((App (ph scp_i env)
+  [--> ((App (ph scp_i env)
              local-expand stx any_contextv val_idstops) cont σ Σ*)
        (in-expand ((ph (flip ph stx scp_i) env_stops) ∘ • (Heap 0) Σ*)
                   ((App (ph scp_i env) local-expand2) cont σ Σ*))
@@ -143,98 +165,68 @@
                env_unstops
                ((nam_stop (TStop (lookup-env env_unstops nam_stop)))
                 ...)))
-       ev-lexpand)
+       ev-lexpand]
 
-  (--> (in-expand (stx_exp • • σ_new Σ*)
+  [--> (in-expand (stx_exp • • σ_new Σ*)
                   ((App (ph scp_i env) local-expand2) cont σ _))
        ((flip ph stx_exp scp_i) cont σ Σ*)
-       ev-lexpand2)
+       ev-lexpand2]
 
   ;; local binder
-  (--> ((App (ph maybe-scp env)
+  [--> ((App (ph maybe-scp env)
              syntax-local-identifier-as-binding id) cont σ Σ*)
        ((prune ph id scps_u) cont σ Σ*)
 
        (where (Tup _ _ scps_u) Σ*)
-       ev-lbinder)
-
-  ;; value
-  (--> ((ph val ρ maybe-scp env) cont σ Σ*)
-       (val cont σ Σ*)
-       ev-val)
-
-  ;; reference
-  (--> ((ph var ρ maybe-scp env) cont σ Σ*)
-       ((ph (lookup-σ σ (find ρ var)) ρ maybe-scp env) cont σ Σ*)
-       ev-x)
-
-  ;; lambda
-  (--> ((ph (Fun (var ...) ast) ρ maybe-scp env) cont σ Σ*)
-       ((ph (Fun (var ...) ast ρ) ρ maybe-scp env) cont σ Σ*)
-       ev-lam)
-
-  ;; application
-  (--> ((App (ph maybe-scp env)
-             val ... ser clo ...) cont σ Σ*)
-       (ser (App (ph maybe-scp env)
-                 val ... [] clo ... loc_new) σ_1 Σ*)
-
-       (where (values loc_new σ_1) (push-cont σ cont))
-       ev-push-app)
-
-  (--> (val_0 (App (ph maybe-scp env)
-                   val ... [] clo ... loc_cont) σ Σ*)
-       ((App (ph maybe-scp env)
-             val ... val_0 clo ...) (lookup-σ σ loc_cont) σ Σ*)
-       ev-pop-app)
+       ev-lbinder]
 
   ;; β
-  (--> ((App (ph maybe-scp env)
+  [--> ((App (ph maybe-scp env)
              (Fun ((Var nam) ...) ast ρ) val ...) cont σ Σ*)
        ((ph ast ρ_new maybe-scp env) cont σ_2 Σ*)
 
        (where (values (loc ...) σ_1) (alloc-loc* (nam ...) σ))
        (where ρ_new (ext ρ ((Var nam) loc) ...))
        (where σ_2 (update-σ* σ_1 (loc val) ...))
-       ev-β)
+       ev-β]
 
   ;; primitive application
-  (--> ((App (ph maybe-scp env)
+  [--> ((App (ph maybe-scp env)
              prim val ...) cont σ Σ*)
        ((δ prim (val ...)) cont σ Σ*)
 
        (side-condition (not (redex-match? Lloc stx-prim (term prim))))
-       ev-δ)
+       ev-δ]
 
   ;; if
-  (--> ((If ser_test clo_then clo_else) cont σ Σ*)
-       (ser_test (If [] clo_then clo_else loc_new) σ_1 Σ*)
+  [--> ((If ser_test clo_then clo_else) cont σ Σ*)
+       (ser_test (If hole clo_then clo_else loc_new) σ_1 Σ*)
 
        (where (values loc_new σ_1) (push-cont σ cont))
-       ev-push-if)
+       ev-push-if]
 
-  (--> (val (If [] clo_then clo_else loc_cont) σ Σ*)
+  [--> (val (If hole clo_then clo_else loc_cont) σ Σ*)
        ((If val clo_then clo_else) (lookup-σ σ loc_cont) σ Σ*)
-       ev-pop-if)
+       ev-pop-if]
 
-  (--> ((If #f clo_then clo_else) cont σ Σ*)
+  [--> ((If #f clo_then clo_else) cont σ Σ*)
        (clo_else cont σ Σ*)
-       ev-if-#f)
+       ev-if-#f]
 
-  (--> ((If val clo_then clo_else) cont σ Σ*)
+  [--> ((If val clo_then clo_else) cont σ Σ*)
        (clo_then cont σ Σ*)
 
        (side-condition (not (equal? (term val) #f)))
-       ev-if-#t)
+       ev-if-#t]
 
   ;; one-step eval (==>c)
-  (==>c cfg cfg_new
+  [==>c cfg cfg_new
         (where (cfg_new)
-               ,(apply-reduction-relation ==>c (term cfg))))
+               ,(apply-reduction-relation ==>c (term cfg)))]
 
   with
-  ((--> (in-expand c1 state) (in-expand c2 state))
-   (==>c c1 c2)))
+  [(--> (in-expand c1 state) (in-expand c2 state))
+   (==>c c1 c2)])
 
 (define-metafunction Lloc
   eval : ph ast maybe-scp env Σ* -> (values val Σ*)
@@ -247,11 +239,13 @@
 
 ;; for debug
 
-(define (trace--> form)
-  (traces
-   -->c
-   (term ((0 ,(run form 'parse) () no-scope ())
-          • (Heap 0) (Tup (init-Σ) (Set) (Set))))))
+(module+ gui
+  (require redex/gui)
+  (define (trace--> form)
+    (traces
+     -->c
+     (term ((0 ,(run form 'parse) () no-scope ())
+            • (Heap 0) (Tup (init-Σ) (Set) (Set)))))))
 
 (define (eval--> form)
   (apply-reduction-relation*
@@ -268,8 +262,7 @@
 (define-term id-snoc (Stx (Sym #%snoc) (Map)))
 (define-term stx-nil (Stx () (Map)))
 
-(define-reduction-relation ==>c
-  Lloc
+(define-reduction-relation ==>c Lloc
   #:domain cfg #:arrow ==> ;; cfg = (stx∘ ex? κ σ Σ*)
 
   ;; stops
@@ -642,15 +635,16 @@
 
 ;; for debug
 
-(define (step==> form)
-  (stepper
-   ==>c (term ((0 ,(run form 'read) (primitives-env))
-               ∘ • (Heap 0) (Tup (init-Σ) (Set) (Set))))))
+(module+ gui
+  (define (step==> form)
+    (stepper
+     ==>c (term ((0 ,(run form 'read) (primitives-env))
+                 ∘ • (Heap 0) (Tup (init-Σ) (Set) (Set))))))
 
-(define (trace==> form)
-  (traces
-   ==>c (term ((0 ,(run form 'read) (primitives-env))
-               ∘ • (Heap 0) (Tup (init-Σ) (Set) (Set))))))
+  (define (trace==> form)
+    (traces
+     ==>c (term ((0 ,(run form 'read) (primitives-env))
+                 ∘ • (Heap 0) (Tup (init-Σ) (Set) (Set)))))))
 
 (define (expand==> form)
   (apply-reduction-relation*

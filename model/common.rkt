@@ -56,15 +56,16 @@
     (println
      (case mode
        [(raw) (r:eval (cadr example))]
-       [(check) (parameterize ([fail-count (or (fail-count) 0)])
-                 (let ([result (equal? (run (cadr example) 'eval)
-                                       (r:eval (cadr example)))])
-                   (unless result
-                     (fail-count (+ (fail-count) 1)))
-                   result))]
+       [(check)
+        (fail-count (or (fail-count) 0))
+        (let ([result (equal? (run (cadr example) 'eval)
+                              (r:eval (cadr example)))])
+          (unless result
+            (fail-count (+ (fail-count) 1)))
+          result)]
        [else (run (cadr example) mode)]))))
 
-(define ((run-all-examples all-runs all-examples) [mode 'eval])
+(define ((run-all-examples all-runs all-examples) [mode 'check])
   (parameterize ([fail-count (if (eq? mode 'check) 0 #f)])
     (for ([run (in-list all-runs)]
           [idx (in-naturals 1)])
