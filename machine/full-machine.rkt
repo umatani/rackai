@@ -109,41 +109,41 @@
 ;; Box allocations and updates:
 
 (define-metafunction Lfull
-  alloc-box : Σ -> (values addr Σ)
+  alloc-box : Σ -> (values 𝓁 Σ)
   [(alloc-box (Sto number (binds ...)))
-   (values ,(string->symbol (format "bx:~a" (term number)))
+   (values ,(string->symbol (format "b:~a" (term number)))
            (Sto ,(add1 (term number)) (binds ...)))])
 
 (define-metafunction Lfull
-  box-lookup : Σ addr -> val
-  [(box-lookup (Sto _ (_ ... [addr val] _ ...)) addr) val])
+  box-lookup : Σ 𝓁 -> val
+  [(box-lookup (Sto _ (_ ... [𝓁 val] _ ...)) 𝓁) val])
 
 (define-metafunction Lfull
-  box-update : Σ addr val -> Σ
-  [(box-update (Sto number (binds_1 ... [addr _] binds_2 ...)) addr val)
-   (Sto number (binds_1 ... [addr val] binds_2 ...))]
-  [(box-update (Sto number (binds ...)) addr val)
-   (Sto number ([addr val] binds ...))])
+  box-update : Σ 𝓁 val -> Σ
+  [(box-update (Sto number (binds_1 ... [𝓁 _] binds_2 ...)) 𝓁 val)
+   (Sto number (binds_1 ... [𝓁 val] binds_2 ...))]
+  [(box-update (Sto number (binds ...)) 𝓁 val)
+   (Sto number ([𝓁 val] binds ...))])
 
 ;; ----------------------------------------
 ;; Definition-context environment allocations and updates:
 
 (define-metafunction Lfull
-  alloc-def-ξ : Σ -> (values addr Σ)
+  alloc-def-ξ : Σ -> (values 𝓁 Σ)
   [(alloc-def-ξ (Sto number (binds ...)))
    (values ,(string->symbol (format "ξ:~a" (term number)))
            (Sto ,(add1 (term number)) (binds ...)))])
 
 (define-metafunction Lfull
-  def-ξ-lookup : Σ addr -> ξ
-  [(def-ξ-lookup (Sto _ (_ ... [addr ξ] _ ...)) addr) ξ])
+  def-ξ-lookup : Σ 𝓁 -> ξ
+  [(def-ξ-lookup (Sto _ (_ ... [𝓁 ξ] _ ...)) 𝓁) ξ])
 
 (define-metafunction Lfull
-  def-ξ-update : Σ addr ξ -> Σ
-  [(def-ξ-update (Sto number (binds_1 ... [addr _] binds_2 ...)) addr ξ)
-   (Sto number (binds_1 ... [addr ξ] binds_2 ...))]
-  [(def-ξ-update (Sto number (binds ...)) addr ξ)
-   (Sto number ([addr ξ] binds ...))])
+  def-ξ-update : Σ 𝓁 ξ -> Σ
+  [(def-ξ-update (Sto number (binds_1 ... [𝓁 _] binds_2 ...)) 𝓁 ξ)
+   (Sto number (binds_1 ... [𝓁 ξ] binds_2 ...))]
+  [(def-ξ-update (Sto number (binds ...)) 𝓁 ξ)
+   (Sto number ([𝓁 ξ] binds ...))])
 
 
 (define-reduction-relation -->c Lfull
@@ -210,10 +210,10 @@
   ;;   the provided definition contexts are not used to enrich id-stx’s
   ;;   lexical information.
   [--> ((App (ph maybe-scp ξ)
-             syntax-local-value id #f (Defs scp_defs addr)) cont store Σ*)
+             syntax-local-value id #f (Defs scp_defs 𝓁)) cont store Σ*)
        ((lookup-ξ ξ_defs (resolve ph id Σ)) cont store Σ*)
        (where (Tup Σ _ _) Σ*)
-       (where ξ_defs (def-ξ-lookup Σ addr))
+       (where ξ_defs (def-ξ-lookup Σ 𝓁))
        ev-lval-defs]
 
   ;; local binder
@@ -226,11 +226,11 @@
   ;; create definition context
   [--> ((App (ph scp_i ξ)
              syntax-local-make-definition-context) cont store Σ*)
-       ((Defs scp_defs addr) cont store Σ*_3)
+       ((Defs scp_defs 𝓁) cont store Σ*_3)
        (where (Tup Σ scps_p scps_u) Σ*)
        (where (values scp_defs Σ_2) (alloc-scope Σ))
-       (where (values addr Σ_3) (alloc-def-ξ Σ_2))
-       (where Σ*_3 (Tup (def-ξ-update Σ_2 addr ξ)
+       (where (values 𝓁 Σ_3) (alloc-def-ξ Σ_2))
+       (where Σ*_3 (Tup (def-ξ-update Σ_2 𝓁 ξ)
                          (union (Set scp_defs) scps_p)
                          scps_u))
        ev-slmdc]
@@ -238,7 +238,7 @@
   ;; create definition binding (for a variable)
   [--> ((App (ph scp_i ξ)
              syntax-local-bind-syntaxes
-             (Cons id_arg ()) #f (Defs scp_defs addr)) cont store Σ*)
+             (Cons id_arg ()) #f (Defs scp_defs 𝓁)) cont store Σ*)
        ((Cons id_defs ()) cont store (Tup Σ_3 scps_p scps_u))
        (where (Tup Σ scps_p scps_u) Σ*)
 
@@ -246,19 +246,19 @@
                            scp_defs))
        (where (values nam_new Σ_1) (alloc-name id_defs Σ))
        (where Σ_2 (bind ph Σ_1 id_defs nam_new))
-       (where ξ_defs (def-ξ-lookup Σ_2 addr))
-       (where Σ_3 (def-ξ-update Σ_2 addr
+       (where ξ_defs (def-ξ-lookup Σ_2 𝓁))
+       (where Σ_3 (def-ξ-update Σ_2 𝓁
                      (extend-ξ ξ_defs nam_new (TVar id_defs))))
        ev-slbcv]
 
   ;; create macro definition binding
   [--> ((App (ph scp_i ξ)
              syntax-local-bind-syntaxes
-             (Cons id_arg ()) stx_arg (Defs scp_defs addr)) cont store Σ*)
+             (Cons id_arg ()) stx_arg (Defs scp_defs 𝓁)) cont store Σ*)
        ((ph (parse (plus ph 1) stx_exp Σ_2) () no-scope ξ)
         (App (ph scp_i ξ)
              (syntax-local-bind-syntaxes2 scps_p scps_u)
-             (Cons id_arg ()) (Defs scp_defs addr) hole loc_new)
+             (Cons id_arg ()) (Defs scp_defs 𝓁) hole loc_new)
         store_1 (Tup Σ_2 scps_p (Set)))
        (where (Tup Σ scps_p scps_u) Σ*)
        (where stx_arg2 (add ph (flip ph stx_arg scp_i) scp_defs))
@@ -270,17 +270,17 @@
 
   [--> ((App (ph scp_i ξ)
              (syntax-local-bind-syntaxes2 scps_p scps_u)
-             (Cons id_arg ()) (Defs scp_defs addr) val_exp) cont store Σ*)
+             (Cons id_arg ()) (Defs scp_defs 𝓁) val_exp) cont store Σ*)
        ((Cons id_defs ()) cont store Σ*_4)
        ;(side-condition (printf "local-bind-syntaxes2:\n"))
        (where (Tup Σ _ _) Σ*)
-       (where ξ_defs (def-ξ-lookup Σ addr))
+       (where ξ_defs (def-ξ-lookup Σ 𝓁))
        (where id_defs (add ph
                            (prune ph (flip ph id_arg scp_i) scps_u)
                            scp_defs))
        (where (values nam_new Σ_2) (alloc-name id_defs Σ))
        (where Σ_3 (bind ph Σ_2 id_defs nam_new))
-       (where Σ*_4 (Tup (def-ξ-update Σ_3 addr
+       (where Σ*_4 (Tup (def-ξ-update Σ_3 𝓁
                            (extend-ξ ξ_defs nam_new val_exp))
                          scps_p scps_u))
        ev-slbcm2]
@@ -321,9 +321,9 @@
                    ∘ • (ℋ 0) Σ*)
                   ((App (ph scp_i ξ) local-expand2) cont store Σ*))
        ;(side-condition (printf "local-expand2:\n"))
-       (where (Defs scp_defs addr) val_defs)
+       (where (Defs scp_defs 𝓁) val_defs)
        (where (Tup Σ _ _) Σ*)
-       (where ξ_defs (def-ξ-lookup Σ addr))
+       (where ξ_defs (def-ξ-lookup Σ 𝓁))
        (where ξ_unstops
               ,(map (lambda (p) (list (car p) (term (unstop ,(cadr p)))))
                     (term ξ_defs)))
@@ -342,22 +342,22 @@
   ;; box
   [--> ((App (ph maybe-scp ξ)
              box val) cont store Σ*)
-       (addr cont store (Tup (box-update Σ_1 addr val) scps_p scps_u))
+       (𝓁 cont store (Tup (box-update Σ_1 𝓁 val) scps_p scps_u))
        (where (Tup Σ scps_p scps_u) Σ*)
-       (where (values addr Σ_1) (alloc-box Σ))
+       (where (values 𝓁 Σ_1) (alloc-box Σ))
        ev-box]
 
   ;; unbox
   [--> ((App (ph maybe-scp ξ)
-             unbox addr) cont store Σ*)
-       ((box-lookup Σ addr) cont store Σ*)
+             unbox 𝓁) cont store Σ*)
+       ((box-lookup Σ 𝓁) cont store Σ*)
        (where (Tup Σ _ _) Σ*)
        ev-unbox]
 
   ;; set-box!
   [--> ((App (ph maybe-scp ξ)
-             set-box! addr val) cont store Σ*)
-       (val cont store (Tup (box-update Σ addr val) scps_p scps_u))
+             set-box! 𝓁 val) cont store Σ*)
+       (val cont store (Tup (box-update Σ 𝓁 val) scps_p scps_u))
        (where (Tup Σ scps_p scps_u) Σ*)
        ev-set-box!]
 

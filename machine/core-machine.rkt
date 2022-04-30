@@ -97,8 +97,8 @@
         number
         boolean
         ;; Not used until definition-context model:
-        addr
-        (Defs scp addr)]
+        𝓁
+        (Defs scp 𝓁)]
   [sym ::= (Sym nam)]
   [prim ::=
         syntax-e
@@ -148,12 +148,10 @@
                )]
   [binds ::=
          [nam (StoBind scps nam) ...]
-         [addr val]
-         [addr ξ]]
-  ;; used in a later model
-  ;[boxes ([addr val] ...)]
-  ;[def-ξs ([addr ξ] ...)]
-  [addr ::= nam]
+         [𝓁 val]
+         [𝓁 ξ]]
+  [σ ::= (ℋ number [𝓁 κ] ...)]
+  [𝓁 ::= nam]
 
   ;; Expand-time continuation:
   [stx∘ ::=
@@ -186,10 +184,8 @@
   [cfg ::=
        (stx∘ ex? κ σ Σ)
        (in-eval state cfg)]
-  [σ ::= (ℋ number [𝓁 κ] ...)]
-  [𝓁 ::= nam]
 
-  ;; Use names for vars, addrs, and scopes
+  ;; Use names for vars, locations, and scopes
   [nam ::= variable-not-otherwise-mentioned]
   [scp ::= nam])
 
