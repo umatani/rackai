@@ -260,7 +260,7 @@
   subtract : scps scps -> scps
   [(subtract scps (Set)) scps]
   [(subtract (Set scp_1 ... scp scp_2 ...) (Set scp scp_3 ...))
-   (subtract (Set scp_1 ... scp_2 ...) (Set scp_3 ...))]
+   (subtract (Set scp_1 ... scp_2 ...) (Set scp scp_3 ...))]
   [(subtract scps (Set scp scp_1 ...))
    (subtract scps (Set scp_1 ...))])
 

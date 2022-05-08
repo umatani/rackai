@@ -7,7 +7,7 @@
 (provide ∈ find ext
          define-helpers define-runner
          r:read r:eval r:expand
-         run-examples run-all-examples)
+         run-ex run-examples run-all-examples)
 
 
 (define-language REDEX)
@@ -39,7 +39,7 @@
      (define-metafunction L
        printer : val -> any
        [(printer (Fun (var ...) ast)) (Fun (var ...) ast)]
-       [(printer (Fun (var ...) ast ρ)) (Fun (var ...) ast)]
+       [(printer (Fun (var ...) ast env)) (Fun (var ...) ast)]
        [(printer (Sym nam)) nam]
        [(printer atom) atom]
        [(printer (Stx val _)) ,(vector 'Stx (term (printer val)))]
@@ -65,22 +65,31 @@
                               (error 'run "unknown mode: ~e" mode))))))))))))
 
 
+;;;; Example runner
+
 (define fail-count (make-parameter #f))
 
-(define (run-examples run examples mode)
+(define (ex-runner run example mode)
+  (printf "~a: " (car example))
+  (println
+   (case mode
+     [(raw) (r:eval (cadr example))]
+     [(check)
+      (fail-count (or (fail-count) 0))
+      (let ([result (equal? (run (cadr example) 'eval)
+                            (r:eval (cadr example)))])
+        (unless result
+          (fail-count (+ (fail-count) 1)))
+        result)]
+     [else (run (cadr example) mode)])))
+
+(define (run-ex run examples name [mode 'check])
+  (let ([example (cadr (assoc name examples))])
+    (ex-runner run example mode)))
+
+(define (run-examples run examples [mode 'check])
   (for ([example (in-list examples)])
-    (printf "~a: " (car example))
-    (println
-     (case mode
-       [(raw) (r:eval (cadr example))]
-       [(check)
-        (fail-count (or (fail-count) 0))
-        (let ([result (equal? (run (cadr example) 'eval)
-                              (r:eval (cadr example)))])
-          (unless result
-            (fail-count (+ (fail-count) 1)))
-          result)]
-       [else (run (cadr example) mode)]))))
+    (ex-runner run example mode)))
 
 (define ((run-all-examples all-runs all-examples) [mode 'check])
   (parameterize ([fail-count (if (eq? mode 'check) 0 #f)])
@@ -92,3 +101,32 @@
         (run-examples (cadr run) examples mode)))
     (when (fail-count)
       (printf "\nfail-count: ~a\n" (fail-count)))))
+
+
+;; (define fail-count (make-parameter #f))
+
+;; (define (run-examples run examples mode)
+;;   (for ([example (in-list examples)])
+;;     (printf "~a: " (car example))
+;;     (println
+;;      (case mode
+;;        [(raw) (r:eval (cadr example))]
+;;        [(check)
+;;         (fail-count (or (fail-count) 0))
+;;         (let ([result (equal? (run (cadr example) 'eval)
+;;                               (r:eval (cadr example)))])
+;;           (unless result
+;;             (fail-count (+ (fail-count) 1)))
+;;           result)]
+;;        [else (run (cadr example) mode)]))))
+
+;; (define ((run-all-examples all-runs all-examples) [mode 'check])
+;;   (parameterize ([fail-count (if (eq? mode 'check) 0 #f)])
+;;     (for ([run (in-list all-runs)]
+;;           [idx (in-naturals 1)])
+;;       (printf "[~a]\n" (car run))
+;;       (for ([i (in-range idx)]
+;;             [examples (in-list all-examples)])
+;;         (run-examples (cadr run) examples mode)))
+;;     (when (fail-count)
+;;       (printf "\nfail-count: ~a\n" (fail-count)))))

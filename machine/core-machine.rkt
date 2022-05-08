@@ -23,7 +23,16 @@
 
 
 ;; TODO
-;;   (2) define, define-syntax
+;;   (0) redex -> racketへ移行．今後の追加機能を試す素地はredexでひととおりできてるはず
+;; 
+;;   (1) define, define-syntax
+;;       とりあえず，上から順のtoplevel primitiveである
+;;         define-values, define-syntaxes
+;;       を実装．define, define-syntaxをマクロ定義してテストをしやすくする．
+;;   (1.5) その後，内部定義(let () (define ...))や (let () (define-syntax ...)
+;;       を local-expand, definition-contextをつかった正式な実装にして
+;;       (ということはlet-values+syntaxesをprimitiveに追加)，それらの
+;;       テスト対象マクロとする．
 
 ;;   (2) toy benchmark
 ;;   loopするメタレベル関数コード&loopする展開先コード&ループで無限にフェーズが大きくなる
@@ -48,9 +57,9 @@
 ;;   (5) Racketへの移植(大きめのベンチマークに必要)
 ;;
 
-;;   eval, expand の small-step reduction化をとりあえずphases-machineまで
-;;     * local-expand以降は，evalとexpandの相互再帰．
-;;       それを有限回に抑える方法は？ということを
+;; [論文に載せること]
+;;  * local-expand以降は，evalとexpandの相互再帰．
+;;     それを有限回に抑える方法は？ということを
 ;;       local-expandを考慮すべきことや抽象化の工夫点として論文に書く．
 ;;       core, phasesでは expand から eval を呼び出すだけなので個々を
 ;;       有限にすれば十分ということも書く．
@@ -59,6 +68,14 @@
 ;;       - 方針1: あらゆるeval, expand呼び出しで同じ探索空間を共有
 ;;       - 方針2: ADIの方法を流用．(call x 探索空間)でキャッシュ．
 ;;         呼出しも有限なのでキャッシュサイズも有限．方針1よりは精度が良さそう．
+;;  * define, define-syntax
+;;       とりあえず，上から順のtoplevel primitiveである
+;;         define-values, define-syntaxes
+;;       を実装．define, define-syntaxをマクロ定義してテストをしやすくする．
+;;  *その後，内部定義(let () (define ...))や (let () (define-syntax ...)
+;;       を local-expand, definition-contextをつかった正式な実装にして
+;;       (ということはlet-values+syntaxesをprimitiveに追加)，それらの
+;;       テスト対象マクロとする．
 
 
 (define-language L
@@ -135,7 +152,7 @@
 
   ;; Expand-time environment:
   [ξ ::= ((nam all-transform) ...)]
-  [transform ::= (TVar id) val κ]
+  [transform ::= (TVar id) val]
   ;; The `TStop' transform type is not used at first:
   [all-transform ::=
                  transform
@@ -345,10 +362,11 @@
   (--> ((val env) cont store) (val cont store) ev-val)
 
   ;; reference
-  (--> ((var env) cont store) (((gen:lookup-store store (find env var)) env) cont store) ev-x)
+  (--> ((var env) cont store)
+       (((gen:lookup-store store (find env var)) env) cont store) ev-x)
 
   ;; lambda
-  (--> (((Fun (var ...) ast)   env) cont store)
+  (--> (((Fun (var ...) ast) env) cont store)
        (((Fun (var ...) ast env) env) cont store)
        ev-lam)
 
@@ -459,7 +477,7 @@
   subtract : scps scps -> scps
   [(subtract scps (Set)) scps]
   [(subtract (Set scp_1 ... scp scp_2 ...) (Set scp scp_3 ...))
-   (subtract (Set scp_1 ... scp_2 ...) (Set scp_3 ...))]
+   (subtract (Set scp_1 ... scp_2 ...) (Set scp scp_3 ...))]
   [(subtract scps (Set scp scp_1 ...))
    (subtract scps (Set scp_1 ...))])
 
@@ -494,16 +512,6 @@
   [(lookup-Σ Σ nam) (Set)])
 
 (define-metafunction L
-  resolve : id Σ -> nam
-  [(resolve (Stx (Sym nam) ctx) Σ)
-   nam_biggest
-   (where (Set (StoBind scps_bind nam_bind) ...) (lookup-Σ Σ nam))
-   (where scps_biggest (biggest-subset ctx (Set scps_bind ...)))
-   (where nam_biggest (binding-lookup (Set (StoBind scps_bind nam_bind) ...)
-                                      scps_biggest))]
-  [(resolve (Stx (Sym nam) ctx) Σ) nam])
-
-(define-metafunction L
   binding-lookup : (Set (StoBind scps nam) ...) scps -> nam ∪ #f
   [(binding-lookup (Set _ ... (StoBind scps nam) _ ...) scps) nam]
   [(binding-lookup _ scps) #f])
@@ -536,6 +544,16 @@
                  #f
                  (first sorted))))]
   [(biggest-subset _ _) (Set)])
+
+(define-metafunction L
+  resolve : id Σ -> nam
+  [(resolve (Stx (Sym nam) ctx) Σ)
+   nam_biggest
+   (where (Set (StoBind scps_bind nam_bind) ...) (lookup-Σ Σ nam))
+   (where scps_biggest (biggest-subset ctx (Set scps_bind ...)))
+   (where nam_biggest (binding-lookup (Set (StoBind scps_bind nam_bind) ...)
+                                      scps_biggest))]
+  [(resolve (Stx (Sym nam) ctx) Σ) nam])
 
 ;; ----------------------------------------
 ;; Simple parsing of already-expanded code
@@ -577,7 +595,7 @@
 
    (where syntax (resolve id_syntax Σ))]
 
-  [; (#%app stx_fun stx_arg ...) トップレベルがstx-pair (cdr部もstx)であることに注意
+  [; (#%app stx_fun stx_arg ...) stx-pair (cdr部もstx)であることに注意
    (parse (Stx (Cons id_app (Stx (Cons stx_fun stl_args) ctx_1)) ctx_2) Σ)
    (App (parse stx_fun Σ) ast_arg ...)
 
@@ -625,7 +643,7 @@
   [(extend-ξ ξ nam all-transform) ((nam all-transform) . ξ)])
 
 ;; ----------------------------------------
-;; Expand-time store operations:
+;; Expand-time stack operations:
 
 (define-metafunction* L
   alloc-κ : Θ -> (values 𝓁 Θ)
@@ -655,9 +673,8 @@
                 [gen:alloc-κ alloc-κ])
   push-κ : Θ κ -> (values 𝓁 Θ)
   [(push-κ Θ κ)
-   (values 𝓁 Θ_2)
-   (where (values 𝓁 Θ_1) (gen:alloc-κ Θ))
-   (where Θ_2 (gen:update-κ Θ_1 𝓁 κ))])
+   (values 𝓁 (gen:update-κ Θ_1 𝓁 κ))
+   (where (values 𝓁 Θ_1) (gen:alloc-κ Θ))])
 
 
 ;; ----------------------------------------
@@ -708,10 +725,11 @@
                                  (Cons stx_body ()))) ctx) ξ) ∘
         κ
         Θ Σ)
-       (((add stx_body scp_new) ξ_new) ∘
-                                         ((Stx (Cons id_lam (Cons (Stx stl_args2 ctx_0)
-                                                                  (Cons hole ()))) ctx) • 𝓁_new)
-                                         Θ_1 Σ_2)
+       (((add stx_body scp_new) ξ_new)
+        ∘
+        ((Stx (Cons id_lam (Cons (Stx stl_args2 ctx_0)
+                                 (Cons hole ()))) ctx) • 𝓁_new)
+        Θ_1 Σ_2)
 
        (where lambda (resolve id_lam Σ))
        (where (values scp_new Σ_1) (alloc-scope Σ))
@@ -847,7 +865,7 @@
                                        (Cons stx_exp ())) ctx_0) ()) ctx_1)
                       (Cons (stx_body2 ξ) ())))) ctx)
         ∘ κ Θ Σ)
-       (in-eval (((parse stx_exp Σ) ()) • (init-store))
+       (in-eval (((parse stx_exp Σ) (init-env)) • (init-store))
                 ((Stx (Cons (Stx (Sym nam_new) (Set))
                             (Cons (stx_body2 ξ) ())) (Set))
                  ∘ κ Θ Σ))
@@ -868,8 +886,10 @@
 
   ;; macro invocation
   (==> ((stx_macapp ξ) ∘ κ Θ Σ)
-       (in-eval (((App val (flip (add stx_macapp scp_u) scp_i)) ()) • (init-store))
-                (((Stx #f (Set scp_i)) ξ) ∘ κ Θ Σ_2))
+       (in-eval
+        (((App val (flip (add stx_macapp scp_u) scp_i)) (init-env))
+         • (init-store))
+        (((Stx #f (Set scp_i)) ξ) ∘ κ Θ Σ_2))
 
        (where (Stx (Cons id_mac stl_args) ctx) stx_macapp)
        (where val (lookup-ξ ξ (resolve id_mac Σ)))
@@ -965,17 +985,10 @@
        (where κ (gen:lookup-κ Θ 𝓁))
        ex-pop-κ)
 
-  ;; expression sequence
-  ;;  (expand (seq (exped ...))) --> (exped ...)
-  (==> (((Stx (Cons id_seq (Cons (Stx val_expeds (Set)) ())) ctx) ξ)
-        ∘ κ Θ Σ)
-       ((Stx val_expeds ctx) • κ Θ Σ)
+  ;;; expression sequence
 
-       (where #%seq (resolve id_seq Σ))
-       ex-seq-nil)
-
-  ;; (expand (seq (done ...) exp0 exp ...)) -->
-  ;;   (expand (seq (done ... (expand exp0)) exp ...))
+  ;; (#%seq (done ...) exp0 exp ...) -->
+  ;;   (#%seq (done ... (expand exp0)) exp ...)
   (==> (((Stx (Cons id_seq (Cons (Stx val_dones (Set))
                                  (Cons stx_exp0 stl_exps))) ctx) ξ)
         ∘ κ Θ Σ)
@@ -993,19 +1006,27 @@
 
   (==> ((Stx (Cons (id_seq ξ)
                    (Cons (Stx (Cons id_snoc
-                                    (Cons (Stx val_exps ctx_1)
-                                          (Stx val_exp ctx_2))) (Set))
+                                    (Cons (Stx val_dones ctx_1)
+                                          (Stx val_done ctx_2))) (Set))
                          stl_exps)) ctx)
         ∘ κ Θ Σ)
        (((Stx (Cons id_seq
-                    (Cons (Stx val_exps2 ctx_1)
+                    (Cons (Stx val_dones2 ctx_1)
                           stl_exps)) ctx) ξ)
         ∘ κ Θ Σ)
 
        (where #%seq (resolve id_seq Σ))
        (where #%snoc (resolve id_snoc Σ))
-       (where val_exps2 (snoc val_exps (Stx val_exp ctx_2)))
+       (where val_dones2 (snoc val_dones (Stx val_done ctx_2)))
        ex-seq-snoc)
+
+  ;; (#%seq (done ...)) --> (done ...)
+  (==> (((Stx (Cons id_seq (Cons (Stx val_dones (Set)) ())) ctx) ξ)
+        ∘ κ Θ Σ)
+       ((Stx val_dones ctx) • κ Θ Σ)
+
+       (where #%seq (resolve id_seq Σ))
+       ex-seq-nil)
 
 
   ;; one-step eval (-->c)
@@ -1207,7 +1228,8 @@
         ex-reftrans
         ex-hyg
         ex-thunk
-        ex-get-identity))
+        ex-get-identity
+        ))
 
 (define (main [mode 'check])
   (run-examples run core:examples mode))

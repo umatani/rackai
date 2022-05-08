@@ -614,18 +614,10 @@
        (where κ (lookup-κ Θ 𝓁))
        ex-pop-κ)
 
-  ;; expression sequence
-  ;;  (expand (seq (exped ...))) --> (exped ...)
-  (==> ((ph (Stx (Cons id_seq
-                       (Cons (Stx val_expeds (Map)) ())) ctx) ξ scps_p)
-        ∘ κ Θ Σ)
-       ((Stx val_expeds ctx) • κ Θ Σ)
+  ;;; expression sequence
 
-       (where #%seq (resolve ph id_seq Σ))
-       ex-seq-nil)
-
-  ;; (expand (seq (done ...) exp0 exp ...)) -->
-  ;;   (expand (seq (done ... (expand exp0)) exp ...))
+  ;; (#%seq (done ...) exp0 exp ...) -->
+  ;;   (#%seq (done ... (expand exp0)) exp ...)
   (==> ((ph (Stx (Cons id_seq
                        (Cons (Stx val_dones (Map))
                              (Cons stx_exp0 stl_exps))) ctx) ξ scps_p)
@@ -648,22 +640,30 @@
   (==> ((ph (Stx (Cons id_kont
                        (Cons id_seq
                              (Cons (Stx (Cons id_snoc
-                                              (Cons (Stx val_exps ctx_1)
-                                                    (Stx val_exp ctx_2)))
+                                              (Cons (Stx val_dones ctx_1)
+                                                    (Stx val_done ctx_2)))
                                         (Map))
                                    stl_exps))) ctx) ξ scps_p)
         ∘ κ Θ Σ)
        ((ph (Stx (Cons id_seq
-                       (Cons (Stx val_exps2 ctx_1)
+                       (Cons (Stx val_dones2 ctx_1)
                              stl_exps)) ctx) ξ scps_p)
         ∘ κ Θ Σ)
 
        (where #%seq (resolve ph id_seq Σ))
        (where #%kont (resolve ph id_kont Σ))
        (where #%snoc (resolve ph id_snoc Σ))
-       (where val_exps2 (snoc val_exps (Stx val_exp ctx_2)))
+       (where val_dones2 (snoc val_dones (Stx val_done ctx_2)))
        ex-seq-snoc)
 
+  ;; (#%seq (done ...)) --> (done ...)
+  (==> ((ph (Stx (Cons id_seq
+                       (Cons (Stx val_dones (Map)) ())) ctx) ξ scps_p)
+        ∘ κ Θ Σ)
+       ((Stx val_dones ctx) • κ Θ Σ)
+
+       (where #%seq (resolve ph id_seq Σ))
+       ex-seq-nil)
 
   ;; one-step eval (-->c)
   (-->c state
