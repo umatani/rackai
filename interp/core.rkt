@@ -96,90 +96,89 @@
     (let ([store_2 (update-store store_1 loc cont)])
       (values loc store_2))))
 
-(define -->c
-  (reduction-relation
-   #; template #;
-   [`(,clo ,cont ,store)
-    `(,clo ,cont ,store)]
+(define-reduction-relation -->c
+  #; template #;
+  [`(,clo ,cont ,store)
+   `(,clo ,cont ,store)]
 
-   ;; propagate env into subterms
-   [`(,(Clo `(If ,ast_test ,ast_then ,ast_else) env) ,cont ,store)
-    `((If ,(Clo ast_test env)
-          ,(Clo ast_then env)
-          ,(Clo ast_else env)) ,cont ,store)
-    ev-env-if]
+  ;; propagate env into subterms
+  [`(,(Clo `(If ,ast_test ,ast_then ,ast_else) env) ,cont ,store)
+   `((If ,(Clo ast_test env)
+         ,(Clo ast_then env)
+         ,(Clo ast_else env)) ,cont ,store)
+   ev-env-if]
 
-   [`(,(Clo `(App ,ast_fun ,ast_args ...) env) ,cont ,store)
-    `((App ,(Clo ast_fun env) ,@(map (λ (ast_arg) (Clo ast_arg env))
-                                     ast_args))
-      ,cont ,store)
-    ev-env-app]
+  [`(,(Clo `(App ,ast_fun ,ast_args ...) env) ,cont ,store)
+   `((App ,(Clo ast_fun env) ,@(map (λ (ast_arg) (Clo ast_arg env))
+                                    ast_args))
+     ,cont ,store)
+   ev-env-app]
 
-   ;; value
-   [`(,(Clo (? val? val) env) ,cont ,store)
-    `(,val ,cont ,store)
-    ev-val]
+  ;; value
+  [`(,(Clo (? val? val) env) ,cont ,store)
+   `(,val ,cont ,store)
+   ev-val]
 
-   ;; reference
-   [`(,(Clo `(Var ,nam) env) ,cont ,store)
-    `(,(Clo (lookup-store store (lookup-env env nam)) env) ,cont ,store)
-    ev-x]
+  ;; reference
+  [`(,(Clo `(Var ,nam) env) ,cont ,store)
+   `(,(Clo (lookup-store store (lookup-env env nam)) env) ,cont ,store)
+   ev-x]
 
-   ;; lambda
-   [`(,(Clo `(Fun (,vars ...) ,ast) env) ,cont ,store)
-    `(,(Clo `(Fun (,@vars) ,ast ,env) env) ,cont ,store)
-    ev-lam]
+  ;; lambda
+  [`(,(Clo `(Fun (,vars ...) ,ast) env) ,cont ,store)
+   `(,(Clo `(Fun (,@vars) ,ast ,env) env) ,cont ,store)
+   ev-lam]
 
-   ;; application
-   [`((App ,(? val? vals) ... ,(? ser? ser) ,clos ...) ,cont ,store)
-    (let-values ([(loc_new store_1) (push-cont store cont)])
-      `(,ser (App ,@vals ,hole ,@clos ,loc_new) ,store_1))
-    ev-push-app]
+  ;; application
+  [`((App ,(? val? vals) ... ,(? ser? ser) ,clos ...) ,cont ,store)
+   (let-values ([(loc_new store_1) (push-cont store cont)])
+     `(,ser (App ,@vals ,hole ,@clos ,loc_new) ,store_1))
+   ev-push-app]
 
-   [`(,(? val? val)
-      (App ,(? val? vals) ... ,(Hole) ,clos ... ,loc_cont)
-      ,store)
-    `((App ,@vals ,val ,@clos) ,(lookup-store store loc_cont) ,store)
-    ev-pop-app]
+  [`(,(? val? val)
+     (App ,(? val? vals) ... ,(Hole) ,clos ... ,loc_cont)
+     ,store)
+   `((App ,@vals ,val ,@clos) ,(lookup-store store loc_cont) ,store)
+   ev-pop-app]
 
-   ;; β
-   [`((App (Fun ((Var ,nams) ...) ,ast ,env) ,(? val? vals) ...)
-      ,cont ,store)
-    (let*-values ([(locs store_1) (alloc-loc* nams store)]
-                  [(env_new) (update-env env nams locs)]
-                  [(store_2) (update-store* store_1 locs vals)])
-      `(,(Clo ast env_new) ,cont ,store_2))
-    ev-β]
+  ;; β
+  [`((App (Fun ((Var ,nams) ...) ,ast ,env) ,(? val? vals) ...)
+     ,cont ,store)
+   (let*-values ([(locs store_1) (alloc-loc* nams store)]
+                 [(env_new) (update-env env nams locs)]
+                 [(store_2) (update-store* store_1 locs vals)])
+     `(,(Clo ast env_new) ,cont ,store_2))
+   ev-β]
 
-   ;; primitive application
-   [`((App ,(? prim? prim) ,(? val? vals) ...) ,cont ,store)
-    `(,(δ prim vals) ,cont ,store)
-    ev-δ]
+  ;; primitive application
+  [`((App ,(? prim? prim) ,(? val? vals) ...) ,cont ,store)
+   `(,(δ prim vals) ,cont ,store)
+   ev-δ]
 
-   ;; if
-   [`((If ,(? ser? ser_test) ,clo_then ,clo_else) ,cont ,store)
-    (let-values ([(loc_new store_1) (push-cont store cont)])
-      `(,ser_test (If ,hole ,clo_then ,clo_else ,loc_new) ,store_1))
-    ev-push-if]
+  ;; if
+  [`((If ,(? ser? ser_test) ,clo_then ,clo_else) ,cont ,store)
+   (let-values ([(loc_new store_1) (push-cont store cont)])
+     `(,ser_test (If ,hole ,clo_then ,clo_else ,loc_new) ,store_1))
+   ev-push-if]
 
-   [`(,(? val? val) (If ,(Hole) ,clo_then ,clo_else ,loc_cont) ,store)
-    `((If ,val ,clo_then ,clo_else) ,(lookup-store store loc_cont) ,store)
-    ev-pop-if]
+  [`(,(? val? val) (If ,(Hole) ,clo_then ,clo_else ,loc_cont) ,store)
+   `((If ,val ,clo_then ,clo_else) ,(lookup-store store loc_cont) ,store)
+   ev-pop-if]
 
-   [`((If #f ,_ ,clo_else) ,cont ,store)
-    `(,clo_else ,cont ,store)
-    ev-if-#f]
+  [`((If #f ,_ ,clo_else) ,cont ,store)
+   `(,clo_else ,cont ,store)
+   ev-if-#f]
 
-   [`((If ,(? val? val) ,clo_then ,_) ,cont ,store)
-    #:when (not (equal? val #f))
-    `(,clo_then ,cont ,store)
-    ev-if-#t]))
+  [`((If ,(? val? val) ,clo_then ,_) ,cont ,store)
+   #:when (not (equal? val #f))
+   `(,clo_then ,cont ,store)
+   ev-if-#t])
 
 ;; eval : ast -> val
 (define (eval ast)
   (match-let ([`((,(? val? val) • ,_store))
                (apply-reduction-relation*
-                -->c `(,(Clo ast (init-env)) • ,(init-store)))])
+                (reducer-of -->c) `(,(Clo ast (init-env)) • ,(init-store)))])
     val))
 
 ;; for debug
@@ -189,8 +188,9 @@
           • ,(init-store))))
 
 (define (eval-->* form)
-  (apply-reduction-relation* -->c `(,(Clo (run form 'parse) (init-env))
-                                    • ,(init-store))))
+  (apply-reduction-relation*
+   (reducer-of -->c) `(,(Clo (run form 'parse) (init-env))
+                       • ,(init-store))))
 
 ;; ----------------------------------------
 ;; Syntax-object operations:
@@ -428,276 +428,275 @@
       (lambda (obj) (list (in-eval-state obj) (in-eval-ζ obj)))))])
 
 ;; ζ ==>c ζ
-(define ==>c
-  (reduction-relation
-   #; template #;
-   [(ζ (cons stx ξ) ex? κ Θ Σ)
-    (ζ stx ex? κ Θ Σ)]
+(define-reduction-relation  ==>c
+  #; template #;
+  [(ζ (cons stx ξ) ex? κ Θ Σ)
+   (ζ stx ex? κ Θ Σ)]
 
-   ;; lambda
-   [(ζ (cons (Stx `(,(? id? id_lam) ,(Stx stl_args ctx_0) ,stx_body) ctx)
-              ξ) '∘ κ Θ Σ)
-    #:when (eq? 'lambda (resolve id_lam Σ))
-    (let*-values ([(scp_new Σ_1) (alloc-scope Σ)]
-                  [(stl_args2 ξ_new Σ_2) (regist-vars scp_new stl_args ξ Σ_1)]
-                  [(𝓁_new Θ_1) (push-κ Θ κ)])
-      (ζ (cons (add stx_body scp_new) ξ_new)
-          '∘
-          (mk-κ (Stx `(,id_lam
-                        ,(Stx stl_args2 ctx_0)
-                        ,hole) ctx)
-                 '• 𝓁_new)
-          Θ_1 Σ_2))
-    ex-lam-body]
-
-   ;; let
-   [(ζ (cons (Stx `(,(? id? id_let)
-                     ,(Stx stl_binds ctx_1)
-                     ,stx_body) ctx) ξ) '∘ κ Θ Σ)
-    #:when (eq? 'let (resolve id_let Σ))
-    (let*-values ([(stl_vars stl_rhs) (unzip stl_binds)]
-                  [(scp_new Σ_1) (alloc-scope Σ)]
-                  [(stl_vars2 ξ_new Σ_2) (regist-vars scp_new stl_vars ξ Σ_1)]
-                  [(𝓁_new Θ_1) (push-κ Θ κ)])
-      (ζ (cons (add stx_body scp_new) ξ_new)
-          '∘
-          (mk-κ (Stx `(,id-kont
-                        ,id_let
-                        ,(Stx `(,(Stx stl_vars2 ctx_1)
-                                ,(Stx stl_rhs ctx_1)
-                                ,ξ) ctx_1)
-                        ,hole) ctx) '∘ 𝓁_new)
-          Θ_1 Σ_2))
-    ex-let-body]
-
-   [(ζ (Stx `(,(? id? id_kont)
-               ,(? id? id_let)
-               ,(Stx `(,(Stx stl_vars _)
-                       ,(Stx stl_rhs _) ,ξ) ctx_1)
-               ,stx_body) ctx) '∘ κ Θ Σ)
-    #:when (and (eq? '#%kont (resolve id_kont Σ))
-                (eq? 'let (resolve id_let Σ)))
-    (let-values ([(𝓁_new Θ_1) (push-κ Θ κ)])
-      (ζ (cons (Stx `(,id-seq ,stx-nil ,@stl_rhs) ctx_1) ξ)
-          '∘
-          (mk-κ (Stx `(,id_kont
-                        ,id_let
-                        ,(Stx `(,(Stx stl_vars ctx_1) . ,hole) ctx_1)
-                        ,stx_body) ctx) '∘ 𝓁_new)
-          Θ_1 Σ))
-    ex-let-rhs]
-
-   [(ζ (Stx `(,(? id? id_kont)
-               ,(? id? id_let)
-               ,(Stx `(,(Stx stl_vars _) . ,(Stx val_rhs _)) ctx_1)
-               ,stx_body) ctx) '∘ κ Θ Σ)
-    #:when (and (eq? '#%kont (resolve id_kont Σ))
-                (eq? 'let (resolve id_let Σ)))
-    (ζ (Stx `(,id_let ,(Stx (zip stl_vars val_rhs ctx_1) ctx_1)
-                       ,stx_body) ctx)
-        '• κ Θ Σ)
-    ex-let-rhs2]
-
-   ;; quote
-   [(ζ (cons (and stx (Stx `(,(? id? id_quote) ,_) _)) ξ) '∘ κ Θ Σ)
-    #:when (eq? 'quote (resolve id_quote Σ))
-    (ζ stx '• κ Θ Σ)
-    ex-quote]
-
-   ;; syntax
-   [(ζ (cons (and stx (Stx `(,(? id? id_syntax) ,_) _)) ξ) '∘ κ Θ Σ)
-    #:when (eq? 'syntax (resolve id_syntax Σ))
-    (ζ stx '• κ Θ Σ)
-    ex-stx]
-
-   ;; macro creation
-   [(ζ (cons (Stx `(,(? id? id_ls)
-                     ,(Stx `(,(Stx `(,id ,stx_rhs) ctx_0)) ctx_1)
-                     ,stx_body) ctx) ξ) '∘ κ Θ Σ)
-    #:when (eq? 'let-syntax (resolve id_ls Σ))
-    (ζ (Stx `(,id_ls
-               ,(Stx `(,(Stx `(,id ,stx_rhs) ctx_0)) ctx_1)
-               (,stx_body ,ξ)) ctx)
-        '∘ κ Θ Σ)
-    ex-ξ-ls]
-
-   [(ζ (Stx `(,(? id? id_ls)
-               ,(Stx `(,(Stx `(,id ,stx_rhs) ctx_0)) ctx_1)
-               (,stx_body ,ξ)) ctx) '∘ κ Θ Σ)
-    #:when (eq? 'let-syntax (resolve id_ls Σ))
-    (let*-values ([(nam_new Σ_1) (alloc-name id Σ)]
-                  [(scp_new Σ_2) (alloc-scope Σ_1)]
-                  [(id_new) (add id scp_new)]
-                  [(Σ_3) (bind Σ_2 id_new nam_new)]
-                  [(𝓁_new Θ_1) (push-κ Θ κ)]
-                  [(stx_body2) (add stx_body scp_new)])
-      (ζ (cons stx_rhs (init-ξ))
-          '∘
-          (mk-κ (Stx `(,id-kont
-                        ,id_ls
-                        ,(Stx `(,(Stx `(,id_new ,hole) ctx_0)) ctx_1)
-                        (,stx_body2 ,ξ)) ctx) '∘ 𝓁_new)
-          Θ_1 Σ_3))
-    ex-ls-push-rhs]
-
-   [(ζ (Stx `(,(? id? id_kont)
-               ,(? id? id_ls)
-               ,(Stx `(,(Stx `(,id_new ,stx_exp) ctx_0)) ctx_1)
-               (,stx_body2 ,ξ)) ctx) '∘ κ Θ Σ)
-    #:when (and (eq? '#%kont     (resolve id_kont Σ))
-                (eq? 'let-syntax (resolve id_ls Σ)))
-    (let ([nam_new (resolve id_new Σ)])
-      (in-eval `(,(Clo (parse stx_exp Σ) (init-env)) • ,(init-store))
-               (ζ (Stx `(,(Stx (Sym nam_new) (empty-ctx))
-                          (,stx_body2 ,ξ)) (empty-ctx))
-                   '∘ κ Θ Σ)))
-    ex-ls-eval]
-
-   [(in-eval `(,(? val? val) • ,_)
-             (ζ (Stx `(,(Stx (Sym nam_new) _) (,stx_body2 ,ξ)) _) '∘ κ Θ Σ))
-    (let ([ξ_new (extend-ξ ξ nam_new val)])
-      (ζ (cons stx_body2 ξ_new) '∘ κ Θ Σ))
-    ex-ls-ξ]
-
-   ;; macro invocation
-   [(ζ (cons (and stx_macapp (Stx `(,(? id? id_mac) ,_ ...) ctx)) ξ)
-        '∘ κ Θ Σ)
-    #:when (val? (lookup-ξ ξ (resolve id_mac Σ)))
-    (let*-values ([(val) (lookup-ξ ξ (resolve id_mac Σ))]
-                  [(scp_u Σ_1) (alloc-scope Σ)]
-                  [(scp_i Σ_2) (alloc-scope Σ_1)])
-      (in-eval
-       `(,(Clo `(App ,val ,(flip (add stx_macapp scp_u) scp_i)) (init-env))
-         • ,(init-store))
-       (ζ (cons (Stx #f scp_i) ξ) '∘ κ Θ Σ_2)))
-    ex-macapp-eval]
-
-   [(in-eval `(,(? Stx? stx_exp) • ,store_0)
-             (ζ (cons (Stx #f scp_i) ξ) '∘ κ Θ Σ))
-    (ζ (cons (flip stx_exp scp_i)  ξ) '∘ κ Θ Σ)
-    ex-macapp-flip]
-
-   ;; if
-   [(ζ (cons (Stx `(,(? id? id_if) ,stl_exps ...) ctx) ξ) '∘ κ Θ Σ)
-    #:when (eq? 'if (resolve id_if Σ))
-    (let-values ([(𝓁_new Θ_1) (push-κ Θ κ)])
-      (ζ (cons (Stx `(,id-seq ,stx-nil ,@stl_exps) ctx) ξ)
-          '∘
-          (mk-κ (Stx `(,id-kont ,id_if . ,hole) ctx) '∘ 𝓁_new)
-          Θ_1 Σ))
-    ex-if]
-
-   [(ζ (Stx `(,(? id? id_kont)
-               ,(? id? id_if) . ,(Stx val_exps ctx)) _) '∘ κ Θ Σ)
-    #:when (and (eq? '#%kont (resolve id_kont Σ))
-                (eq? 'if     (resolve id_if Σ)))
-    (ζ (Stx `(,id_if ,@val_exps) ctx) '• κ Θ Σ)
-    ex-if-kont]
-
-   ;; application (non-canonical #%app version)
-   [(ζ (cons (Stx `(,(? id? id_app)
-                     ,stx_fun ,stl_args ...) ctx) ξ) '∘ κ Θ Σ)
-    #:when (eq? '#%app (resolve id_app Σ))
-    (let-values ([(𝓁_new Θ_1) (push-κ Θ κ)])
-      (ζ (cons (Stx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
-          '∘
-          (mk-κ (Stx (cons id_app hole) ctx) '• 𝓁_new)
-          Θ_1 Σ))
-    ex-#%app]
-
-   ;; application (canonical #%app version)
-   [(ζ (cons (Stx (cons (? id? id_app)
-                         (Stx `(,stx_fun ,stl_args ...) _)) ctx) ξ)
-        '∘ κ Θ Σ)
-    #:when (eq? '#%app (resolve id_app Σ))
-    (let-values ([(𝓁_new Θ_1) (push-κ Θ κ)])
-      (ζ (cons (Stx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
-          '∘
-          (mk-κ (Stx (cons id_app hole) ctx) '• 𝓁_new)
-          Θ_1 Σ))
-    ex-#%app2]
-
-   ;; application
-   [(ζ (cons (Stx `(,stx_fun ,stl_args ...) ctx) ξ) '∘ κ Θ Σ)
-    #:when (or (not (id? stx_fun))
-               (let ([name (resolve stx_fun Σ)])
-                 (and (eq? 'not-found (lookup-ξ ξ name))
-                      (not (member name
-                                   '(lambda let quote syntax let-syntax if
-                                      #%app #%kont #%seq #%ls-kont #%snoc))))))
-    (let-values ([(id_app) (Stx (Sym '#%app) ctx)]
+  ;; lambda
+  [(ζ (cons (Stx `(,(? id? id_lam) ,(Stx stl_args ctx_0) ,stx_body) ctx)
+             ξ) '∘ κ Θ Σ)
+   #:when (eq? 'lambda (resolve id_lam Σ))
+   (let*-values ([(scp_new Σ_1) (alloc-scope Σ)]
+                 [(stl_args2 ξ_new Σ_2) (regist-vars scp_new stl_args ξ Σ_1)]
                  [(𝓁_new Θ_1) (push-κ Θ κ)])
-      (ζ (cons (Stx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
-          '∘
-          (mk-κ (Stx (cons id_app hole) ctx) '• 𝓁_new)
-          Θ_1 Σ))
-    ex-app]
+     (ζ (cons (add stx_body scp_new) ξ_new)
+         '∘
+         (mk-κ (Stx `(,id_lam
+                       ,(Stx stl_args2 ctx_0)
+                       ,hole) ctx)
+                '• 𝓁_new)
+         Θ_1 Σ_2))
+   ex-lam-body]
 
-   ;; reference
-   [(ζ (cons (and id (Stx (Sym nam) ctx)) ξ) '∘ κ Θ Σ)
-    (let ([all-transform (lookup-ξ ξ (resolve id Σ))])
-      (match all-transform
-        [`(TVar ,id_new) (ζ id_new '• κ Θ Σ)]
-        [_ (error '==>c "unbound identifier: ~a" nam)]))
-    ex-var]
+  ;; let
+  [(ζ (cons (Stx `(,(? id? id_let)
+                    ,(Stx stl_binds ctx_1)
+                    ,stx_body) ctx) ξ) '∘ κ Θ Σ)
+   #:when (eq? 'let (resolve id_let Σ))
+   (let*-values ([(stl_vars stl_rhs) (unzip stl_binds)]
+                 [(scp_new Σ_1) (alloc-scope Σ)]
+                 [(stl_vars2 ξ_new Σ_2) (regist-vars scp_new stl_vars ξ Σ_1)]
+                 [(𝓁_new Θ_1) (push-κ Θ κ)])
+     (ζ (cons (add stx_body scp_new) ξ_new)
+         '∘
+         (mk-κ (Stx `(,id-kont
+                       ,id_let
+                       ,(Stx `(,(Stx stl_vars2 ctx_1)
+                               ,(Stx stl_rhs ctx_1)
+                               ,ξ) ctx_1)
+                       ,hole) ctx) '∘ 𝓁_new)
+         Θ_1 Σ_2))
+   ex-let-body]
 
-   ;; literal
-   [(ζ (cons (Stx (? atom? atom) ctx) ξ) '∘ κ Θ Σ)
-    #:when (not (id? (Stx atom ctx)))
-    (ζ (Stx `(,(Stx (Sym 'quote) ctx) ,(Stx atom ctx)) ctx)
-        '• κ Θ Σ)
-    ex-lit]
+  [(ζ (Stx `(,(? id? id_kont)
+              ,(? id? id_let)
+              ,(Stx `(,(Stx stl_vars _)
+                      ,(Stx stl_rhs _) ,ξ) ctx_1)
+              ,stx_body) ctx) '∘ κ Θ Σ)
+   #:when (and (eq? '#%kont (resolve id_kont Σ))
+               (eq? 'let (resolve id_let Σ)))
+   (let-values ([(𝓁_new Θ_1) (push-κ Θ κ)])
+     (ζ (cons (Stx `(,id-seq ,stx-nil ,@stl_rhs) ctx_1) ξ)
+         '∘
+         (mk-κ (Stx `(,id_kont
+                       ,id_let
+                       ,(Stx `(,(Stx stl_vars ctx_1) . ,hole) ctx_1)
+                       ,stx_body) ctx) '∘ 𝓁_new)
+         Θ_1 Σ))
+   ex-let-rhs]
 
-   ;; pop κ
-   [(ζ stx '• (κ STX ex? 𝓁) Θ Σ)
-    (let ([κ (lookup-κ Θ 𝓁)])
-      (ζ (in-hole STX stx) ex? κ Θ Σ))
-    ex-pop-κ]
+  [(ζ (Stx `(,(? id? id_kont)
+              ,(? id? id_let)
+              ,(Stx `(,(Stx stl_vars _) . ,(Stx val_rhs _)) ctx_1)
+              ,stx_body) ctx) '∘ κ Θ Σ)
+   #:when (and (eq? '#%kont (resolve id_kont Σ))
+               (eq? 'let (resolve id_let Σ)))
+   (ζ (Stx `(,id_let ,(Stx (zip stl_vars val_rhs ctx_1) ctx_1)
+                      ,stx_body) ctx)
+       '• κ Θ Σ)
+   ex-let-rhs2]
 
-   ;; (#%seq (done ...) exp0 exp ...) -->
-   ;;   (#%seq (done ... (expand exp0)) exp ...)
-   [(ζ (cons (Stx `(,(? id? id_seq)
-                     ,(Stx val_dones _)
-                     ,stx_exp0 ,stl_exps ...) ctx) ξ) '∘ κ Θ Σ)
-    #:when (eq? '#%seq (resolve id_seq Σ))
-    (let-values ([(𝓁_new Θ_1) (push-κ Θ κ)])
-      (ζ (cons stx_exp0 ξ) '∘
-          (mk-κ (Stx `((,id_seq ,ξ)
-                        ,(Stx `(,id-snoc ,(Stx val_dones (empty-ctx)) . ,hole)
-                              (empty-ctx))
-                        ,@stl_exps) ctx) '∘ 𝓁_new)
-          Θ_1 Σ))
-    ex-seq-cons]
+  ;; quote
+  [(ζ (cons (and stx (Stx `(,(? id? id_quote) ,_) _)) ξ) '∘ κ Θ Σ)
+   #:when (eq? 'quote (resolve id_quote Σ))
+   (ζ stx '• κ Θ Σ)
+   ex-quote]
 
-   [(ζ (Stx `((,(? id? id_seq) ,ξ)
-               ,(Stx `(,(? id? id_snoc)
-                       ,(Stx val_dones ctx_1)
-                       . ,(Stx val_done ctx_2)) _)
-               ,stl_exps ...) ctx) '∘ κ Θ Σ)
-    #:when (and (eq? '#%seq  (resolve id_seq Σ))
-                (eq? '#%snoc (resolve id_snoc Σ)))
-    (let ([val_dones2 (snoc val_dones (Stx val_done ctx_2))])
-      (ζ (cons (Stx `(,id_seq ,(Stx val_dones2 ctx_1) ,@stl_exps)  ctx) ξ)
-          '∘ κ Θ Σ))
-    ex-seq-snoc]
+  ;; syntax
+  [(ζ (cons (and stx (Stx `(,(? id? id_syntax) ,_) _)) ξ) '∘ κ Θ Σ)
+   #:when (eq? 'syntax (resolve id_syntax Σ))
+   (ζ stx '• κ Θ Σ)
+   ex-stx]
 
-   ;; (#%seq (done ...)) --> (done ...)
-   [(ζ (cons (Stx `(,(? id? id_seq) ,(Stx val_dones _)) ctx) ξ) '∘ κ Θ Σ)
-    #:when (eq? '#%seq (resolve id_seq Σ))
-    (ζ (Stx val_dones ctx) '• κ Θ Σ)
-    ex-seq-nil]
+  ;; macro creation
+  [(ζ (cons (Stx `(,(? id? id_ls)
+                    ,(Stx `(,(Stx `(,id ,stx_rhs) ctx_0)) ctx_1)
+                    ,stx_body) ctx) ξ) '∘ κ Θ Σ)
+   #:when (eq? 'let-syntax (resolve id_ls Σ))
+   (ζ (Stx `(,id_ls
+              ,(Stx `(,(Stx `(,id ,stx_rhs) ctx_0)) ctx_1)
+              (,stx_body ,ξ)) ctx)
+       '∘ κ Θ Σ)
+   ex-ξ-ls]
 
-   ;; in-eval
-   [(in-eval s1 ζ)
-    #:with (-->c s1)
-    (λ (s2) (in-eval s2 ζ))
-    ex-in-eval]))
+  [(ζ (Stx `(,(? id? id_ls)
+              ,(Stx `(,(Stx `(,id ,stx_rhs) ctx_0)) ctx_1)
+              (,stx_body ,ξ)) ctx) '∘ κ Θ Σ)
+   #:when (eq? 'let-syntax (resolve id_ls Σ))
+   (let*-values ([(nam_new Σ_1) (alloc-name id Σ)]
+                 [(scp_new Σ_2) (alloc-scope Σ_1)]
+                 [(id_new) (add id scp_new)]
+                 [(Σ_3) (bind Σ_2 id_new nam_new)]
+                 [(𝓁_new Θ_1) (push-κ Θ κ)]
+                 [(stx_body2) (add stx_body scp_new)])
+     (ζ (cons stx_rhs (init-ξ))
+         '∘
+         (mk-κ (Stx `(,id-kont
+                       ,id_ls
+                       ,(Stx `(,(Stx `(,id_new ,hole) ctx_0)) ctx_1)
+                       (,stx_body2 ,ξ)) ctx) '∘ 𝓁_new)
+         Θ_1 Σ_3))
+   ex-ls-push-rhs]
+
+  [(ζ (Stx `(,(? id? id_kont)
+              ,(? id? id_ls)
+              ,(Stx `(,(Stx `(,id_new ,stx_exp) ctx_0)) ctx_1)
+              (,stx_body2 ,ξ)) ctx) '∘ κ Θ Σ)
+   #:when (and (eq? '#%kont     (resolve id_kont Σ))
+               (eq? 'let-syntax (resolve id_ls Σ)))
+   (let ([nam_new (resolve id_new Σ)])
+     (in-eval `(,(Clo (parse stx_exp Σ) (init-env)) • ,(init-store))
+              (ζ (Stx `(,(Stx (Sym nam_new) (empty-ctx))
+                         (,stx_body2 ,ξ)) (empty-ctx))
+                  '∘ κ Θ Σ)))
+   ex-ls-eval]
+
+  [(in-eval `(,(? val? val) • ,_)
+            (ζ (Stx `(,(Stx (Sym nam_new) _) (,stx_body2 ,ξ)) _) '∘ κ Θ Σ))
+   (let ([ξ_new (extend-ξ ξ nam_new val)])
+     (ζ (cons stx_body2 ξ_new) '∘ κ Θ Σ))
+   ex-ls-ξ]
+
+  ;; macro invocation
+  [(ζ (cons (and stx_macapp (Stx `(,(? id? id_mac) ,_ ...) ctx)) ξ)
+       '∘ κ Θ Σ)
+   #:when (val? (lookup-ξ ξ (resolve id_mac Σ)))
+   (let*-values ([(val) (lookup-ξ ξ (resolve id_mac Σ))]
+                 [(scp_u Σ_1) (alloc-scope Σ)]
+                 [(scp_i Σ_2) (alloc-scope Σ_1)])
+     (in-eval
+      `(,(Clo `(App ,val ,(flip (add stx_macapp scp_u) scp_i)) (init-env))
+        • ,(init-store))
+      (ζ (cons (Stx #f scp_i) ξ) '∘ κ Θ Σ_2)))
+   ex-macapp-eval]
+
+  [(in-eval `(,(? Stx? stx_exp) • ,store_0)
+            (ζ (cons (Stx #f scp_i) ξ) '∘ κ Θ Σ))
+   (ζ (cons (flip stx_exp scp_i)  ξ) '∘ κ Θ Σ)
+   ex-macapp-flip]
+
+  ;; if
+  [(ζ (cons (Stx `(,(? id? id_if) ,stl_exps ...) ctx) ξ) '∘ κ Θ Σ)
+   #:when (eq? 'if (resolve id_if Σ))
+   (let-values ([(𝓁_new Θ_1) (push-κ Θ κ)])
+     (ζ (cons (Stx `(,id-seq ,stx-nil ,@stl_exps) ctx) ξ)
+         '∘
+         (mk-κ (Stx `(,id-kont ,id_if . ,hole) ctx) '∘ 𝓁_new)
+         Θ_1 Σ))
+   ex-if]
+
+  [(ζ (Stx `(,(? id? id_kont)
+              ,(? id? id_if) . ,(Stx val_exps ctx)) _) '∘ κ Θ Σ)
+   #:when (and (eq? '#%kont (resolve id_kont Σ))
+               (eq? 'if     (resolve id_if Σ)))
+   (ζ (Stx `(,id_if ,@val_exps) ctx) '• κ Θ Σ)
+   ex-if-kont]
+
+  ;; application (non-canonical #%app version)
+  [(ζ (cons (Stx `(,(? id? id_app)
+                    ,stx_fun ,stl_args ...) ctx) ξ) '∘ κ Θ Σ)
+   #:when (eq? '#%app (resolve id_app Σ))
+   (let-values ([(𝓁_new Θ_1) (push-κ Θ κ)])
+     (ζ (cons (Stx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
+         '∘
+         (mk-κ (Stx (cons id_app hole) ctx) '• 𝓁_new)
+         Θ_1 Σ))
+   ex-#%app]
+
+  ;; application (canonical #%app version)
+  [(ζ (cons (Stx (cons (? id? id_app)
+                        (Stx `(,stx_fun ,stl_args ...) _)) ctx) ξ)
+       '∘ κ Θ Σ)
+   #:when (eq? '#%app (resolve id_app Σ))
+   (let-values ([(𝓁_new Θ_1) (push-κ Θ κ)])
+     (ζ (cons (Stx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
+         '∘
+         (mk-κ (Stx (cons id_app hole) ctx) '• 𝓁_new)
+         Θ_1 Σ))
+   ex-#%app2]
+
+  ;; application
+  [(ζ (cons (Stx `(,stx_fun ,stl_args ...) ctx) ξ) '∘ κ Θ Σ)
+   #:when (or (not (id? stx_fun))
+              (let ([name (resolve stx_fun Σ)])
+                (and (eq? 'not-found (lookup-ξ ξ name))
+                     (not (member name
+                                  '(lambda let quote syntax let-syntax if
+                                     #%app #%kont #%seq #%ls-kont #%snoc))))))
+   (let-values ([(id_app) (Stx (Sym '#%app) ctx)]
+                [(𝓁_new Θ_1) (push-κ Θ κ)])
+     (ζ (cons (Stx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
+         '∘
+         (mk-κ (Stx (cons id_app hole) ctx) '• 𝓁_new)
+         Θ_1 Σ))
+   ex-app]
+
+  ;; reference
+  [(ζ (cons (and id (Stx (Sym nam) ctx)) ξ) '∘ κ Θ Σ)
+   (let ([all-transform (lookup-ξ ξ (resolve id Σ))])
+     (match all-transform
+       [`(TVar ,id_new) (ζ id_new '• κ Θ Σ)]
+       [_ (error '==>c "unbound identifier: ~a" nam)]))
+   ex-var]
+
+  ;; literal
+  [(ζ (cons (Stx (? atom? atom) ctx) ξ) '∘ κ Θ Σ)
+   #:when (not (id? (Stx atom ctx)))
+   (ζ (Stx `(,(Stx (Sym 'quote) ctx) ,(Stx atom ctx)) ctx)
+       '• κ Θ Σ)
+   ex-lit]
+
+  ;; pop κ
+  [(ζ stx '• (κ STX ex? 𝓁) Θ Σ)
+   (let ([κ (lookup-κ Θ 𝓁)])
+     (ζ (in-hole STX stx) ex? κ Θ Σ))
+   ex-pop-κ]
+
+  ;; (#%seq (done ...) exp0 exp ...) -->
+  ;;   (#%seq (done ... (expand exp0)) exp ...)
+  [(ζ (cons (Stx `(,(? id? id_seq)
+                    ,(Stx val_dones _)
+                    ,stx_exp0 ,stl_exps ...) ctx) ξ) '∘ κ Θ Σ)
+   #:when (eq? '#%seq (resolve id_seq Σ))
+   (let-values ([(𝓁_new Θ_1) (push-κ Θ κ)])
+     (ζ (cons stx_exp0 ξ) '∘
+         (mk-κ (Stx `((,id_seq ,ξ)
+                       ,(Stx `(,id-snoc ,(Stx val_dones (empty-ctx)) . ,hole)
+                             (empty-ctx))
+                       ,@stl_exps) ctx) '∘ 𝓁_new)
+         Θ_1 Σ))
+   ex-seq-cons]
+
+  [(ζ (Stx `((,(? id? id_seq) ,ξ)
+              ,(Stx `(,(? id? id_snoc)
+                      ,(Stx val_dones ctx_1)
+                      . ,(Stx val_done ctx_2)) _)
+              ,stl_exps ...) ctx) '∘ κ Θ Σ)
+   #:when (and (eq? '#%seq  (resolve id_seq Σ))
+               (eq? '#%snoc (resolve id_snoc Σ)))
+   (let ([val_dones2 (snoc val_dones (Stx val_done ctx_2))])
+     (ζ (cons (Stx `(,id_seq ,(Stx val_dones2 ctx_1) ,@stl_exps)  ctx) ξ)
+         '∘ κ Θ Σ))
+   ex-seq-snoc]
+
+  ;; (#%seq (done ...)) --> (done ...)
+  [(ζ (cons (Stx `(,(? id? id_seq) ,(Stx val_dones _)) ctx) ξ) '∘ κ Θ Σ)
+   #:when (eq? '#%seq (resolve id_seq Σ))
+   (ζ (Stx val_dones ctx) '• κ Θ Σ)
+   ex-seq-nil]
+
+  ;; in-eval
+  [(in-eval s1 ζ)
+   #:with (-->c s1)
+   (λ (s2) (in-eval s2 ζ))
+   ex-in-eval])
 
 ;; expand : stx ξ Σ -> (values stx Σ)
 (define (expand stx ξ Σ)
   (let ([init-ζ (ζ (cons stx ξ) '∘ '• (init-Θ) Σ)])
     (match-let ([(list (ζ stx_new '• '• Θ_new Σ_new))
-                 (apply-reduction-relation* ==>c init-ζ)])
+                 (apply-reduction-relation* (reducer-of ==>c) init-ζ)])
       (values stx_new Σ_new))))
 
 ;; for debug
@@ -708,9 +707,9 @@
 (define (expand==>* form #:steps [steps #f])
   (print-as-expression #f)
   (apply-reduction-relation*
-    ==>c
-    (ζ (cons (run form 'read) (init-ξ)) '∘ '• (init-Θ) (init-Σ))
-    #:steps steps))
+   (reducer-of ==>c)
+   (ζ (cons (run form 'read) (init-ξ)) '∘ '• (init-Θ) (init-Σ))
+   #:steps steps))
 
 (define (expand&parse form)
   (print-as-expression #f)
