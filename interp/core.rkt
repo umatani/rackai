@@ -1,6 +1,7 @@
 #lang racket
 (require racket/struct
          "common.rkt"
+         "reduction.rkt"
          (for-syntax racket/list))
 
 
@@ -105,34 +106,41 @@
    [`(,(Clo `(If ,ast_test ,ast_then ,ast_else) env) ,cont ,store)
     `((If ,(Clo ast_test env)
           ,(Clo ast_then env)
-          ,(Clo ast_else env)) ,cont ,store)]
+          ,(Clo ast_else env)) ,cont ,store)
+    ev-env-if]
 
    [`(,(Clo `(App ,ast_fun ,ast_args ...) env) ,cont ,store)
     `((App ,(Clo ast_fun env) ,@(map (λ (ast_arg) (Clo ast_arg env))
                                      ast_args))
-      ,cont ,store)]
+      ,cont ,store)
+    ev-env-app]
 
    ;; value
    [`(,(Clo (? val? val) env) ,cont ,store)
-    `(,val ,cont ,store)]
+    `(,val ,cont ,store)
+    ev-val]
 
    ;; reference
    [`(,(Clo `(Var ,nam) env) ,cont ,store)
-    `(,(Clo (lookup-store store (lookup-env env nam)) env) ,cont ,store)]
+    `(,(Clo (lookup-store store (lookup-env env nam)) env) ,cont ,store)
+    ev-x]
 
    ;; lambda
    [`(,(Clo `(Fun (,vars ...) ,ast) env) ,cont ,store)
-    `(,(Clo `(Fun (,@vars) ,ast ,env) env) ,cont ,store)]
+    `(,(Clo `(Fun (,@vars) ,ast ,env) env) ,cont ,store)
+    ev-lam]
 
    ;; application
    [`((App ,(? val? vals) ... ,(? ser? ser) ,clos ...) ,cont ,store)
     (let-values ([(loc_new store_1) (push-cont store cont)])
-      `(,ser (App ,@vals ,hole ,@clos ,loc_new) ,store_1))]
+      `(,ser (App ,@vals ,hole ,@clos ,loc_new) ,store_1))
+    ev-push-app]
 
    [`(,(? val? val)
       (App ,(? val? vals) ... ,(Hole) ,clos ... ,loc_cont)
       ,store)
-    `((App ,@vals ,val ,@clos) ,(lookup-store store loc_cont) ,store)]
+    `((App ,@vals ,val ,@clos) ,(lookup-store store loc_cont) ,store)
+    ev-pop-app]
 
    ;; β
    [`((App (Fun ((Var ,nams) ...) ,ast ,env) ,(? val? vals) ...)
@@ -140,26 +148,32 @@
     (let*-values ([(locs store_1) (alloc-loc* nams store)]
                   [(env_new) (update-env env nams locs)]
                   [(store_2) (update-store* store_1 locs vals)])
-      `(,(Clo ast env_new) ,cont ,store_2))]
+      `(,(Clo ast env_new) ,cont ,store_2))
+    ev-β]
 
    ;; primitive application
    [`((App ,(? prim? prim) ,(? val? vals) ...) ,cont ,store)
-    `(,(δ prim vals) ,cont ,store)]
+    `(,(δ prim vals) ,cont ,store)
+    ev-δ]
 
    ;; if
    [`((If ,(? ser? ser_test) ,clo_then ,clo_else) ,cont ,store)
     (let-values ([(loc_new store_1) (push-cont store cont)])
-      `(,ser_test (If ,hole ,clo_then ,clo_else ,loc_new) ,store_1))]
+      `(,ser_test (If ,hole ,clo_then ,clo_else ,loc_new) ,store_1))
+    ev-push-if]
 
    [`(,(? val? val) (If ,(Hole) ,clo_then ,clo_else ,loc_cont) ,store)
-    `((If ,val ,clo_then ,clo_else) ,(lookup-store store loc_cont) ,store)]
+    `((If ,val ,clo_then ,clo_else) ,(lookup-store store loc_cont) ,store)
+    ev-pop-if]
 
    [`((If #f ,_ ,clo_else) ,cont ,store)
-    `(,clo_else ,cont ,store)]
+    `(,clo_else ,cont ,store)
+    ev-if-#f]
 
    [`((If ,(? val? val) ,clo_then ,_) ,cont ,store)
     #:when (not (equal? val #f))
-    `(,clo_then ,cont ,store)]))
+    `(,clo_then ,cont ,store)
+    ev-if-#t]))
 
 ;; eval : ast -> val
 (define (eval ast)
@@ -433,7 +447,8 @@
                         ,(Stx stl_args2 ctx_0)
                         ,hole) ctx)
                  '• 𝓁_new)
-          Θ_1 Σ_2))]
+          Θ_1 Σ_2))
+    ex-lam-body]
 
    ;; let
    [(ζ (cons (Stx `(,(? id? id_let)
@@ -452,7 +467,8 @@
                                 ,(Stx stl_rhs ctx_1)
                                 ,ξ) ctx_1)
                         ,hole) ctx) '∘ 𝓁_new)
-          Θ_1 Σ_2))]
+          Θ_1 Σ_2))
+    ex-let-body]
 
    [(ζ (Stx `(,(? id? id_kont)
                ,(? id? id_let)
@@ -468,7 +484,8 @@
                         ,id_let
                         ,(Stx `(,(Stx stl_vars ctx_1) . ,hole) ctx_1)
                         ,stx_body) ctx) '∘ 𝓁_new)
-          Θ_1 Σ))]
+          Θ_1 Σ))
+    ex-let-rhs]
 
    [(ζ (Stx `(,(? id? id_kont)
                ,(? id? id_let)
@@ -478,17 +495,20 @@
                 (eq? 'let (resolve id_let Σ)))
     (ζ (Stx `(,id_let ,(Stx (zip stl_vars val_rhs ctx_1) ctx_1)
                        ,stx_body) ctx)
-        '• κ Θ Σ)]
+        '• κ Θ Σ)
+    ex-let-rhs2]
 
    ;; quote
    [(ζ (cons (and stx (Stx `(,(? id? id_quote) ,_) _)) ξ) '∘ κ Θ Σ)
     #:when (eq? 'quote (resolve id_quote Σ))
-    (ζ stx '• κ Θ Σ)]
+    (ζ stx '• κ Θ Σ)
+    ex-quote]
 
    ;; syntax
    [(ζ (cons (and stx (Stx `(,(? id? id_syntax) ,_) _)) ξ) '∘ κ Θ Σ)
     #:when (eq? 'syntax (resolve id_syntax Σ))
-    (ζ stx '• κ Θ Σ)]
+    (ζ stx '• κ Θ Σ)
+    ex-stx]
 
    ;; macro creation
    [(ζ (cons (Stx `(,(? id? id_ls)
@@ -498,7 +518,8 @@
     (ζ (Stx `(,id_ls
                ,(Stx `(,(Stx `(,id ,stx_rhs) ctx_0)) ctx_1)
                (,stx_body ,ξ)) ctx)
-        '∘ κ Θ Σ)]
+        '∘ κ Θ Σ)
+    ex-ξ-ls]
 
    [(ζ (Stx `(,(? id? id_ls)
                ,(Stx `(,(Stx `(,id ,stx_rhs) ctx_0)) ctx_1)
@@ -516,7 +537,8 @@
                         ,id_ls
                         ,(Stx `(,(Stx `(,id_new ,hole) ctx_0)) ctx_1)
                         (,stx_body2 ,ξ)) ctx) '∘ 𝓁_new)
-          Θ_1 Σ_3))]
+          Θ_1 Σ_3))
+    ex-ls-push-rhs]
 
    [(ζ (Stx `(,(? id? id_kont)
                ,(? id? id_ls)
@@ -528,12 +550,14 @@
       (in-eval `(,(Clo (parse stx_exp Σ) (init-env)) • ,(init-store))
                (ζ (Stx `(,(Stx (Sym nam_new) (empty-ctx))
                           (,stx_body2 ,ξ)) (empty-ctx))
-                   '∘ κ Θ Σ)))]
+                   '∘ κ Θ Σ)))
+    ex-ls-eval]
 
    [(in-eval `(,(? val? val) • ,_)
              (ζ (Stx `(,(Stx (Sym nam_new) _) (,stx_body2 ,ξ)) _) '∘ κ Θ Σ))
     (let ([ξ_new (extend-ξ ξ nam_new val)])
-      (ζ (cons stx_body2 ξ_new) '∘ κ Θ Σ))]
+      (ζ (cons stx_body2 ξ_new) '∘ κ Θ Σ))
+    ex-ls-ξ]
 
    ;; macro invocation
    [(ζ (cons (and stx_macapp (Stx `(,(? id? id_mac) ,_ ...) ctx)) ξ)
@@ -545,11 +569,13 @@
       (in-eval
        `(,(Clo `(App ,val ,(flip (add stx_macapp scp_u) scp_i)) (init-env))
          • ,(init-store))
-       (ζ (cons (Stx #f scp_i) ξ) '∘ κ Θ Σ_2)))]
+       (ζ (cons (Stx #f scp_i) ξ) '∘ κ Θ Σ_2)))
+    ex-macapp-eval]
 
    [(in-eval `(,(? Stx? stx_exp) • ,store_0)
              (ζ (cons (Stx #f scp_i) ξ) '∘ κ Θ Σ))
-    (ζ (cons (flip stx_exp scp_i)  ξ) '∘ κ Θ Σ)]
+    (ζ (cons (flip stx_exp scp_i)  ξ) '∘ κ Θ Σ)
+    ex-macapp-flip]
 
    ;; if
    [(ζ (cons (Stx `(,(? id? id_if) ,stl_exps ...) ctx) ξ) '∘ κ Θ Σ)
@@ -558,13 +584,15 @@
       (ζ (cons (Stx `(,id-seq ,stx-nil ,@stl_exps) ctx) ξ)
           '∘
           (mk-κ (Stx `(,id-kont ,id_if . ,hole) ctx) '∘ 𝓁_new)
-          Θ_1 Σ))]
+          Θ_1 Σ))
+    ex-if]
 
    [(ζ (Stx `(,(? id? id_kont)
                ,(? id? id_if) . ,(Stx val_exps ctx)) _) '∘ κ Θ Σ)
     #:when (and (eq? '#%kont (resolve id_kont Σ))
                 (eq? 'if     (resolve id_if Σ)))
-    (ζ (Stx `(,id_if ,@val_exps) ctx) '• κ Θ Σ)]
+    (ζ (Stx `(,id_if ,@val_exps) ctx) '• κ Θ Σ)
+    ex-if-kont]
 
    ;; application (non-canonical #%app version)
    [(ζ (cons (Stx `(,(? id? id_app)
@@ -574,7 +602,8 @@
       (ζ (cons (Stx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
           '∘
           (mk-κ (Stx (cons id_app hole) ctx) '• 𝓁_new)
-          Θ_1 Σ))]
+          Θ_1 Σ))
+    ex-#%app]
 
    ;; application (canonical #%app version)
    [(ζ (cons (Stx (cons (? id? id_app)
@@ -585,7 +614,8 @@
       (ζ (cons (Stx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
           '∘
           (mk-κ (Stx (cons id_app hole) ctx) '• 𝓁_new)
-          Θ_1 Σ))]
+          Θ_1 Σ))
+    ex-#%app2]
 
    ;; application
    [(ζ (cons (Stx `(,stx_fun ,stl_args ...) ctx) ξ) '∘ κ Θ Σ)
@@ -600,26 +630,29 @@
       (ζ (cons (Stx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
           '∘
           (mk-κ (Stx (cons id_app hole) ctx) '• 𝓁_new)
-          Θ_1 Σ))]
+          Θ_1 Σ))
+    ex-app]
 
    ;; reference
    [(ζ (cons (and id (Stx (Sym nam) ctx)) ξ) '∘ κ Θ Σ)
     (let ([all-transform (lookup-ξ ξ (resolve id Σ))])
       (match all-transform
         [`(TVar ,id_new) (ζ id_new '• κ Θ Σ)]
-        [_ (error '==>c "unbound identifier: ~a" nam)]))]
+        [_ (error '==>c "unbound identifier: ~a" nam)]))
+    ex-var]
 
    ;; literal
    [(ζ (cons (Stx (? atom? atom) ctx) ξ) '∘ κ Θ Σ)
     #:when (not (id? (Stx atom ctx)))
     (ζ (Stx `(,(Stx (Sym 'quote) ctx) ,(Stx atom ctx)) ctx)
-        '• κ Θ Σ)]
+        '• κ Θ Σ)
+    ex-lit]
 
    ;; pop κ
    [(ζ stx '• (κ STX ex? 𝓁) Θ Σ)
     (let ([κ (lookup-κ Θ 𝓁)])
-      (ζ (in-hole STX stx) ex? κ Θ Σ))]
-
+      (ζ (in-hole STX stx) ex? κ Θ Σ))
+    ex-pop-κ]
 
    ;; (#%seq (done ...) exp0 exp ...) -->
    ;;   (#%seq (done ... (expand exp0)) exp ...)
@@ -633,7 +666,8 @@
                         ,(Stx `(,id-snoc ,(Stx val_dones (empty-ctx)) . ,hole)
                               (empty-ctx))
                         ,@stl_exps) ctx) '∘ 𝓁_new)
-          Θ_1 Σ))]
+          Θ_1 Σ))
+    ex-seq-cons]
 
    [(ζ (Stx `((,(? id? id_seq) ,ξ)
                ,(Stx `(,(? id? id_snoc)
@@ -644,17 +678,20 @@
                 (eq? '#%snoc (resolve id_snoc Σ)))
     (let ([val_dones2 (snoc val_dones (Stx val_done ctx_2))])
       (ζ (cons (Stx `(,id_seq ,(Stx val_dones2 ctx_1) ,@stl_exps)  ctx) ξ)
-          '∘ κ Θ Σ))]
+          '∘ κ Θ Σ))
+    ex-seq-snoc]
 
    ;; (#%seq (done ...)) --> (done ...)
    [(ζ (cons (Stx `(,(? id? id_seq) ,(Stx val_dones _)) ctx) ξ) '∘ κ Θ Σ)
     #:when (eq? '#%seq (resolve id_seq Σ))
-    (ζ (Stx val_dones ctx) '• κ Θ Σ)]
+    (ζ (Stx val_dones ctx) '• κ Θ Σ)
+    ex-seq-nil]
 
    ;; in-eval
    [(in-eval s1 ζ)
     #:with (-->c s1)
-    (λ (s2) (in-eval s2 ζ))]))
+    (λ (s2) (in-eval s2 ζ))
+    ex-in-eval]))
 
 ;; expand : stx ξ Σ -> (values stx Σ)
 (define (expand stx ξ Σ)

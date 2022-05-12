@@ -1,7 +1,8 @@
 #lang typed/racket
 (require "types.rkt"
          "common.rkt"
-         (for-syntax typed/racket))
+         "reduction.rkt"
+         (for-syntax racket))
 
 
 ;; ----------------------------------------
@@ -118,35 +119,42 @@
   [`(,(AstEnv (If ast_test ast_then ast_else) env) ,cont ,store)
    `(,(SIf (AstEnv ast_test env)
            (AstEnv ast_then env)
-           (AstEnv ast_else env)) ,cont ,store)]
+           (AstEnv ast_else env)) ,cont ,store)
+   ev-env-if]
 
   [`(,(AstEnv (App ast_fun ast_args) env) ,cont ,store)
    `(,(SApp '()
             (cons (AstEnv ast_fun env)
                   (map (λ ([arg : Ast]) (AstEnv arg env)) ast_args)))
-     ,cont ,store)]
+     ,cont ,store)
+   ev-env-app]
 
   ;; value
   [`(,(AstEnv (? Val? val) _) ,cont ,store)
-   `(,val ,cont ,store)]
+   `(,val ,cont ,store)
+   ev-val]
 
   ;; reference
   [`(,(AstEnv (? Var? var) env) ,cont ,store)
    `(,(AstEnv (cast (lookup-store store (lookup-env env var)) Val) env)
-     ,cont ,store)]
+     ,cont ,store)
+   ev-x]
 
   ;; lambda
   [`(,(AstEnv (Fun vars ast) env) ,cont ,store)
-   `(,(AstEnv (VFun vars ast env) env) ,cont ,store)]
+   `(,(AstEnv (VFun vars ast env) env) ,cont ,store)
+   ev-lam]
 
   ;; application
   [`(,(SApp `(,vals ...) `(,clo ,clos ...)) ,cont ,store)
    (let-values ([(loc_new store_1) (push-cont store cont)])
-     `(,clo ,(KApp vals  clos loc_new) ,store_1))]
+     `(,clo ,(KApp vals  clos loc_new) ,store_1))
+   ev-push-app]
 
   [`(,(? Val? val) ,(KApp vals clos loc_cont) ,store)
    `(,(SApp (append vals (list val)) clos)
-     ,(cast (lookup-store store loc_cont) Cont) ,store)]
+     ,(cast (lookup-store store loc_cont) Cont) ,store)
+   ev-pop-app]
 
   ;; β
   [`(,(SApp vals '()) ,cont ,store)
@@ -161,47 +169,55 @@
                  [(locs store_1) (alloc-loc* nams store)]
                  [(env_new) (update-env env vars locs)]
                  [(store_2) (update-store* store_1 locs vals)])
-     `(,(AstEnv ast env_new) ,cont ,store_2))]
+     `(,(AstEnv ast env_new) ,cont ,store_2))
+   ev-β]
 
   ;; primitive application
   [`(,(SApp vals '()) ,cont ,store)
    #:when (and (pair? vals)
                (Prim? (car vals)))
-   `(,(δ (car vals) (cdr vals)) ,cont ,store)]
+   `(,(δ (car vals) (cdr vals)) ,cont ,store)
+   ev-δ]
 
   ;; if
   [`(,(SIf (? (λ (x) (not (Val? x))) ser_test) clo_then clo_else) ,cont ,store)
    (let-values ([(loc_new store_1) (push-cont store cont)])
-     `(,ser_test ,(KIf clo_then clo_else loc_new) ,store_1))]
+     `(,ser_test ,(KIf clo_then clo_else loc_new) ,store_1))
+   ev-push-if]
 
   [`(,(? Val? val) ,(KIf clo_then clo_else loc_cont) ,store)
    `(,(SIf val clo_then clo_else)
-     ,(cast (lookup-store store loc_cont) Cont) ,store)]
+     ,(cast (lookup-store store loc_cont) Cont) ,store)
+   ev-pop-if]
 
   [`(,(SIf #f _ clo_else) ,cont ,store)
-   `(,clo_else ,cont ,store)]
+   `(,clo_else ,cont ,store)
+   ev-if-#f]
 
   [`(,(SIf (? Val? val) clo_then _) ,cont ,store)
    #:when (not (equal? val #f))
-   `(,clo_then ,cont ,store)])
+   `(,clo_then ,cont ,store)
+   ev-if-#t])
 
 (: eval : Ast -> Val)
 (define (eval ast)
   (match-let ([`((,(? Val? val) • ,_store))
                (apply-reduction-relation*
-                -->c `(,(AstEnv ast (init-env)) • ,(init-store)))])
+                (reducer-of -->c)
+                `(,(AstEnv ast (init-env)) • ,(init-store)))])
     val))
 
 ;; for debug
 
 (: eval--> : Sexp -> (Setof State))
 (define (eval--> form)
-  (-->c `(,(AstEnv (cast (run form 'parse) Ast) (init-env)) • ,(init-store))))
+  ((reducer-of -->c)
+   `(,(AstEnv (cast (run form 'parse) Ast) (init-env)) • ,(init-store))))
 
 (: eval-->* : Sexp -> (Listof State))
 (define (eval-->* form)
   (apply-reduction-relation*
-   -->c
+   (reducer-of -->c)
    `(,(AstEnv (cast (run form 'parse) Ast) (init-env)) • ,(init-store))))
 
 
@@ -469,7 +485,8 @@
                           ,(GenStx stl_args2 ctx_0)
                           ,(Hole)) ctx)
                 '• 𝓁_new)
-         Θ_1 Σ_2))]
+         Θ_1 Σ_2))
+   ex-lam-body]
 
   ;; let
   [(ζ (Stxξ (GenStx `(,(? Id? id_let)
@@ -488,7 +505,8 @@
                                             ,(GenStx stl_rhs ctx_1)
                                             ) ctx_1) ξ)
                           ,(Hole)) ctx) '∘ 𝓁_new)
-         Θ_1 Σ_2))]
+         Θ_1 Σ_2))
+   ex-let-body]
 
   [(ζ (GenStx `(,(? Id? id_kont)
                  ,(? Id? id_let)
@@ -505,7 +523,8 @@
                           ,id_let
                           ,(GenStx `(,(GenStx stl_vars ctx_1) ,(Hole)) ctx_1)
                           ,stx_body) ctx) '∘ 𝓁_new)
-         Θ_1 Σ))]
+         Θ_1 Σ))
+   ex-let-rhs]
 
   [(ζ (GenStx `(,(? Id? id_kont)
                  ,(? Id? id_let)
@@ -516,17 +535,20 @@
                (eq? 'let (resolve id_let Σ)))
    (ζ (GenStx `(,id_let ,(GenStx (zip stl_vars val_rhs ctx_1) ctx_1)
                          ,stx_body) ctx)
-       '• κ Θ Σ)]
+       '• κ Θ Σ)
+   ex-let-rhs2]
 
   ;; quote
   [(ζ (Stxξ (and stx (GenStx `(,(? Id? id_quote) ,_) _)) _) '∘ κ Θ Σ)
    #:when (eq? 'quote (resolve id_quote Σ))
-   (ζ stx '• κ Θ Σ)]
+   (ζ stx '• κ Θ Σ)
+   ex-quote]
 
   ;; syntax
   [(ζ (Stxξ (and stx (GenStx `(,(? Id? id_syntax) ,_) _)) _) '∘ κ Θ Σ)
    #:when (eq? 'syntax (resolve id_syntax Σ))
-   (ζ stx '• κ Θ Σ)]
+   (ζ stx '• κ Θ Σ)
+   ex-stx]
 
   ;; macro creation
   [(ζ (Stxξ (GenStx `(,(? Id? id_ls)
@@ -536,7 +558,8 @@
    (ζ (GenStx `(,id_ls
                  ,(GenStx `(,(GenStx `(,id ,stx_rhs) ctx_0)) ctx_1)
                  ,(Stxξ stx_body ξ)) ctx)
-       '∘ κ Θ Σ)]
+       '∘ κ Θ Σ)
+   ex-ξ-ls]
 
   [(ζ (GenStx `(,(? Id? id_ls)
                  ,(GenStx `(,(GenStx `(,(? Id? id) ,stx_rhs) ctx_0)) ctx_1)
@@ -554,7 +577,8 @@
                           ,id_ls
                           ,(GenStx `(,(GenStx `(,id_new ,(Hole)) ctx_0)) ctx_1)
                           ,(Stxξ stx_body2 ξ)) ctx) '∘ 𝓁_new)
-         Θ_1 Σ_3))]
+         Θ_1 Σ_3))
+   ex-ls-push-rhs]
 
   [(ζ (GenStx `(,(? Id? id_kont)
                  ,(? Id? id_ls)
@@ -566,13 +590,15 @@
      (InEval `(,(AstEnv (parse stx_exp Σ) (init-env)) • ,(init-store))
              (ζ (GenStx `(,(GenStx (Sym nam_new) (empty-ctx))
                            ,(Stxξ stx_body2 ξ)) (empty-ctx))
-                 '∘ κ Θ Σ)))]
+                 '∘ κ Θ Σ)))
+   ex-ls-eval]
 
   [(InEval `(,(? Val? val) • ,_)
            (ζ (GenStx `(,(GenStx (Sym nam_new) _)
                          ,(Stxξ stx_body2 ξ)) _) '∘ κ Θ Σ))
    (let ([ξ_new (extend-ξ ξ nam_new val)])
-     (ζ (Stxξ stx_body2 ξ_new) '∘ κ Θ Σ))]
+     (ζ (Stxξ stx_body2 ξ_new) '∘ κ Θ Σ))
+   ex-ls-ξ]
 
   ;; macro invocation
   [(ζ (Stxξ (and stx_macapp (GenStx `(,(? Id? id_mac) ,_ ...) ctx)) ξ)
@@ -585,11 +611,13 @@
       `(,(AstEnv (App (cast val Val)
                       (list (flip (add stx_macapp scp_u) scp_i))) (init-env))
         • ,(init-store))
-      (ζ (Stxξ (GenStx #f (set scp_i)) ξ) '∘ κ Θ Σ_2)))]
+      (ζ (Stxξ (GenStx #f (set scp_i)) ξ) '∘ κ Θ Σ_2)))
+   ex-macapp-eval]
 
   [(InEval `(,(? Stx? stx_exp) • ,store_0)
            (ζ (Stxξ (GenStx #f scps) ξ) '∘ κ Θ Σ))
-   (ζ (Stxξ (flip stx_exp (car (set->list scps))) ξ) '∘ κ Θ Σ)]
+   (ζ (Stxξ (flip stx_exp (car (set->list scps))) ξ) '∘ κ Θ Σ)
+   ex-macapp-flip]
 
   ;; if
   [(ζ (Stxξ (GenStx `(,(? Id? id_if) ,stl_exps ...) ctx) ξ) '∘ κ Θ Σ)
@@ -598,14 +626,16 @@
      (ζ (Stxξ (GenStx `(,id-seq ,stx-nil ,@stl_exps) ctx) ξ)
          '∘
          (Mk-κ (GenStx `(,id-kont ,id_if ,(Hole)) ctx) '∘ 𝓁_new)
-         Θ_1 Σ))]
+         Θ_1 Σ))
+   ex-if]
 
   [(ζ (GenStx `(,(? Id? id_kont)
                  ,(? Id? id_if)
                  ,(GenStx (? ProperStl? val_exps) ctx)) _) '∘ κ Θ Σ)
    #:when (and (eq? '#%kont (resolve id_kont Σ))
                (eq? 'if     (resolve id_if Σ)))
-   (ζ (GenStx `(,id_if ,@val_exps) ctx) '• κ Θ Σ)]
+   (ζ (GenStx `(,id_if ,@val_exps) ctx) '• κ Θ Σ)
+   ex-if-kont]
 
   ;; application (non-canonical #%app version)
   [(ζ (Stxξ (GenStx `(,(? Id? id_app)
@@ -615,7 +645,8 @@
      (ζ (Stxξ (GenStx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
          '∘
          (Mk-κ (GenStx (cons id_app (Hole)) ctx) '• 𝓁_new)
-         Θ_1 Σ))]
+         Θ_1 Σ))
+   ex-#%app]
 
   ;; application (canonical #%app version)
   [(ζ (Stxξ (GenStx (cons (? Id? id_app)
@@ -626,7 +657,8 @@
      (ζ (Stxξ (GenStx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
          '∘
          (Mk-κ (GenStx (cons id_app (Hole)) ctx) '• 𝓁_new)
-         Θ_1 Σ))]
+         Θ_1 Σ))
+   ex-#%app2]
 
   ;; application
   [(ζ (Stxξ (GenStx `(,stx_fun ,stl_args ...) ctx) ξ) '∘ κ Θ Σ)
@@ -641,24 +673,28 @@
      (ζ (Stxξ (GenStx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
          '∘
          (Mk-κ (GenStx (cons id_app (Hole)) ctx) '• 𝓁_new)
-         Θ_1 Σ))]
+         Θ_1 Σ))
+   ex-app]
 
   ;; reference
   [(ζ (Stxξ (and id (GenStx (Sym nam) ctx)) ξ) '∘ κ Θ Σ)
    (let ([all-transform (lookup-ξ ξ (resolve id Σ))])
      (match all-transform
        [(TVar id_new) (ζ id_new '• κ Θ Σ)]
-       [_ (error '==>c "unbound identifier: ~a" nam)]))]
+       [_ (error '==>c "unbound identifier: ~a" nam)]))
+   ex-var]
   
   ;; literal
   [(ζ (Stxξ (GenStx (? Atom? atom) ctx) ξ) '∘ κ Θ Σ)
    #:when (not (Id? (GenStx atom ctx)))
-   (ζ (GenStx `(,(GenStx (Sym 'quote) ctx) ,(GenStx atom ctx)) ctx) '• κ Θ Σ)]
+   (ζ (GenStx `(,(GenStx (Sym 'quote) ctx) ,(GenStx atom ctx)) ctx) '• κ Θ Σ)
+   ex-lit]
 
   ;; pop κ
   [(ζ stx '• (Mk-κ stx_c ex? 𝓁) Θ Σ)
    (let ([κ (lookup-κ Θ 𝓁)])
-     (ζ (in-hole stx_c stx) ex? κ Θ Σ))]
+     (ζ (in-hole stx_c stx) ex? κ Θ Σ))
+   ex-pop-κ]
 
   ;; (#%seq (done ...) exp0 exp ...) -->
   ;;   (#%seq (done ... (expand exp0)) exp ...)
@@ -674,7 +710,8 @@
              ,(GenStx `(,id-snoc ,(GenStx val_dones (empty-ctx)) ,(Hole))
                       (empty-ctx))
              ,@stl_exps) ctx) '∘ 𝓁_new)
-         Θ_1 Σ))]
+         Θ_1 Σ))
+   ex-seq-cons]
 
   [(ζ (GenStx `(,(Stxξ (? Id? id_seq) ξ)
                  ,(GenStx `(,(? Id? id_snoc)
@@ -686,38 +723,41 @@
    (let ([val_dones2 (snoc val_dones stx_done)])
      (ζ (Stxξ (GenStx `(,id_seq ,(GenStx val_dones2 ctx_1)
                                   ,@stl_exps) ctx) ξ)
-         '∘ κ Θ Σ))]
+         '∘ κ Θ Σ))
+   ex-seq-snoc]
   
   ;; (#%seq (done ...)) --> (done ...)
   [(ζ (Stxξ (GenStx `(,(? Id? id_seq)
                         ,(GenStx (? ProperStl? val_dones) _)) ctx) ξ) '∘ κ Θ Σ)
    #:when (eq? '#%seq (resolve id_seq Σ))
-   (ζ (GenStx val_dones ctx) '• κ Θ Σ)]
+   (ζ (GenStx val_dones ctx) '• κ Θ Σ)
+   ex-seq-nil]
 
   ;; in-eval
   [(InEval s1 ζ0)
-   #:with (-->c s1)
-   (λ ([s2 : State]) (InEval s2 ζ0))])
+   #:with ((reducer-of -->c) s1)
+   (λ ([s2 : State]) (InEval s2 ζ0))
+   ex-in-eval])
 
 
 (: expand : Stx ξ Σ -> (Values Stx Σ))
 (define (expand stx ξ Σ)
   (let ([init-ζ (ζ (Stxξ stx ξ) '∘ '• (init-Θ) Σ)])
     (match-let ([(list (ζ stx_new '• '• Θ_new Σ_new))
-                 (apply-reduction-relation* ==>c init-ζ)])
+                 (apply-reduction-relation* (reducer-of ==>c) init-ζ)])
       (values stx_new Σ_new))))
 
 ;; for debug
 
 (: expand==> : Sexp -> (Setof ζ))
 (define (expand==> form)
-  (==>c
+  ((reducer-of ==>c)
    (ζ (Stxξ (reader form) (init-ξ)) '∘ '• (init-Θ) (init-Σ))))
 
 (: expand==>* : (->* (Sexp) (#:steps (Option Natural)) (Listof ζ)))
 (define (expand==>* form #:steps [steps #f])
   (apply-reduction-relation*
-   ==>c
+   (reducer-of ==>c)
    (ζ (Stxξ (reader form) (init-ξ)) '∘ '• (init-Θ) (init-Σ))
    #:steps steps))
 

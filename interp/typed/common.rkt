@@ -3,11 +3,9 @@
                     [read r:read]
                     [eval r:eval]
                     [expand r:expand])
-         "types.rkt"
-         "queue.rkt")
+         "types.rkt")
 (provide stl->seq zip unzip snoc
          in-hole in-hole-stl
-         define-reduction-relation apply-reduction-relation*
          define-helpers define-runner
          run-ex run-examples run-all-examples)
 
@@ -66,102 +64,6 @@
     [(Hole) v]
     [_ stl]))
 
-;;;; non-deterministic reduction engine
-
-;; (reduction-relation clause ...) : state -> (Set state ...)
-
-(define-syntax (define-reduction-relation stx)
-  (syntax-case stx ()
-    [(_ rel A B clause ...)
-     (with-syntax
-       ([body (let loop ([body #'(ann (set) (Setof A))]
-                         [cs (syntax->list #'(clause ...))])
-                (if (null? cs)
-                    body                                
-                    (loop
-                     (syntax-case (car cs) ()
-                       [(p b)
-                        #`(let ([n #,body])
-                            (match s
-                              [p (set-add n b)]
-                              [_ n]))]
-                       [(p #:when t b)
-                        #`(let ([n #,body])
-                            (match s
-                              [p (if t (set-add n b) n)]
-                              [_ n]))]
-                       [(p #:with e k)
-                        #`(let ([n #,body])
-                            (match s
-                              [p (set-union
-                                  n
-                                  (list->set
-                                   (set-map e (λ ([alt : B]) (k alt)))))]
-                              [_ n]))])
-                     (cdr cs))))])
-       #'(begin
-           (: rel : (-> A (Setof A)))
-           (define (rel s) body)))]))
-
-
-#;
-(define-syntax-rule (define-reduction-relation rel clauses ...)
-  (define rel (reduction-relation clauses ...)))
-
-#;
-(define-syntax (reduction-relation stx)
-  (syntax-case stx ()
-    [(reduction-relation) #'(λ ([s : ζ]) : (Setof ζ) (set))]
-    [(reduction-relation [pat #:when guard body ...] clauses ...)
-     #'(λ ([s : ζ]) : (Setof ζ)
-         (let ([nexts : (Setof ζ) ((reduction-relation clauses ...) s)])
-           (match s
-             [pat
-              (if guard
-                  (set-add nexts (begin body ...))
-                  nexts)]
-             [_ nexts])))]
-    [(reduction-relation [pat #:with expr kont] clauses ...)
-     #'(λ ([s : ζ]) : (Setof ζ)
-         (let ([nexts : (Setof ζ) ((reduction-relation clauses ...) s)])
-           (match s
-             [pat (set-union nexts
-                             (for/set ([alt (in-set expr)])
-                               (kont alt)))]
-             [_ nexts])))]
-    [(reduction-relation [pat body ...] clauses ...)
-     #'(λ ([s : ζ]) : (Setof ζ)
-         (let ([nexts : (Setof ζ) ((reduction-relation clauses ...) s)])
-           (match s
-             [pat (set-add nexts (begin body ...))]
-             [_ nexts])))]))
-
-
-(: apply-reduction-relation* (∀ [A] (->* ((-> A (Setof A)) A)
-                                          (#:steps (Option Natural))
-                                          (Listof A))))
-(define (apply-reduction-relation* --> s #:steps [steps #f])
-  (let ([all-states : (Mutable-HashTable A Boolean) (make-hash)]
-        [normal-forms : (Mutable-HashTable A Boolean) (make-hash)]
-        [worklist ((inst make-queue A))])
-    (define (loop [steps : (Option Natural)]) : Void
-      (unless (or (queue-empty? worklist)
-                  (and steps (<= steps 0)))
-        (let* ([s (dequeue! worklist)]
-               [nexts (--> s)])
-          (if (set-empty? nexts)
-              (hash-set! normal-forms s #t)
-              (for ([next (in-set nexts)]
-                #:when (not (hash-ref all-states next #f)))
-                (hash-set! all-states next #t)
-                (enqueue! worklist next))))
-        (loop (and steps (sub1 steps)))))
-    (enqueue! worklist s)
-    (loop steps)
-    (if steps
-        (hash-keys all-states) ;; for debug
-        (hash-keys normal-forms))))
-
 
 ;;;; reader & printer
 
@@ -198,10 +100,10 @@
          [(? (λ (v) (or (null? v) (Prim? v) (real? v) (boolean? v)))) val]
          [(VFun `(,(Var #{nams : (Listof Nam)}) ...) ast env) `(VFun ,@nams)]
          [(Sym nam) nam]
-         [(𝓁 nam) nam]
-         [(Defs _ _) '(Defs)]
          [(cons v1 v2) (cons (printer v1) (printer v2))]
          [(GenStx a c) (vector 'Stx (printer a))]
+         ;[(𝓁 nam) nam]
+         ;[(Defs _ _) '(Defs)]
          )))))
 
 ;;;; runner
