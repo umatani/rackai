@@ -1,7 +1,3 @@
-#lang typed/racket
-
-(provide (all-defined-out))
-
 ;;;; Language
 
 ;; Use names for vars, symbols, locations, and scopes
@@ -36,12 +32,10 @@
 (struct [A] GenStx ([e : A] [ctx : Ctx]) #:transparent)
 (define-type Stx (U (GenStx Atom) (GenStx (Pairof Stx Stl)) (GenStx ProperStl)
                     Stxξ Hole (GenStx Hole)))
-(struct Stxξ ([stx : Stx] [ξ : ξ]) #:transparent)
 (define-type Stl (U Null Stx (Pairof Stx Stl) Hole)) ; syntax tail
 (define-type Id (GenStx Sym) #:omit-define-syntaxes)
-(define (Id [nam : Nam] [scps : Scps]) : Id (GenStx (Sym nam) scps))
+(define (Id [nam : Nam] [ctx : Ctx]) : Id (GenStx (Sym nam) ctx))
 (define-type ProperStl (U Null (Pairof Stx ProperStl)))
-(define-type Ctx Scps)
 (define-type Scps (Setof Scp))
 (define-type Scp Nam)
 

@@ -1,225 +1,24 @@
 #lang typed/racket
-(require "types.rkt"
-         "common.rkt"
-         "reduction.rkt"
+(require "../reduction.rkt"
+         "types.rkt"
+         "misc.rkt"
+         (only-in "../example.rkt" core:examples)
          (for-syntax racket))
-
 
 ;; ----------------------------------------
 ;; Implementation of primitives:
 
-(define (plus . [ns : Real *]) : Real (apply + ns))
-(define (minus [n : Real] . [ns : Real *]) : Real (apply - n ns))
-(define (times . [ns : Real *]) : Real (apply * ns))
-(define (div [n : Real] . [ns : Real *]) : Real (apply / n ns))
-(define (less-than [n1 : Real] [n2 : Real] . [ns : Real *])
-  (apply < n1 n2 ns))
-(define (num-eq [n1 : Real] [n2 : Real] . [ns : Real *]) : Boolean
-  (apply = n1 n2 ns))
-(define (sym-eq [sym1 : Sym] [sym2 : Sym]) : Boolean
-  (match* (sym1 sym2)
-    [((Sym nam1) (Sym nam2)) (eq? nam1 nam2)]))
-
-(: δ : Prim (Listof Val) -> Val)
-(define (δ p vs)
-  (match (cons p vs)
-    [`(+ ,(? real? #{ns : (Listof Real)}) ...)
-     (apply plus ns)]
-    [`(- ,(? real? #{n : Real}) ,(? real? #{ns : (Listof Real)}) ...)
-     (apply minus n ns)]
-    [`(* ,(? real? #{ns : (Listof Real)}) ...)
-     (apply times ns)]
-    [`(/ ,(? real? #{n : Real}) ,(? real? #{ns : (Listof Real)}) ...)
-     (apply div n ns)]
-    [`(< ,(? real? #{n1 : Real}) ,(? real? #{n2 : Real})
-         ,(? real? #{ns : (Listof Real)}) ...)
-     (apply less-than n1 n2 ns)]
-    [`(= ,(? real? #{n1 : Real}) ,(? real? #{n2 : Real})
-         ,(? real? #{ns : (Listof Real)}) ...)
-     (apply num-eq n1 n2 ns)]
-
-    [`(eq? ,(? Sym? s1) ,(? Sym? s2)) (sym-eq s1 s2)]
-
-    [`(cons ,v1 ,v2) (cons v1 v2)]
-    [`(car ,(cons v1 _)) v1]
-    [`(cdr ,(cons _ v2)) v2]
-
-    [`(list) '()]
-    [`(list ,v1 ,vs ...) (δ 'cons (list v1 (δ 'list vs)))]
-    [`(second (,_ ,v2 ,_ ...)) v2]
-    [`(third  (,_ ,_ ,v3 ,_ ...)) v3]
-    [`(fourth (,_ ,_ ,_ ,v4 ,_ ...)) v4]
-
-    [`(syntax-e ,(GenStx e _)) e]
-    [`(datum->syntax ,_ ,(? Stx? stx)) stx]
-    [`(datum->syntax ,(and stx0 (GenStx _ ctx_0)) (,v1 ,vs ...))
-     (GenStx `(,(cast (δ 'datum->syntax `(,stx0 ,v1)) Stx)
-               ,@(cast (δ 'syntax-e `(,(δ 'datum->syntax `(,stx0 ,vs))))
-                       Stl))
-             ctx_0)]
-    [`(datum->syntax ,(GenStx _ ctx) ,(? Atom? atom))
-     (GenStx atom ctx)]))
+(include "../delta.rktl")
 
 ;; ----------------------------------------
 ;; Evaluating AST:
 
-(: lookup-env : Env Var -> Loc)
-(define (lookup-env env var) (hash-ref env var))
+(include "eval.rktl")
 
-(: update-env : Env (Listof Var) (Listof Loc) -> Env)
-(define (update-env env vars locs)
-  (foldl (λ ([v : Var] [l : Loc] [e : Env]) (hash-set e v l))
-         env vars locs))
+;; ----------------------------------------
+;; Parsing:
 
-(: lookup-store : Store Loc -> (U Val Cont))
-(define (lookup-store store loc)
-  (hash-ref (Store-tbl store) loc))
-
-(: update-store : Store Loc (U Val Cont) -> Store)
-(define (update-store store loc u)
-  (Store (Store-size store)
-         (hash-set (Store-tbl store) loc u)))
-
-(: update-store* : Store (Listof Loc) (Listof (U Val Cont)) -> Store)
-(define (update-store* store locs us)
-  (Store (Store-size store)
-         (foldl (λ ([l : Loc]
-                     [u : (U Val Cont)]
-                     [t : (HashTable Loc (U Val Cont))])
-                  (hash-set t l u))
-                (Store-tbl store) locs us)))
-
-(: alloc-loc : Store -> (Values Loc Store))
-(define (alloc-loc store)
-  (let ([size (Store-size store)])
-    (values (string->symbol (format "l~a" size))
-            (Store (add1 size) (Store-tbl store)))))
-
-;; for eval-time value binding
-(: alloc-loc* : (Listof Nam) Store -> (Values (Listof Loc) Store))
-(define (alloc-loc* nams store)
-  (match nams
-    ['() (values '() store)]
-    [(list nam1 nams ...)
-     (let* ([size (Store-size store)]
-            [loc_0 (string->symbol (format "~a:~a" nam1 size))])
-       (let-values ([(locs_new store_new)
-                     (alloc-loc* nams (Store (add1 size) (Store-tbl store)))])
-         (values (cons loc_0 locs_new) store_new)))]))
-
-(: push-cont : Store Cont -> (Values Loc Store))
-(define (push-cont store cont)
-  (let-values ([(loc store_1) (alloc-loc store)])
-    (let ([store_2 (update-store store_1 loc cont)])
-      (values loc store_2))))
-
-;(: -->c : (-> State (Setof State)))
-(define-reduction-relation -->c State ζ
-  ;; propagate env into subterms
-  [`(,(AstEnv (If ast_test ast_then ast_else) env) ,cont ,store)
-   `(,(SIf (AstEnv ast_test env)
-           (AstEnv ast_then env)
-           (AstEnv ast_else env)) ,cont ,store)
-   ev-env-if]
-
-  [`(,(AstEnv (App ast_fun ast_args) env) ,cont ,store)
-   `(,(SApp '()
-            (cons (AstEnv ast_fun env)
-                  (map (λ ([arg : Ast]) (AstEnv arg env)) ast_args)))
-     ,cont ,store)
-   ev-env-app]
-
-  ;; value
-  [`(,(AstEnv (? Val? val) _) ,cont ,store)
-   `(,val ,cont ,store)
-   ev-val]
-
-  ;; reference
-  [`(,(AstEnv (? Var? var) env) ,cont ,store)
-   `(,(AstEnv (cast (lookup-store store (lookup-env env var)) Val) env)
-     ,cont ,store)
-   ev-x]
-
-  ;; lambda
-  [`(,(AstEnv (Fun vars ast) env) ,cont ,store)
-   `(,(AstEnv (VFun vars ast env) env) ,cont ,store)
-   ev-lam]
-
-  ;; application
-  [`(,(SApp `(,vals ...) `(,clo ,clos ...)) ,cont ,store)
-   (let-values ([(loc_new store_1) (push-cont store cont)])
-     `(,clo ,(KApp vals  clos loc_new) ,store_1))
-   ev-push-app]
-
-  [`(,(? Val? val) ,(KApp vals clos loc_cont) ,store)
-   `(,(SApp (append vals (list val)) clos)
-     ,(cast (lookup-store store loc_cont) Cont) ,store)
-   ev-pop-app]
-
-  ;; β
-  [`(,(SApp vals '()) ,cont ,store)
-   #:when (and (pair? vals)
-               (VFun? (car vals)))
-   (let*-values ([(vars ast env vals) (let ([f(car vals)])
-                                        (values (VFun-vars f)
-                                                (VFun-ast f)
-                                                (VFun-env f)
-                                                (cdr vals)))]
-                 [(nams) (map Var-nam vars)]
-                 [(locs store_1) (alloc-loc* nams store)]
-                 [(env_new) (update-env env vars locs)]
-                 [(store_2) (update-store* store_1 locs vals)])
-     `(,(AstEnv ast env_new) ,cont ,store_2))
-   ev-β]
-
-  ;; primitive application
-  [`(,(SApp vals '()) ,cont ,store)
-   #:when (and (pair? vals)
-               (Prim? (car vals)))
-   `(,(δ (car vals) (cdr vals)) ,cont ,store)
-   ev-δ]
-
-  ;; if
-  [`(,(SIf (? (λ (x) (not (Val? x))) ser_test) clo_then clo_else) ,cont ,store)
-   (let-values ([(loc_new store_1) (push-cont store cont)])
-     `(,ser_test ,(KIf clo_then clo_else loc_new) ,store_1))
-   ev-push-if]
-
-  [`(,(? Val? val) ,(KIf clo_then clo_else loc_cont) ,store)
-   `(,(SIf val clo_then clo_else)
-     ,(cast (lookup-store store loc_cont) Cont) ,store)
-   ev-pop-if]
-
-  [`(,(SIf #f _ clo_else) ,cont ,store)
-   `(,clo_else ,cont ,store)
-   ev-if-#f]
-
-  [`(,(SIf (? Val? val) clo_then _) ,cont ,store)
-   #:when (not (equal? val #f))
-   `(,clo_then ,cont ,store)
-   ev-if-#t])
-
-(: eval : Ast -> Val)
-(define (eval ast)
-  (match-let ([`((,(? Val? val) • ,_store))
-               (apply-reduction-relation*
-                (reducer-of -->c)
-                `(,(AstEnv ast (init-env)) • ,(init-store)))])
-    val))
-
-;; for debug
-
-(: eval--> : Sexp -> (Setof State))
-(define (eval--> form)
-  ((reducer-of -->c)
-   `(,(AstEnv (cast (run form 'parse) Ast) (init-env)) • ,(init-store))))
-
-(: eval-->* : Sexp -> (Listof State))
-(define (eval-->* form)
-  (apply-reduction-relation*
-   (reducer-of -->c)
-   `(,(AstEnv (cast (run form 'parse) Ast) (init-env)) • ,(init-store))))
-
+(include "parsing.rktl")
 
 ;; ----------------------------------------
 ;; Syntax-object operations:
@@ -246,13 +45,6 @@
     [(cons stx stl) (cons (cast (add stx scp) Stx)
                           (add-stl stl scp))]))
 
-;; Adds or cancels a scope
-(: addremove : Scp Scps -> Scps)
-(define (addremove scp scps)
-  (if (set-member? scps scp)
-      (set-remove scps scp)
-      (set-add scps scp)))
-
 ;; Pushes flipping a scope down through a syntax object
 (: flip : Stx Scp -> Stx)
 (define (flip stx scp)
@@ -274,21 +66,6 @@
      (GenStx atom (addremove scp ctx))]
     [(cons stx stl) (cons (flip stx scp) (flip-stl stl scp))]))
 
-;; Recursively strips lexical context from a syntax object
-(: strip : Stl -> Val)
-(define (strip stl)
-  (match stl
-    ['() '()]
-    [(GenStx (cons stx stl) _) (cons (strip stx) (strip stl))]
-    [(GenStx (? Atom? atom) _) atom]
-    [(cons stx stl) (cons (strip stx) (strip stl))]))
-
-(: subtract : Scps Scps -> Scps)
-(define (subtract scps1 scps2) (set-subtract scps1 scps2))
-
-(: union : Scps Scps -> Scps)
-(define (union scps1 scps2) (set-union scps1 scps2))
-
 ;; Add a binding using the name and scopes of an identifier, mapping
 ;; them in the store to a given name
 (: bind : Σ Id Nam -> Σ)
@@ -300,39 +77,6 @@
                             (set-add (cast sbs (Setof StoBind))
                                      (StoBind ctx_1 nam)))
                           (λ () (ann (set) (Setof StoBind)))))))
-
-(: lookup-Σ : Σ Nam -> (U (Setof StoBind) Val ξ))
-(define (lookup-Σ Σ0 nam)
-  (hash-ref (Σ-tbl Σ0) nam (λ () (ann (set) (Setof StoBind)))))
-
-(: binding-lookup : (Setof StoBind) Scps -> (Option Nam))
-(define (binding-lookup sbs scps)
-  (let ([r (member scps (set->list sbs)
-                   (λ ([scps : Scps] [sb : StoBind])
-                     (set=? scps (StoBind-scps sb))))])
-    (and r (StoBind-nam (first r)))))
-
-(: biggest-subset : Scps (Listof Scps) -> Scps)
-(define (biggest-subset scps_ref scpss)
-  (let* ([matching : (Listof Scps)
-                   (filter (λ ([scps_bind : Scps])
-                             (subset? scps_bind scps_ref))
-                           scpss)]
-         [sorted : (Listof Scps)
-                 ((inst sort Scps Index)
-                  matching > #:key set-count)])
-    ;; The binding is ambiguous if the first scps in
-    ;; `sorted` is not bigger than the others, or if
-    ;; some scps in `sorted` is not a subset of the
-    ;; first one.
-    (if (or (empty? sorted)
-            (and (pair? (rest sorted))
-                 (= (set-count (first sorted))
-                    (set-count (second sorted))))
-            (ormap (λ ([b : Scps]) (not (subset? b (first sorted))))
-                   (rest sorted)))
-        (set)
-        (first sorted))))
 
 (: resolve : Id Σ -> Nam)
 (define (resolve id Σ0)
@@ -395,57 +139,15 @@
     [(cons stx stl) (cons (parse stx Σ) (parse* stl Σ))]
     [stx (list (parse (cast stx Stx) Σ))]))
 
-
 ;; ----------------------------------------
-;; Expand-time environment operations:
+;; The expander:
 
-(: lookup-ξ : ξ Nam -> AllTransform)
-(define (lookup-ξ ξ nam) (hash-ref ξ nam (λ () 'not-found)))
+(define (empty-ctx) : Ctx (ann (set) Ctx))
 
-(: extend-ξ : ξ Nam AllTransform -> ξ)
-(define (extend-ξ ξ nam all-transform) (hash-set ξ nam all-transform))
+(include "expand.rktl")
 
-;; ----------------------------------------
-;; Expand-time stack operations:
-
-(: alloc-κ : Θ -> (Values 𝓁 Θ))
-(define (alloc-κ θ)
-  (match-let ([(Θ size tbl) θ])
-    (values (𝓁 (string->symbol (format "k~a" size)))
-            (Θ (add1 size) tbl))))
-
-(: lookup-κ : Θ 𝓁 -> κ)
-(define (lookup-κ θ 𝓁) (hash-ref (Θ-tbl θ) 𝓁))
-
-(: update-κ : Θ 𝓁 κ -> Θ)
-(define (update-κ θ 𝓁 κ)
-  (match-let ([(Θ size tbl) θ])
-    (Θ size (hash-set tbl 𝓁 κ))))
-
-(: push-κ : Θ κ -> (Values 𝓁 Θ))
-(define (push-κ θ κ)
-  (let-values ([(𝓁 θ_1) (alloc-κ θ)])
-    (values 𝓁 (update-κ θ_1 𝓁 κ))))
-
-;; ----------------------------------------
-;; Alloc name & scope helpers for expander:
-
-(: alloc-name : Id Σ -> (Values Nam Σ))
-(define (alloc-name id Σ0)
-  (match-let ([(GenStx (Sym nam) _) id]
-              [(Σ size tbl) Σ0])
-    (values (string->symbol (format "~a:~a" nam size))
-            (Σ (add1 size) tbl))))
-
-(: alloc-scope : Σ -> (Values Scp Σ))
-(define (alloc-scope Σ0)
-  (match-let ([(Σ size tbl) Σ0])
-    (values (string->symbol (format "scp:~a" size))
-            (Σ (add1 size) tbl))))
-
-;(: regist-vars : Scp Stl ξ Σ -> (Values Stl ξ Σ))
 (: regist-vars : Scp ProperStl ξ Σ -> (Values ProperStl ξ Σ))
-(define (regist-vars  scp stl ξ Σ)
+(define (regist-vars scp stl ξ Σ)
   (match stl
     ['() (values '() ξ Σ)]
     [(cons (app (λ (stx) (cast stx Id)) id) stl)
@@ -456,15 +158,6 @@
                    [(ξ_2) (extend-ξ ξ_1 nam_new (TVar id_new))])
        (values (cons id_new stl_reg) ξ_2 Σ_3))]))
 
-;; ----------------------------------------
-;; The expander:
-
-(define (empty-ctx) : Ctx (ann (set) Ctx))
-
-(define id-kont : Id (GenStx (Sym '#%kont) (empty-ctx)))
-(define id-seq  : Id (GenStx (Sym '#%seq)  (empty-ctx)))
-(define id-snoc : Id (GenStx (Sym '#%snoc) (empty-ctx)))
-(define stx-nil (GenStx '() (empty-ctx)))
 
 ;(: ==>c : (-> ζ (Setof ζ)))
 (define-reduction-relation ==>c ζ State
@@ -696,6 +389,8 @@
      (ζ (in-hole stx_c stx) ex? κ Θ Σ))
    ex-pop-κ]
 
+  ;; expression sequence
+
   ;; (#%seq (done ...) exp0 exp ...) -->
   ;;   (#%seq (done ... (expand exp0)) exp ...)
   [(ζ (Stxξ (GenStx `(,(? Id? id_seq)
@@ -765,26 +460,7 @@
 ;; ----------------------------------------
 ;; Drivers
 
-
-(: init-env : -> Env)
-(define (init-env) (make-immutable-hash))
-
-(: init-store : -> Store)
-(define (init-store) (Store 0 (make-immutable-hash)))
-
-(: init-ξ : -> ξ)
-(define (init-ξ) (make-immutable-hash))
-
-(: init-Σ : -> Σ)
-(define (init-Σ) (Σ 0 (make-immutable-hash)))
-
-(: init-Θ : -> Θ)
-(define (init-Θ) (Θ 0 (make-immutable-hash)))
-
-(define-helpers (empty-ctx) reader printer)
-
-(: stripper : Stx Σ -> Val)
-(define (stripper stx Σ) (strip stx))
+(include "drivers.rktl")
 
 (: expander : Stx -> (Values Stx Σ))
 (define (expander stx)
@@ -796,127 +472,6 @@
   stripper printer
   eval
   parse)
-
-
-;; ----------------------------------------
-;; Examples:
-
-(define ex-<
-  '[<
-    (< 3 5)])
-
-(define ex-eq?
-  '[eq?
-    (eq? 'a 'a)])
-
-(define ex-let
-  '[let-x
-    (let ([x 1]) (+ x 2))])
-
-(define ex-if-#t
-  '[if-#t
-    (if (< 0 1) 'foo 'bar)])
-
-(define ex-if-#f
-  '[if-#f
-    (let ([x 3] [y 2])
-      (if (< x y) (+ x y) (* x y)))])
-
-(define ex-simple
-  '[simple
-    (let-syntax ([x (lambda (stx) #'2)])
-      (x 1))])
-(define (raw-simple)
-  (let-syntax ([x (lambda (stx) #'2)])
-    (x 1)))
-
-(define ex-reftrans
-  '[reftrans
-    (let ([z 1])
-      ((let-syntax ([x (lambda (stx) #'z)])
-         (lambda (z) (x))) 2))])
-(define (raw-reftrans)
-  (lambda (z)
-    (let-syntax ([x (lambda (stx) #'z)])
-      (lambda (z) (x)))))
-
-(define ex-hyg
-  '[hyg
-    (let ([z 1])
-      ((let-syntax
-           ([x (lambda (stx)
-                 (#%app datum->syntax
-                        #'here
-                        (#%app list #'lambda
-                               (#%app datum->syntax #'here (#%app list #'z))
-                               (#%app second (#%app syntax-e stx)))))])
-         (x z)) 2))])
-(define (raw-hyg)
-  (lambda (z)
-    (let-syntax ([x (lambda (stx)
-                      #`(lambda (z) #,(second (syntax-e stx))))])
-      (x z))))
-
-
-(define ex-thunk
-  '[thunk
-    (let-syntax
-        ([thunk (lambda (stx)
-                  (#%app datum->syntax
-                         stx
-                         (#%app list #'lambda
-                                (#%app datum->syntax stx (#%app list #'a)) 
-                                (#%app second (#%app syntax-e stx)) ;; #'(+ a 1)
-                                )))])
-      ((let ([a 5])
-         (thunk (+ a 1))) 0))])
-(define (raw-thunk)
-  (let-syntax ([thunk (lambda (stx)
-                        #`(lambda (a)
-                            #,(second (syntax-e stx)) ;; #'(+ a 1)
-                            ))])
-    (((lambda (a) (thunk (+ a 1))) 5) 0)))
-
-
-(define ex-get-identity
-  '[get-identity
-    (let-syntax
-        ([get-identity
-          (lambda (stx)
-            (#%app datum->syntax
-                   stx
-                   (#%app list #'lambda
-                          (#%app datum->syntax stx (#%app list #'a))
-                          (#%app datum->syntax
-                                 stx
-                                 (#%app list #'lambda
-                                        (#%app
-                                         datum->syntax
-                                         stx
-                                         (#%app list
-                                                (#%app
-                                                 second
-                                                 (#%app syntax-e stx)) ;; #'a
-                                                ))
-                                        #'a)))))])
-      (((get-identity a) 1) 2))])
-(define (raw-get-identity)
-  (let-syntax ([get-identity (lambda (stx)
-                               #`(lambda (a)
-                                   (lambda (#,(second (syntax-e stx))) ;; #'a
-                                     a)))])
-    (get-identity a)))
-
-(define core:examples
-  (list ex-<
-        ex-eq?
-        ex-let
-        ex-if-#t ex-if-#f
-        ex-simple
-        ex-reftrans
-        ex-hyg
-        ex-thunk
-        ex-get-identity))
 
 (define (main [mode : Symbol 'check])
   (run-examples run core:examples mode))
