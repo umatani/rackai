@@ -4,6 +4,7 @@
          "misc.rkt"
          (only-in "../example.rkt" core:examples)
          (for-syntax racket))
+(provide run)
 
 ;; ----------------------------------------
 ;; Implementation of primitives:
@@ -13,6 +14,7 @@
 ;; ----------------------------------------
 ;; Evaluating AST:
 
+(include "../eval.rktl")
 (include "eval.rktl")
 
 ;; ----------------------------------------
@@ -159,7 +161,7 @@
        (values (cons id_new stl_reg) ξ_2 Σ_3))]))
 
 
-;(: ==>c : (-> ζ (Setof ζ)))
+;; (: ==>c : ζ -> (Setof ζ))
 (define-reduction-relation ==>c ζ State
 
   ;; lambda
@@ -309,7 +311,8 @@
 
   [(InEval `(,(? Stx? stx_exp) • ,store_0)
            (ζ (Stxξ (GenStx #f scps) ξ) '∘ κ Θ Σ))
-   (ζ (Stxξ (flip stx_exp (car (set->list scps))) ξ) '∘ κ Θ Σ)
+   (let ([scp_i (car (set->list scps))])
+     (ζ (Stxξ (flip stx_exp scp_i) ξ) '∘ κ Θ Σ))
    ex-macapp-flip]
 
   ;; if
@@ -356,11 +359,14 @@
   ;; application
   [(ζ (Stxξ (GenStx `(,stx_fun ,stl_args ...) ctx) ξ) '∘ κ Θ Σ)
    #:when (or (not (Id? stx_fun))
-              (let ([name (resolve stx_fun Σ)])
-                (and (eq? 'not-found (lookup-ξ ξ name))
-                     (not (member name
-                                  '(lambda let quote syntax let-syntax if
-                                     #%app #%kont #%seq #%ls-kont #%snoc))))))
+              (let* ([name (resolve stx_fun Σ)]
+                     [at (lookup-ξ ξ name)])
+                (or (TVar? at)
+                    (and (eq? 'not-found at)
+                         (not (member name
+                                      '(lambda let quote syntax let-syntax if
+                                         #%app #%kont #%seq #%ls-kont
+                                         #%snoc)))))))
    (let-values ([(id_app) (GenStx (Sym '#%app) ctx)]
                 [(𝓁_new Θ_1) (push-κ Θ κ)])
      (ζ (Stxξ (GenStx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)

@@ -38,12 +38,16 @@
              [(p b rule-name)
               #`(let ([n #,body])
                   (match #,s
-                    [p (set-add n b)]
+                    [p ;(println 'rule-name)
+                       (set-add n b)]
                     [_ n]))]
              [(p #:when t b rule-name)
               #`(let ([n #,body])
                   (match #,s
-                    [p (if t (set-add n b) n)]
+                    [p (if t
+                           (begin ;(println 'rule-name)
+                                  (set-add n b))
+                           n)]
                     [_ n]))]
              [(p #:with e k rule-name)
               #`(let ([n #,body])

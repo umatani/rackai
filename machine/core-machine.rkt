@@ -954,11 +954,14 @@
 
        (side-condition
         (or (not (redex-match? L id (term stx_fun)))
-            (let ([name (term (resolve stx_fun Σ))])
-              (and (redex-match? L not-found (term (lookup-ξ ξ ,name)))
-                   (not (member name
-                                '(lambda let quote syntax let-syntax if
-                                   #%app #%kont #%seq #%ls-kont #%snoc)))))))
+            (let* ([name (term (resolve stx_fun Σ))]
+                   [at (term (unstop (lookup-ξ ξ ,name)))])
+              (or (redex-match? L (TVar id) at)
+                  (and (redex-match? L not-found at)
+                       (not (member name
+                                    '(lambda let quote syntax let-syntax if
+                                       #%app #%kont #%seq #%ls-kont
+                                       #%snoc))))))))
        (where id_app (Stx (Sym #%app) ctx))
        (where (values 𝓁_new Θ_1) (gen:push-κ Θ κ))
        ex-app)

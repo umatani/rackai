@@ -60,7 +60,7 @@
        (Stx (Cons stx∘ STL) ctx)]
   [κ ::=
      •
-     (STX ex? Σ* loc) ; updated (Σ*)
+     (STX ex? Σ* 𝓁) ; updated (Σ*)
      ]
   [ζ ::=
       (stx∘ ex? κ Θ Σ*) ; updated (Σ -> Σ*)
@@ -230,7 +230,7 @@
        (where (Tup Σ scps_p scps_u) Σ*)
        (where (values scp_defs Σ_2) (alloc-scope Σ))
        (where (values 𝓁 Σ_3) (alloc-def-ξ Σ_2))
-       (where Σ*_3 (Tup (def-ξ-update Σ_2 𝓁 ξ)
+       (where Σ*_3 (Tup (def-ξ-update Σ_3 𝓁 ξ)
                          (union (Set scp_defs) scps_p)
                          scps_u))
        ev-slmdc]
@@ -240,8 +240,8 @@
              syntax-local-bind-syntaxes
              (Cons id_arg ()) #f (Defs scp_defs 𝓁)) cont store Σ*)
        ((Cons id_defs ()) cont store (Tup Σ_3 scps_p scps_u))
-       (where (Tup Σ scps_p scps_u) Σ*)
 
+       (where (Tup Σ scps_p scps_u) Σ*)
        (where id_defs (add ph (prune ph (flip ph id_arg scp_i) scps_u)
                            scp_defs))
        (where (values nam_new Σ_1) (alloc-name id_defs Σ))
@@ -255,18 +255,29 @@
   [--> ((App (ph scp_i ξ)
              syntax-local-bind-syntaxes
              (Cons id_arg ()) stx_arg (Defs scp_defs 𝓁)) cont store Σ*)
+       (in-expand (((plus ph 1) stx_arg2 (init-ξ))
+                   ∘ • (init-Θ) (Tup Σ (Set) (Set)))
+                  ((App (ph scp_i ξ)
+                        (syntax-local-bind-syntaxes2 scps_p scps_u)
+                        (Cons id_arg ()) (Defs scp_defs 𝓁))
+                   cont store Σ*))
+       
+       (where (Tup Σ scps_p scps_u) Σ*)
+       (where stx_arg2 (add ph (flip ph stx_arg scp_i) scp_defs))
+       ev-slbcm]
+
+  [--> (in-expand (stx_exp • • Θ_new (Tup Σ_2 _ _))
+                  ((App (ph scp_i ξ)
+                        (syntax-local-bind-syntaxes2 scps_p scps_u)
+                        (Cons id_arg ()) (Defs scp_defs 𝓁))
+                   cont store _))
        ((ph (parse (plus ph 1) stx_exp Σ_2) () no-scope ξ)
         (App (ph scp_i ξ)
              (syntax-local-bind-syntaxes2 scps_p scps_u)
              (Cons id_arg ()) (Defs scp_defs 𝓁) hole loc_new)
         store_1 (Tup Σ_2 scps_p (Set)))
-       (where (Tup Σ scps_p scps_u) Σ*)
-       (where stx_arg2 (add ph (flip ph stx_arg scp_i) scp_defs))
-       (where (values stx_exp (Tup Σ_2 _ _))
-              (expand (plus ph 1)
-                      stx_arg2 (init-ξ) (Tup Σ (Set) (Set))))
        (where (values loc_new store_1) (push-cont store cont))
-       ev-slbcm]
+       ev-slbcm2]
 
   [--> ((App (ph scp_i ξ)
              (syntax-local-bind-syntaxes2 scps_p scps_u)
@@ -283,7 +294,7 @@
        (where Σ*_4 (Tup (def-ξ-update Σ_3 𝓁
                            (extend-ξ ξ_defs nam_new val_exp))
                          scps_p scps_u))
-       ev-slbcm2]
+       ev-slbcm3]
 
   ;; local expand
   [--> ((App (ph scp_i ξ)
@@ -316,7 +327,7 @@
        ; TODO?: 下の(flip ph stx scp_i)は間違い？？しかしdefsを使わない場合にもこれはある．．．
        ;   これがあると，少なくともunit-4が通らない
        ;   しかし，flipしなければdefs-begin-with-defnの挙動が実際の処理系と異なってしまう．
-       (in-expand ((ph (add ph #;stx (flip ph stx scp_i) scp_defs
+       (in-expand ((ph (add ph stx #;(flip ph stx scp_i) scp_defs
                             ) ξ_stops)
                    ∘ • (init-Θ) Σ*)
                   ((App (ph scp_i ξ) local-expand2) cont store Σ*))
@@ -726,11 +737,14 @@
 
        (side-condition
         (or (not (redex-match? Lfull id (term stx_fun)))
-            (let ([name (term (resolve ph stx_fun Σ))])
-              (and (redex-match? Lfull not-found (term (lookup-ξ ξ ,name)))
-                   (not (member name
-                                '(lambda let quote syntax let-syntax if
-                                   #%app #%kont #%seq #%ls-kont #%snoc)))))))
+            (let* ([name (term (resolve ph stx_fun Σ))]
+                   [at (term (unstop (lookup-ξ ξ ,name)))])
+              (or (redex-match? Lfull (TVar id) at)
+                  (and (redex-match? Lfull not-found at)
+                       (not (member name
+                                    '(lambda let quote syntax let-syntax if
+                                       #%app #%kont #%seq #%ls-kont
+                                       #%snoc))))))))
        (where id_app (Stx (Sym #%app) ctx))
        (where (values 𝓁_new Θ_1) (push-κ Θ κ))
        ex-app)
@@ -1455,10 +1469,10 @@
 (define defs:examples
   (list ex-box
         ex-set-box
-        ;ex-defs-shadow
-        ;ex-defs-shadow2
+        ex-defs-shadow
+        ex-defs-shadow2
         ex-defs-local-macro
-        ;ex-defs-begin-with-defn
+        ex-defs-begin-with-defn
         ))
 
 (define main

@@ -18,5 +18,5 @@
 
 (define-helpers (empty-ctx) reader printer)
 
-(: stripper : Stx Σ -> Val)
-(define (stripper stx Σ) (strip stx))
+(: stripper : Stx -> Val)
+(define (stripper stx) (strip stx))

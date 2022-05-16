@@ -25,7 +25,7 @@
    (values (Defs scp_defs addr) Σ*_3)
    (where (values scp_defs Σ_2) (alloc-scope Σ))
    (where (values addr Σ_3) (alloc-def-env Σ_2))
-   (where Σ*_3 (Tup (def-env-update Σ_2 addr env) (union (Set scp_defs) scps_p) scps_u))]
+   (where Σ*_3 (Tup (def-env-update Σ_3 addr env) (union (Set scp_defs) scps_p) scps_u))]
   
   ;; create definition binding (for a variable)
   [(eval ph (App syntax-local-bind-syntaxes ast_ids ast_stx ast_defs) scp_i env Σ*)

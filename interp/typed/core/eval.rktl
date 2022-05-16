@@ -1,57 +1,8 @@
 ;; ----------------------------------------
 ;; Evaluating AST:
 
-(: lookup-env : Env Var -> Loc)
-(define (lookup-env env var) (hash-ref env var))
 
-(: update-env : Env (Listof Var) (Listof Loc) -> Env)
-(define (update-env env vars locs)
-  (foldl (λ ([v : Var] [l : Loc] [e : Env]) (hash-set e v l))
-         env vars locs))
-
-(: lookup-store : Store Loc -> (U Val Cont))
-(define (lookup-store store loc)
-  (hash-ref (Store-tbl store) loc))
-
-(: update-store : Store Loc (U Val Cont) -> Store)
-(define (update-store store loc u)
-  (Store (Store-size store)
-         (hash-set (Store-tbl store) loc u)))
-
-(: update-store* : Store (Listof Loc) (Listof (U Val Cont)) -> Store)
-(define (update-store* store locs us)
-  (Store (Store-size store)
-         (foldl (λ ([l : Loc]
-                     [u : (U Val Cont)]
-                     [t : (HashTable Loc (U Val Cont))])
-                  (hash-set t l u))
-                (Store-tbl store) locs us)))
-
-(: alloc-loc : Store -> (Values Loc Store))
-(define (alloc-loc store)
-  (let ([size (Store-size store)])
-    (values (string->symbol (format "l~a" size))
-            (Store (add1 size) (Store-tbl store)))))
-
-;; for eval-time value binding
-(: alloc-loc* : (Listof Nam) Store -> (Values (Listof Loc) Store))
-(define (alloc-loc* nams store)
-  (match nams
-    ['() (values '() store)]
-    [(list nam1 nams ...)
-     (let* ([size (Store-size store)]
-            [loc_0 (string->symbol (format "~a:~a" nam1 size))])
-       (let-values ([(locs_new store_new)
-                     (alloc-loc* nams (Store (add1 size) (Store-tbl store)))])
-         (values (cons loc_0 locs_new) store_new)))]))
-
-(: push-cont : Store Cont -> (Values Loc Store))
-(define (push-cont store cont)
-  (let-values ([(loc store_1) (alloc-loc store)])
-    (let ([store_2 (update-store store_1 loc cont)])
-      (values loc store_2))))
-
-;(: -->c : (-> State (Setof State)))
+;; (: -->c : State -> (Setof State))
 (define-reduction-relation -->c State ζ
   ;; propagate env into subterms
   [`(,(AstEnv (If ast_test ast_then ast_else) env) ,cont ,store)
@@ -84,13 +35,13 @@
    ev-lam]
 
   ;; application
-  [`(,(SApp `(,vals ...) `(,clo ,clos ...)) ,cont ,store)
+  [`(,(SApp `(,vals ...) `(,tm ,tms ...)) ,cont ,store)
    (let-values ([(loc_new store_1) (push-cont store cont)])
-     `(,clo ,(KApp vals  clos loc_new) ,store_1))
+     `(,tm ,(KApp vals  tms loc_new) ,store_1))
    ev-push-app]
 
-  [`(,(? Val? val) ,(KApp vals clos loc_cont) ,store)
-   `(,(SApp (append vals (list val)) clos)
+  [`(,(? Val? val) ,(KApp vals tms loc_cont) ,store)
+   `(,(SApp (append vals (list val)) tms)
      ,(cast (lookup-store store loc_cont) Cont) ,store)
    ev-pop-app]
 
@@ -118,23 +69,23 @@
    ev-δ]
 
   ;; if
-  [`(,(SIf (? (λ (x) (not (Val? x))) ser_test) clo_then clo_else) ,cont ,store)
+  [`(,(SIf (? (λ (x) (not (Val? x))) ser_test) tm_then tm_else) ,cont ,store)
    (let-values ([(loc_new store_1) (push-cont store cont)])
-     `(,ser_test ,(KIf clo_then clo_else loc_new) ,store_1))
+     `(,ser_test ,(KIf tm_then tm_else loc_new) ,store_1))
    ev-push-if]
 
-  [`(,(? Val? val) ,(KIf clo_then clo_else loc_cont) ,store)
-   `(,(SIf val clo_then clo_else)
+  [`(,(? Val? val) ,(KIf tm_then tm_else loc_cont) ,store)
+   `(,(SIf val tm_then tm_else)
      ,(cast (lookup-store store loc_cont) Cont) ,store)
    ev-pop-if]
 
-  [`(,(SIf #f _ clo_else) ,cont ,store)
-   `(,clo_else ,cont ,store)
+  [`(,(SIf #f _ tm_else) ,cont ,store)
+   `(,tm_else ,cont ,store)
    ev-if-#f]
 
-  [`(,(SIf (? Val? val) clo_then _) ,cont ,store)
+  [`(,(SIf (? Val? val) tm_then _) ,cont ,store)
    #:when (not (equal? val #f))
-   `(,clo_then ,cont ,store)
+   `(,tm_then ,cont ,store)
    ev-if-#t])
 
 (: eval : Ast -> Val)

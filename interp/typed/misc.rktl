@@ -100,7 +100,7 @@
                stx
                (let-values ([(stx2 Σ2) (expander stx)])
                  (if (eq? mode 'expand)
-                     stx2 #;(printer (stripper stx2 Σ2))
+                     stx2 #;(printer (stripper stx2))
                      (let ([ast (parser stx2 Σ2)])
                        (if (eq? mode 'parse)
                            ast
@@ -144,7 +144,7 @@
     (ex-runner run example mode)))
 
 (: run-all-examples (-> (Listof (List Symbol (-> Sexp Symbol Any)))
-                        (List (Listof (List Symbol Sexp)))
+                        (Listof (Listof (List Symbol Sexp)))
                         (->* () (Symbol) Any)))
 (define ((run-all-examples all-runs all-examples) [mode 'check])
   (parameterize ([fail-count (if (eq? mode 'check) 0 -1)])

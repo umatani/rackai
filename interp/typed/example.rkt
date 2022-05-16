@@ -1,6 +1,6 @@
 #lang typed/racket
 (require (for-syntax racket/list))
-(provide core:examples phases:examples)
+(provide core:examples phases:examples local:examples defs:examples)
 
 ;; ----------------------------------------
 ;; Core Examples:
@@ -192,3 +192,578 @@
 (define phases:examples
   (list ex-prune
         ex-gen))
+
+
+;; ----------------------------------------
+;; Full Examples:
+
+(define ex-local-value
+  '[local-value
+    (let-syntax ([a '8])
+      (let-syntax ([b '9])
+        (let-syntax ([x (lambda (stx)
+                          (datum->syntax
+                           #'here
+                           (list #'quote
+                                 (datum->syntax
+                                  #'here
+                                  (syntax-local-value (second (syntax-e stx)))))))])
+          (x a))))])
+
+
+(define ex-local-expand
+  '[local-expand
+    (let-syntax ([q (lambda (stx) #'(car 8))])
+      (let-syntax ([x (lambda (stx)
+                        ;; Used as (x (q)) => extracts '8 from (<#%app> . <('car '8)>)
+                        (second (syntax-e (cdr (syntax-e (local-expand
+                                                          (second (syntax-e stx))
+                                                          'expression
+                                                          '()))))))])
+        (x (q))))])
+(define (raw-local-expand)
+  (let-syntax ([q (lambda (stx) #'(car 8))])
+    (let-syntax ([x (lambda (stx)
+                      ;; Used as (x (q)) => extracts '8 from (<#%app> . <('car '8)>)
+                      (let ([stx2 (syntax-e (local-expand
+                                             (second (syntax-e stx))
+                                             'expression
+                                             '()))])
+                        (second (syntax-e (cdr stx2)))))])
+      (x (q)))))
+
+
+(define ex-local-expand-stop
+  '[local-expand-stop
+    (let-syntax ([p (lambda (stx) '0)])
+      (let-syntax ([q (lambda (stx) #'(car 8))])
+        (let-syntax ([x (lambda (stx)
+                          ;; Used as (x (q)) => extracts '8 from (<#%app> . <('car '8)>)
+                          (second (syntax-e (cdr (syntax-e (local-expand
+                                                            (second (syntax-e stx))
+                                                            'expression
+                                                            (list #'p)))))))])
+          (x (q)))))])
+(define (raw-local-expand-stop)
+  (let-syntax ([p (lambda (stx) '0)])
+    (let-syntax ([q (lambda (stx) #'(car 8))])
+      (let-syntax ([x (lambda (stx)
+                        ;; Used as (x (q)) => extracts '8 from (<#%app> . <('car '8)>)
+                        (let ([stx2 (syntax-e (local-expand
+                                               (second (syntax-e stx))
+                                               'expression
+                                               (list #'p)))])
+                          (second (syntax-e (cdr stx2)))))])
+        (x (q))))))
+
+
+(define ex-nested-local-expand
+  '[nested-local-expand
+    (let-syntax ([z (lambda (stx) #''0)])
+      (let-syntax ([a (lambda (stx)
+                        ;; When `b' forces `a', then `a'
+                        ;; drops `z' form the stop list, so it
+                        ;; should expand to 0
+                        (local-expand (second (syntax-e stx))
+                                      'expression
+                                      '()))])
+        (let-syntax ([b (lambda (stx)
+                          (datum->syntax
+                           stx
+                           (list
+                            #'quote
+                            (local-expand (second (syntax-e stx))
+                                          'expression
+                                          (list #'z)))))])
+          (list (b (z)) (b (a (z)))))))])
+(define (raw-nested-local-expand)
+  (let-syntax ([z (lambda (stx) #''0)])
+    (let-syntax ([a (lambda (stx)
+                      ;; When `b' forces `a', then `a'
+                      ;; drops `z' form the stop list, so it
+                      ;; should expand to 0
+                      (local-expand (second (syntax-e stx))
+                                    'expression
+                                    '()))])
+      (let-syntax ([b (lambda (stx)
+                        (datum->syntax
+                         stx
+                         (list
+                          #'quote
+                          (local-expand (second (syntax-e stx))
+                                        'expression
+                                        (list #'z)))))])
+        (list (b (z)) (b (a (z))))))))
+
+
+(define ex-local-binder
+  '[local-binder
+    (let-syntax ([q (lambda (stx)
+                      ;; quotes its argument
+                      (datum->syntax
+                       stx
+                       (list #'quote (second (syntax-e stx)))))])
+      (let-syntax ([a (lambda (stx)
+                        ;; expands first argument, expected quoted name
+                        ;; to use as binder with second arguments body
+                        (datum->syntax
+                         stx
+                         (list
+                          #'lambda
+                          (datum->syntax
+                           stx
+                           (list (syntax-local-identifier-as-binding
+                                  (second (syntax-e
+                                           (local-expand (second (syntax-e stx))
+                                                         'expression
+                                                         '()))))))
+                          (third (syntax-e stx)))))])
+        ;; removing the syntax-local-identifier-as-binding call above
+        ;; leaves the second `x` as unbound:
+        ;; TODO: 実装と不一致．取り除いても↓の実装では unbound にならない
+        ((a (q x) x) 'FOOOO)))])
+(define (raw-local-binder)
+  (let-syntax ([q (lambda (stx)
+                    ;; quotes its argument
+                    (datum->syntax
+                     stx
+                     (list #'quote (second (syntax-e stx)))))])
+    (let-syntax ([a (lambda (stx)
+                      ;; expands first argument, expected quoted name
+                      ;; to use as binder with second arguments body
+                      (datum->syntax
+                       stx
+                       (list
+                        #'lambda
+                        (datum->syntax
+                         stx
+                         (list (syntax-local-identifier-as-binding
+                                (second (syntax-e
+                                         (local-expand (second (syntax-e stx))
+                                                       'expression
+                                                       '()))))))
+                        (third (syntax-e stx)))))])
+      ;; removing the syntax-local-identifier-as-binding call above
+      ;; leaves the second `x` as unbound:
+      ;; TODO: 実装と不一致．取り除いても unbound にならない
+      (a (q x) x))))
+
+(define local:examples
+  (list ex-local-value
+        ex-local-expand
+        ex-local-expand-stop
+        ex-nested-local-expand
+        ex-local-binder))
+
+
+(define ex-box
+  '[box
+    (let-syntax ([m (lambda (stx)
+                      (datum->syntax
+                       stx
+                       (list
+                        #'quote
+                        (datum->syntax
+                         stx
+                         (let ([b (box 0)])
+                           (unbox b))))))])
+      (m))])
+
+
+(define ex-set-box
+  '[set-box
+    (let-syntax ([m (lambda (stx)
+                      (datum->syntax
+                       stx
+                       (list
+                        #'quote
+                        (datum->syntax
+                         stx
+                         (let ([b (box 0)])
+                           (let ([x (set-box! b 1)])
+                             (unbox b)))))))])
+      (m))])
+
+
+(define ex-defs-shadow
+  '[defs-shadow
+     (let-syntax ([call (lambda (stx)
+                          (datum->syntax
+                           #'here
+                           (list (second (syntax-e stx)))))])
+       (let-syntax ([p (lambda (stx) #'0)])
+         (let-syntax ([q (lambda (stx)
+                           (let ([defs (syntax-local-make-definition-context)])
+                             (let ([ignored (syntax-local-bind-syntaxes
+                                             (list (second (syntax-e stx))) #f defs)])
+                               (datum->syntax
+                                #'here
+                                (list
+                                 #'lambda
+                                 ; not necessary in this case, but sensible
+                                 (datum->syntax
+                                  #'here
+                                  (list (syntax-local-identifier-as-binding 
+                                         (second
+                                          (syntax-e
+                                           (local-expand (datum->syntax
+                                                          #'here
+                                                          (list #'quote
+                                                                (second (syntax-e stx))))
+                                                         'expression
+                                                         '()
+                                                         defs))))))
+                                 (local-expand (third (syntax-e stx))
+                                               'expression
+                                               (list #'call)
+                                               defs))))))])
+           ((q p (call p)) (lambda () 'FOOOO)))))])
+(define (raw-defs-shadow)
+  (let-syntax ([call (lambda (stx)
+                       (datum->syntax
+                        #'here
+                        (list (second (syntax-e stx)))))])
+    (let-syntax ([p (lambda (stx) #'0)])
+      (let-syntax ([q (lambda (stx)
+                        (let ([defs (syntax-local-make-definition-context)])
+                          (let ([ignored
+                                 (syntax-local-bind-syntaxes
+                                  (list (second (syntax-e stx))) #f defs)])
+                            (datum->syntax
+                             #'here
+                             (list
+                              #'lambda
+                              ; not necessary in this case, but sensible
+                              (datum->syntax
+                               #'here
+                               (list (syntax-local-identifier-as-binding 
+                                      (second
+                                       (syntax-e
+                                        (local-expand (datum->syntax
+                                                       #'here
+                                                       (list #'quote
+                                                             (second (syntax-e stx))))
+                                                      'expression
+                                                      '()
+                                                      defs))))))
+                              (local-expand (third (syntax-e stx))
+                                            'expression
+                                            (list #'call)
+                                            defs))))))])
+        ((q p (call p)) (lambda () 'FOOOO))))))
+
+
+;; Like the previous example, but using a macro that expands to `quote`:
+(define ex-defs-shadow2
+  '[defs-shadow2
+     (let-syntax ([call (lambda (stx)
+                          (datum->syntax
+                           #'here
+                           (list (second (syntax-e stx)))))])
+       (let-syntax ([qt (lambda (stx)
+                          (datum->syntax
+                           #'here
+                           (list #'quote (second (syntax-e stx)))))])
+         (let-syntax ([p (lambda (stx) #'0)])
+           (let-syntax ([q (lambda (stx)
+                             (let ([defs (syntax-local-make-definition-context)])
+                               (let ([ignored 
+                                      (syntax-local-bind-syntaxes
+                                       (list (second (syntax-e stx))) #f defs)])
+                                 (datum->syntax
+                                  #'here
+                                  (list
+                                   #'lambda
+                                   (datum->syntax
+                                    #'here
+                                    ; necessary in this case
+                                    (list (syntax-local-identifier-as-binding
+                                           (second
+                                            (syntax-e
+                                             (local-expand (datum->syntax
+                                                            #'here
+                                                            (list #'qt
+                                                                  (second (syntax-e stx))))
+                                                           'expression
+                                                           '()
+                                                           defs))))))
+                                   (local-expand (third (syntax-e stx))
+                                                 'expression
+                                                 (list #'call)
+                                                 defs))))))])
+             ((q p (call p)) (lambda () 'BOOOOOON))))))])
+(define (raw-defs-shadow2)
+  (let-syntax ([call (lambda (stx)
+                       (datum->syntax
+                        #'here
+                        (list (second (syntax-e stx)))))])
+    (let-syntax ([qt (lambda (stx)
+                       (datum->syntax
+                        #'here
+                        (list #'quote (second (syntax-e stx)))))])
+      (let-syntax ([p (lambda (stx) #'0)])
+        (let-syntax ([q (lambda (stx)
+                          (let ([defs (syntax-local-make-definition-context)])
+                            (let ([ignored (syntax-local-bind-syntaxes
+                                            (list (second (syntax-e stx)))
+                                            #f
+                                            defs)])
+                              (datum->syntax
+                               #'here
+                               (list
+                                #'lambda
+                                (datum->syntax
+                                 #'here
+                                 ; necessary in this case
+                                 (list (syntax-local-identifier-as-binding
+                                        (second
+                                         (syntax-e
+                                          (local-expand (datum->syntax
+                                                         #'here
+                                                         (list #'qt
+                                                               (second (syntax-e stx))))
+                                                        'expression
+                                                        '()
+                                                        defs))))))
+                                (local-expand (third (syntax-e stx))
+                                              'expression
+                                              (list #'call)
+                                              defs))))))])
+          ((q p (call p)) (lambda () 'BOOOOOON)))))))
+
+
+(define ex-defs-local-macro
+  '[defs-local-macro
+     (let-syntax ([call (lambda (stx)
+                          (datum->syntax
+                           #'here
+                           (list (second (syntax-e stx)))))])
+       (let-syntax ([p (lambda (stx) #'44)])
+         (let-syntax ([q (lambda (stx)
+                           (let ([defs (syntax-local-make-definition-context) ])
+                             (let ([ignored 
+                                    (syntax-local-bind-syntaxes
+                                     (list (second (syntax-e stx)))
+                                     (datum->syntax
+                                      #'here
+                                      (list #'lambda
+                                            (datum->syntax #'here (list #'stx))
+                                            (fourth (syntax-e stx))))
+                                     defs)])
+                               (datum->syntax                             
+                                #'here
+                                (list
+                                 #'lambda
+                                 (datum->syntax
+                                  #'here
+                                  (list
+                                   (second
+                                    (syntax-e
+                                     (local-expand (datum->syntax
+                                                    #'here
+                                                    (list
+                                                     #'quote
+                                                     (second (syntax-e stx))))
+                                                   'expression
+                                                   '()
+                                                   defs)))))
+                                 (local-expand (third (syntax-e stx))
+                                               'expression
+                                               '()
+                                               defs))))))])
+           ((q p (call p) #'13) '0))))])
+(define (raw-defs-local-macro)
+  (let-syntax ([call (lambda (stx)
+                       (datum->syntax
+                        #'here
+                        (list (second (syntax-e stx)))))])
+    (let-syntax ([p (lambda (stx) #'44)])
+      (let-syntax ([q (lambda (stx)
+                        (let ([defs (syntax-local-make-definition-context)])
+                          (let ([ignored 
+                                 (syntax-local-bind-syntaxes
+                                  (list (second (syntax-e stx)))
+                                  (datum->syntax
+                                   #'here
+                                   (list #'lambda
+                                         (datum->syntax #'here (list #'stx))
+                                         (fourth (syntax-e stx))))
+                                  defs)])
+                            (datum->syntax                             
+                             #'here
+                             (list
+                              #'lambda
+                              (datum->syntax
+                               #'here
+                               (list
+                                (second
+                                 (syntax-e
+                                  (datum->syntax
+                                   #'here
+                                   (list
+                                    #'quote
+                                    (second (syntax-e stx))))
+                                  #;
+                                  (local-expand (datum->syntax
+                                                 #'here
+                                                 (list
+                                                  #'quote
+                                                  (second (syntax-e stx))))
+                                                'expression
+                                                '()
+                                                defs)))))
+                              (local-expand (third (syntax-e stx))
+                                            'expression
+                                            '()
+                                            defs))))))])
+        ((q p (call p) #'13) 0)))))
+
+
+(define (enriched-defs-local-macro)
+  (let-syntax ([call (syntax-rules ()
+                       [(call p) (p)])])
+    (let-syntax ([p (syntax-rules () [(p) 44])])
+      (let-syntax ([q (lambda (stx)
+                        (syntax-case stx ()
+                          [(q p c e)
+                           (let ([defs (syntax-local-make-definition-context)])
+                             (let ([ignored
+                                    (syntax-local-bind-syntaxes
+                                     (list #'p)
+                                     #'(lambda (stx) e)
+                                     defs)])
+                               (let* ([body (local-expand #'c
+                                                          'expression
+                                                          '()
+                                                          defs)]
+                                      [e2 #'(quote p)
+                                       #;
+                                       (local-expand #'(quote p)
+                                                     'expression
+                                                     '()
+                                                     defs)])
+                                 (syntax-case e2 ()
+                                   [(_ p2)
+                                    #`(lambda (p2) #,body)]))))]))])
+        ((q p (call p) #'13) 0)))))
+
+
+(define ex-defs-begin-with-defn
+  '[defs-begin-with-defn
+     (let-syntax ([bwd (lambda (stx)
+                         (let ([;; create ctx
+                                ctx (syntax-local-make-definition-context)]
+                               [; the x in (define x '10)
+                                id1 (second (syntax-e (second (syntax-e stx))))]
+                               [; the 10 in (define x '10)
+                                e1 (third (syntax-e (second (syntax-e stx))))]
+                               [; the q in (define-syntax q (lambda (v) ...))
+                                id2 (second (syntax-e (third (syntax-e stx))))]
+                               [; the (lambda (v) ...) in (define-syntax q (lambda (v) ...))
+                                e2 (third (syntax-e (third (syntax-e stx))))]
+                               [; the last body expression, expands to (lambda (i) x)
+                                e3 (fourth (syntax-e stx))])
+                           (let ([; for side-effect of binding x in ctx
+                                  ;; bind id1 (i.e., x)
+                                  ignored (syntax-local-bind-syntaxes
+                                           (list id1) #f ctx) ]
+                                 [; for side-effect of binding q in ctx
+                                  ;; bind id2 (i.e., q)
+                                  ignored2 (syntax-local-bind-syntaxes
+                                            (list id2) e2 ctx)]
+                                 [; local-expand e3
+                                  ;; local-expand e3 (i.e., the body expression):
+                                  ee3 (local-expand e3
+                                                    'expression
+                                                    (list #'lambda)
+                                                    ctx)]
+                                 [; local-expand id1 (in a syntax form)
+                                  ;; local-expand of id1 (to give it context from ctx):
+                                  qid1 (local-expand (datum->syntax
+                                                      #'here
+                                                      (list #'quote
+                                                            id1))
+                                                     'expression
+                                                     (list #'quote)
+                                                     ctx)])
+                             (let ([; extract expanded id1 from qid1
+                                    eid1 (second (syntax-e qid1))])
+                               ;; generate ((lambda (eid1) ee3) '10):
+                               (datum->syntax
+                                #'here
+                                (list
+                                 (datum->syntax
+                                  #'here
+                                  (list #'lambda
+                                        (datum->syntax
+                                         #'here
+                                         (list eid1))
+                                        ee3))
+                                 e1))))))])
+       ;; `bwd' is short for `begin-with-definitions', which
+       ;; assumes a `define' followed by a `define-syntax' followed
+       ;; by a body form
+       ((bwd (define x '10)
+             (define-syntax q (lambda (v) (syntax (lambda (i) x))))
+             #;(lambda i x)
+             (q)) 0))])
+
+(define (raw-defs-begin-with-defn)
+  (let-syntax
+      ([bwd (lambda (stx)
+              (syntax-case stx (define define-syntax)
+                [(bwd (define id1 e1)
+                      (define-syntax id2 e2)
+                      e3)
+                 (let* ([;; create ctx
+                         ctx (syntax-local-make-definition-context)]
+                        [; for side-effect of binding x in ctx
+                         ;; bind id1 (i.e., x)
+                         ignored (syntax-local-bind-syntaxes (list #'id1) #f ctx)]
+                        [; for side-effect of binding q in ctx
+                         ;; bind id2 (i.e., q)
+                         ignored (syntax-local-bind-syntaxes (list #'id2) #'e2 ctx)]
+                        [;; local-expand e3 (i.e., the body expression)
+                         ee3 (local-expand #'e3
+                                           'expression
+                                           (list #'lambda)
+                                           ctx)]
+                        [; local-expand id1 (in a syntax form)
+                         ;; local-expand of id1 (to give it context from ctx):
+                         qid1 (local-expand (datum->syntax
+                                             #'here
+                                             (list #'quote
+                                                   #'id1))
+                                            'expression
+                                            (list #'quote)
+                                            ctx)]
+                        [; extract expanded id1 from qid1
+                         eid1 (second (syntax-e qid1))])
+                   ;; generate ((lambda (eid1) ee3) '10):
+                   (datum->syntax
+                    #'here
+                    (list
+                     (datum->syntax
+                      #'here
+                      (list #'lambda
+                            (datum->syntax
+                             #'here
+                             (list eid1))
+                            ee3))
+                     #'e1)))]))])
+    ;; `bwd' is short for `begin-with-definitions', which
+    ;; assumes a `define' followed by a `define-syntax' followed
+    ;; by a body form
+    ((bwd (define x '10)
+          (define-syntax q (lambda (v) (syntax (lambda (i) x))))
+          #;(lambda i x)
+          (q)) 0)))   ;; TODO: ((bwd ...) 10) ではなく ((q) 0) とするとなぜか
+                      ;; q が out-of-contextとエラーになる．スコープ関係？
+
+(define defs:examples
+  (list ex-box
+        ex-set-box
+        ex-defs-shadow
+        ex-defs-shadow2
+        ex-defs-local-macro
+        ex-defs-begin-with-defn))
