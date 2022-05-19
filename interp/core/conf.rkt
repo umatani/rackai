@@ -18,4 +18,3 @@
 
 ; (: init-Θ : -> Θ)
 (define (init-Θ) (Θ 0 (make-immutable-hash)))
-
