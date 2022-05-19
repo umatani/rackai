@@ -5,11 +5,13 @@
 ;; ----------------------------------------
 ;; stx utils
 
+;(: stl->seq : Stl -> (Listof Stx))
 (define (stl->seq stl)
   (match stl
     ['() '()]
     [(cons stx stl) (cons stx (stl->seq stl))]))
 
+;(: zip : ProperStl ProperStl Ctx -> ProperStl)
 (define (zip stl_1 stl_2 ctx)
   (match* (stl_1 stl_2)
     [('() '()) '()]
@@ -17,6 +19,7 @@
      (cons (GenStx `(,stx_left ,stx_right) ctx)
            (zip stl_lefts stl_rights ctx))]))
 
+;(: unzip : ∀ [A] ProperStl -> (Values ProperStl ProperStl))
 (define (unzip stl)
   (match stl
     ['() (values '() '())]
@@ -25,12 +28,14 @@
        (values (cons stx_left  stl_lefts)
                (cons stx_right stl_rights)))]))
 
+;(: snoc (-> ProperStl Stx ProperStl))
 (define (snoc stl stx)
   (cond
     [(null? stl) (list stx)]
     [(list? stl) (cons (car stl) (snoc (cdr stl) stx))]
     [else (error "no such case")]))
 
+;(: in-hole-stl : Stl Stx -> Stl)
 (define (in-hole stx v)
   (match stx
     [(Stxξ stx ξ) (Stxξ (in-hole stx v) ξ)] ; not used
@@ -40,6 +45,7 @@
     [(Hole) v]
     [_ stx]))
 
+;(: in-hole-stl : Stl Stx -> Stl)
 (define (in-hole-stl in-hole stl v)
   (match stl
     ['() '()]
@@ -50,12 +56,14 @@
 
 
 ;; Adds or cancels a scope
+;(: addremove : Scp Scps -> Scps)
 (define (addremove scp scps)
   (if (set-member? scps scp)
       (set-remove scps scp)
       (set-add scps scp)))
 
 ;; Recursively strips lexical context from a syntax object
+;(: strip : Stl -> Val)
 (define (strip stl)
   (match stl
     ['() '()]
@@ -63,19 +71,24 @@
     [(GenStx (? Atom? atom) _) atom]
     [(cons stx stl) (cons (strip stx) (strip stl))]))
 
+;(: subtract : Scps Scps -> Scps)
 (define (subtract scps1 scps2) (set-subtract scps1 scps2))
 
+;(: union : Scps Scps -> Scps)
 (define (union scps1 scps2) (set-union scps1 scps2))
 
+;(: lookup-Σ : Σ Nam -> (U (Setof StoBind) Val ξ))
 (define (lookup-Σ Σ0 nam)
   (hash-ref (Σ-tbl Σ0) nam (λ () (set))))
 
+;(: binding-lookup : (Setof StoBind) Scps -> (Option Nam))
 (define (binding-lookup sbs scps)
   (let ([r (member scps (set->list sbs)
                    (λ (scps sb)
                      (set=? scps (StoBind-scps sb))))])
     (and r (StoBind-nam (first r)))))
 
+;(: biggest-subset : Scps (Listof Scps) -> Scps)
 (define (biggest-subset scps_ref scpss)
   (let* ([matching (filter (λ (scps_bind)
                              (subset? scps_bind scps_ref))

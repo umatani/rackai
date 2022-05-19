@@ -21,13 +21,13 @@
 ; (: stripper : Stx -> Val)
 (define (stripper stx) (strip stx))
 
-
 (define-runner run
   reader
   expander
   stripper printer
   eval
   parse)
+
 
 ;; run example
 

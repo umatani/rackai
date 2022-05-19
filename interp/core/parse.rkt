@@ -1,7 +1,6 @@
 #lang racket
 (require "struct.rkt"
-         (only-in "syntax.rkt"
-                  unzip strip resolve))
+         (only-in "syntax.rkt" unzip strip resolve))
 (provide (all-defined-out))
 
 ;; ----------------------------------------

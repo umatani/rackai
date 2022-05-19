@@ -63,11 +63,6 @@
     (values (string->symbol (format "~a::~a" s size))
             (Σ (add1 size) tbl))))
 
-(define id-kont (GenStx (Sym '#%kont) (empty-ctx)))
-(define id-seq (GenStx (Sym '#%seq)  (empty-ctx)))
-(define id-snoc (GenStx (Sym '#%snoc) (empty-ctx)))
-(define stx-nil (GenStx '() (empty-ctx)))
-
 ;(: regist-vars : Scp ProperStl ξ Σ -> (Values ProperStl ξ Σ))
 (define (regist-vars scp stl ξ Σ)
   (match stl
@@ -79,6 +74,11 @@
                    [(Σ_3) (bind Σ_2 id_new nam_new)]
                    [(ξ_2) (extend-ξ ξ_1 nam_new (TVar id_new))])
        (values (cons id_new stl_reg) ξ_2 Σ_3))]))
+
+(define id-kont (GenStx (Sym '#%kont) (empty-ctx)))
+(define id-seq (GenStx (Sym '#%seq)  (empty-ctx)))
+(define id-snoc (GenStx (Sym '#%snoc) (empty-ctx)))
+(define stx-nil (GenStx '() (empty-ctx)))
 
 ;; (: ==>c : ζ -> (Setof ζ))
 (define-reduction-relation ==>c

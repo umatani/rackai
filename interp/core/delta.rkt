@@ -15,6 +15,7 @@
   (match* (sym1 sym2)
     [((Sym nam1) (Sym nam2)) (eq? nam1 nam2)]))
 
+;(: δ : Prim (Listof Val) -> Val)
 (define (δ p vs)
   (match (cons p vs)
     [`(+ ,(? real? ns) ...)
