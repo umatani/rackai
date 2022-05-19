@@ -24,6 +24,7 @@
                      'datum->syntax
                      '+ '- '* '/ '< '= 'eq?
                      'cons 'car 'cdr 'list 'second 'third 'fourth
+                     'printe ;; for debug
                      StxPrim))
 (define-type StxPrim (U 'syntax-local-value 'local-expand
                         'syntax-local-identifier-as-binding

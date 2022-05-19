@@ -42,10 +42,10 @@
     (values (string->symbol (format "~a:~a" nam size))
             (Σ (add1 size) tbl))))
 
-(: alloc-scope : Σ -> (Values Scp Σ))
-(define (alloc-scope Σ0)
+(: alloc-scope : Symbol Σ -> (Values Scp Σ))
+(define (alloc-scope s Σ0)
   (match-let ([(Σ size tbl) Σ0])
-    (values (string->symbol (format "scp:~a" size))
+    (values (string->symbol (format "~a::~a" s size))
             (Σ (add1 size) tbl))))
 
 (define id-kont : Id (GenStx (Sym '#%kont) (empty-ctx)))

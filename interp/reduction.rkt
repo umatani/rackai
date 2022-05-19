@@ -1,5 +1,5 @@
 #lang racket
-(require data/queue
+(require "queue.rkt"
          (for-syntax racket syntax/id-table))
 (provide define-reduction-relation
          define-extended-reduction-relation
@@ -29,7 +29,7 @@
       (hash-set m name clause)))
 
   (define (make-reducer-body s clauses)
-    (let loop ([body #`(set)]
+    (let loop ([body #'(set)]
                [cs clauses])
       (if (null? cs)
           body                                
@@ -38,12 +38,16 @@
              [(p b rule-name)
               #`(let ([n #,body])
                   (match #,s
-                    [p (set-add n b)]
+                    [p ;(println 'rule-name)
+                       (set-add n b)]
                     [_ n]))]
              [(p #:when t b rule-name)
               #`(let ([n #,body])
                   (match #,s
-                    [p (if t (set-add n b) n)]
+                    [p (if t
+                           (begin ;(println 'rule-name)
+                                  (set-add n b))
+                           n)]
                     [_ n]))]
              [(p #:with e k rule-name)
               #`(let ([n #,body])
@@ -92,45 +96,9 @@
              (define-syntax rel (reduction-desc #'rel-f)))))]))
 
 
-
-
-
-
-;; ;; (reduction-relation clause ...) : state -> (Set state ...)
-;; (define-syntax (reduction-relation stx)
-;;   (syntax-case stx (reduction-relation)
-;;     [(reduction-relation) #'(λ (s) (set))]
-;;     [(reduction-relation [pat #:when guard body ... name] clauses ...)
-;;      #'(λ (s)
-;;          (let ([nexts ((reduction-relation clauses ...) s)])
-;;            (match s
-;;              [pat
-;;               (if guard
-;;                   (set-add nexts (begin body ...))
-;;                   nexts)]
-;;              [_ nexts])))]
-;;     [(reduction-relation [pat #:with expr kont name] clauses ...)
-;;      #'(λ (s)
-;;          (let ([nexts ((reduction-relation clauses ...) s)])
-;;            (match s
-;;              [pat (set-union nexts
-;;                              (for/set ([alt (in-set expr)])
-;;                                (kont alt)))]
-;;              [_ nexts])))]
-;;     [(reduction-relation [pat body ... name] clauses ...)
-;;      #'(λ (s)
-;;          (let ([nexts ((reduction-relation clauses ...) s)])
-;;            (match s
-;;              [pat (set-add nexts (begin body ...))]
-;;              [_ nexts])))]))
-
-
-
-
-;; apply-reduction-relation*: rel state -> (state ...)
 (define (apply-reduction-relation* --> s #:steps [steps #f])
-  (let ([all-states (mutable-set)]
-        [normal-forms (mutable-set)]
+  (let ([all-states (make-hash)]
+        [normal-forms (make-hash)]
         [worklist (make-queue)])
     (define (loop steps)
       (unless (or (queue-empty? worklist)
@@ -138,14 +106,14 @@
         (let* ([s (dequeue! worklist)]
                [nexts (--> s)])
           (if (set-empty? nexts)
-              (set-add! normal-forms s)
+              (hash-set! normal-forms s #t)
               (for ([next (in-set nexts)]
-                #:when (not (set-member? all-states next)))
-                (set-add! all-states next)
+                #:when (not (hash-ref all-states next #f)))
+                (hash-set! all-states next #t)
                 (enqueue! worklist next))))
         (loop (and steps (sub1 steps)))))
     (enqueue! worklist s)
     (loop steps)
     (if steps
-        (set->list all-states) ;; for debug
-        (set->list normal-forms))))
+        (hash-keys all-states) ;; for debug
+        (hash-keys normal-forms))))

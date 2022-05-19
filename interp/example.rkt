@@ -1,4 +1,4 @@
-#lang typed/racket
+#lang racket
 (require (for-syntax racket/list))
 (provide core:examples phases:examples local:examples defs:examples)
 

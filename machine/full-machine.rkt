@@ -491,7 +491,10 @@
          • (Tup Σ scps_p scps_u) 𝓁_new) ;; Σ not used
         Θ_1 Σ*_2)
 
-       (where lambda (resolve ph id_lam Σ))
+       (where nam (resolve ph id_lam Σ))
+       (where lambda nam)
+       (side-condition (not (redex-match?
+                             Lfull (TStop _) (term (lookup-ξ ξ nam)))))
        (where (values scp_new Σ_1) (alloc-scope Σ))
        (where (values stl_args2 ξ_new Σ_2)
               (regist-vars ph scp_new stl_args ξ Σ_1))
@@ -516,7 +519,10 @@
          ∘ (Tup Σ scps_p scps_u) 𝓁_new) ;; Σ not used
         Θ_1 Σ*_2)
 
-       (where let (resolve ph id_let Σ))
+       (where nam (resolve ph id_let Σ))
+       (where let nam)
+       (side-condition (not (redex-match?
+                             Lfull (TStop _) (term (lookup-ξ ξ nam)))))
        (where (values stl_vars stl_rhs) (unzip stl_binds))
        (where (values scp_new Σ_1) (alloc-scope Σ))
        (where (values stl_vars2 ξ_new Σ_2)
@@ -569,7 +575,10 @@
        ((Stx (Cons id_quote (Cons stx ())) ctx) • κ Θ Σ*)
 
        (where (Tup Σ _ _) Σ*)
-       (where quote (resolve ph id_quote Σ))
+       (where nam (resolve ph id_quote Σ))
+       (where quote nam)
+       (side-condition (not (redex-match?
+                             Lfull (TStop _) (term (lookup-ξ ξ nam)))))
        ex-quote)
 
   ;; syntax (unchanged)
@@ -577,7 +586,10 @@
        ((Stx (Cons id_syntax (Cons stx_pruned ())) ctx) • κ Θ Σ*)
 
        (where (Tup Σ scps_p scps_u) Σ*)
-       (where syntax (resolve ph id_syntax Σ))
+       (where nam (resolve ph id_syntax Σ))
+       (where syntax nam)
+       (side-condition (not (redex-match?
+                             Lfull (TStop _) (term (lookup-ξ ξ nam)))))
        (where stx_pruned (prune ph stx scps_p))
        ex-stx)
 
@@ -592,7 +604,10 @@
                          (Cons (ph stx_body ξ) ()))) ctx) ∘ κ Θ Σ*)
 
        (where (Tup Σ _ _) Σ*)
-       (where let-syntax (resolve ph id_ls Σ))
+       (where nam (resolve ph id_ls Σ))
+       (where let-syntax nam)
+       (side-condition (not (redex-match?
+                             Lfull (TStop _) (term (lookup-ξ ξ nam)))))
        ex-ξ-ls)
 
   (==> ((Stx (Cons id_ls
@@ -612,7 +627,10 @@
          ∘ (Tup Σ scps_p scps_u) 𝓁_new) ;; Σ not used
         Θ_1 (Tup Σ_3 (Set) (Set)))
 
-       (where let-syntax (resolve ph id_ls Σ))
+       (where nam (resolve ph id_ls Σ))
+       (where let-syntax nam)
+       (side-condition (not (redex-match?
+                             Lfull (TStop _) (term (lookup-ξ ξ nam)))))
        (where (values nam_new Σ_1) (alloc-name id Σ))
        (where (values scp_new Σ_2) (alloc-scope Σ_1))
        (where id_new (add ph id scp_new))
@@ -682,7 +700,10 @@
          ∘ (Tup Σ scps_p scps_u) 𝓁_new) ;; Σ not used
         Θ_1 (Tup Σ scps_p (Set)))
 
-       (where if (resolve ph id_if Σ))
+       (where nam (resolve ph id_if Σ))
+       (where if nam)
+       (side-condition (not (redex-match?
+                             Lfull (TStop _) (term (lookup-ξ ξ nam)))))
        (where (values 𝓁_new Θ_1) (push-κ Θ κ))
        ex-if)
 
@@ -706,7 +727,10 @@
         ((Stx (Cons id_app hole) ctx) • (Tup Σ scps_p scps_u) 𝓁_new)
         Θ_1 (Tup Σ scps_p (Set)))
 
-       (where #%app (resolve ph id_app Σ))
+       (where nam (resolve ph id_app Σ))
+       (where #%app nam)
+       (side-condition (not (redex-match?
+                             Lfull (TStop _) (term (lookup-ξ ξ nam)))))
        (where (values 𝓁_new Θ_1) (push-κ Θ κ))
        ex-#%app)
 
@@ -721,7 +745,10 @@
         ((Stx (Cons id_app hole) ctx) • (Tup Σ scps_p scps_u) 𝓁_new)
         Θ_1 (Tup Σ scps_p (Set)))
 
-       (where #%app (resolve ph id_app Σ))
+       (where nam (resolve ph id_app Σ))
+       (where #%app nam)
+       (side-condition (not (redex-match?
+                             Lfull (TStop _) (term (lookup-ξ ξ nam)))))
        (where (values 𝓁_new Θ_1) (push-κ Θ κ))
        ex-#%app2)
 
@@ -738,7 +765,7 @@
        (side-condition
         (or (not (redex-match? Lfull id (term stx_fun)))
             (let* ([name (term (resolve ph stx_fun Σ))]
-                   [at (term (unstop (lookup-ξ ξ ,name)))])
+                   [at (term (lookup-ξ ξ ,name))])
               (or (redex-match? Lfull (TVar id) at)
                   (and (redex-match? Lfull not-found at)
                        (not (member name

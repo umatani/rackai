@@ -134,7 +134,7 @@
   ;; - similar to the basic local value case, but using definition
   ;;   context's environment
   ;; - Unlike the fourth argument to local-expand, the scopes associated with
-  ;;   the provided definition contexts are not used to enrich id-stx’s
+  ;;   the provided definition contexts are not used to enrich id's
   ;;   lexical information.
   [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
             `(syntax-local-value ,(? Id? id) #f ,(Defs scp_defs 𝓁)) '())
@@ -156,7 +156,7 @@
   [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
             `(syntax-local-make-definition-context) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
-   (let*-values ([(scp_defs Σ_2) (alloc-scope Σ)]
+   (let*-values ([(scp_defs Σ_2) (alloc-scope 'defs Σ)]
                  [(𝓁 Σ_3) (alloc-def-ξ Σ_2)]
                  [(Σ*_3) (Σ* (def-ξ-update Σ_3 𝓁 ξ)
                                (union (set scp_defs) scps_p)
@@ -425,8 +425,9 @@
                            ,(GenStx (? ProperStl? stl_args) ctx_0)
                            ,stx_body) ctx)
               ξ) '∘ κ Θ (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (eq? 'lambda (resolve ph id_lam Σ))
-   (let*-values ([(scp_new Σ_1) (alloc-scope Σ)]
+   #:when (let ([nam (resolve ph id_lam Σ)])
+            (and (eq? 'lambda nam) (not (TStop? (lookup-ξ ξ nam)))))
+   (let*-values ([(scp_new Σ_1) (alloc-scope 'lam Σ)]
                  [(stl_args2 ξ_new Σ_2)
                   (regist-vars ph scp_new stl_args ξ Σ_1)]
                  [(Σ*_2) (Σ* Σ_2 (union (set scp_new) scps_p) (set))]
@@ -445,9 +446,10 @@
                            ,(GenStx (? ProperStl? stl_binds) ctx_1)
                            ,stx_body) ctx)
               ξ) '∘ κ Θ (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (eq? 'let (resolve ph id_let Σ))
+   #:when (let ([nam (resolve ph id_let Σ)])
+            (and (eq? 'let nam) (not (TStop? (lookup-ξ ξ nam)))))
    (let*-values ([(stl_vars stl_rhs) (unzip stl_binds)]
-                 [(scp_new Σ_1) (alloc-scope Σ)]
+                 [(scp_new Σ_1) (alloc-scope 'let Σ)]
                  [(stl_vars2 ξ_new Σ_2) (regist-vars ph scp_new stl_vars ξ Σ_1)]
                  [(Σ*_2) (Σ* Σ_2 (union (set scp_new) scps_p) (set))]
                  [(𝓁_new Θ_1) (push-κ Θ κ)])
@@ -497,16 +499,19 @@
    ex-let-rhs2]
 
   ;; quote (same as phases)
-  [(ζ (Stxξ ph (and stx (GenStx `(,(? Id? id_quote) ,_) _)) _)
+  [(ζ (Stxξ ph (and stx (GenStx `(,(? Id? id_quote) ,_) _)) ξ)
        '∘ κ Θ (and Σ*_0 (Σ* Σ _ _)))
-   #:when (eq? 'quote (resolve ph id_quote Σ))
+   #:when (let ([nam (resolve ph id_quote Σ)])
+            (and (eq? 'quote nam) (not (TStop? (lookup-ξ ξ nam)))))
+
    (ζ stx '• κ Θ Σ*_0)
    ex-quote]
 
   ;; syntax (same as phases)
-  [(ζ (Stxξ ph (GenStx `(,(? Id? id_syntax) ,stx) ctx) _)
+  [(ζ (Stxξ ph (GenStx `(,(? Id? id_syntax) ,stx) ctx) ξ)
        '∘ κ Θ (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (eq? 'syntax (resolve ph id_syntax Σ))
+   #:when (let ([nam (resolve ph id_syntax Σ)])
+            (and (eq? 'syntax nam) (not (TStop? (lookup-ξ ξ nam)))))
    (let ([stx_pruned (prune ph stx scps_p)])
      (ζ (GenStx `(,id_syntax ,stx_pruned) ctx) '• κ Θ Σ*_0))
    ex-stx]
@@ -516,7 +521,8 @@
                            ,(GenStx `(,(GenStx `(,id ,stx_rhs) ctx_0)) ctx_1)
                            ,stx_body) ctx) ξ
               ) '∘ κ Θ (and Σ*_0 (Σ* Σ _ _)))
-   #:when (eq? 'let-syntax (resolve ph id_ls Σ))
+   #:when (let ([nam (resolve ph id_ls Σ)])
+            (and (eq? 'let-syntax nam) (not (TStop? (lookup-ξ ξ nam)))))
    (ζ (GenStx `(,id_ls
                  ,(GenStx `(,(GenStx `(,id ,stx_rhs) ctx_0)) ctx_1)
                  ,(Stxξ ph stx_body ξ)) ctx)
@@ -527,9 +533,10 @@
                  ,(GenStx `(,(GenStx `(,(? Id? id) ,stx_rhs) ctx_0)) ctx_1)
                  ,(Stxξ ph stx_body ξ)) ctx)
        '∘ κ Θ (and Σ*_0 (Σ* Σ _ _)))
-   #:when (eq? 'let-syntax (resolve ph id_ls Σ))
+   #:when (let ([nam (resolve ph id_ls Σ)])
+            (and (eq? 'let-syntax nam) (not (TStop? (lookup-ξ ξ nam)))))
    (let*-values ([(nam_new Σ_1) (alloc-name id Σ)]
-                 [(scp_new Σ_2) (alloc-scope Σ_1)]
+                 [(scp_new Σ_2) (alloc-scope 'ls Σ_1)]
                  [(id_new) (cast (add ph id scp_new) Id)]
                  [(Σ_3) (bind ph Σ_2 id_new nam_new)]
                  [(𝓁_new Θ_1) (push-κ Θ κ)])
@@ -578,8 +585,8 @@
        '∘ κ Θ (and Σ*_0 (Σ* Σ scps_p scps_u)))
    #:when (Val? (lookup-ξ ξ (resolve ph id_mac Σ)))
    (let*-values ([(val) (lookup-ξ ξ (resolve ph id_mac Σ))]
-                 [(scp_u Σ_1) (alloc-scope Σ)]
-                 [(scp_i Σ_2) (alloc-scope Σ_1)]
+                 [(scp_u Σ_1) (alloc-scope 'u Σ)]
+                 [(scp_i Σ_2) (alloc-scope 'i Σ_1)]
                  [(Σ*_2) (Σ* Σ_2
                                (union (set scp_u) scps_p)
                                (union (set scp_u) scps_u))]
@@ -595,13 +602,15 @@
   [(InEval `(,(? Stx? stx_exp) • ,store_0 ,Σ*)
            (ζ (Stxξ ph (GenStx #f ctx_i) ξ) '∘ κ Θ _))
    (let ([scp_i (car (set->list (at-phase ctx_i ph)))])
+     ;(printf "after expand: ~a\n" stx_exp)
      (ζ (Stxξ ph (flip ph stx_exp scp_i) ξ) '∘ κ Θ Σ*))
    ex-macapp-flip]
 
   ;; if
   [(ζ (Stxξ ph (GenStx `(,(? Id? id_if) ,stl_exps ...) ctx) ξ)
        '∘ κ Θ (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (eq? 'if (resolve ph id_if Σ))
+   #:when (let ([nam (resolve ph id_if Σ)])
+            (and (eq? 'if nam) (not (TStop? (lookup-ξ ξ nam)))))
    (let-values ([(𝓁_new Θ_1) (push-κ Θ κ)])
      (ζ (Stxξ ph (GenStx `(,id-seq ,stx-nil ,@stl_exps) ctx) ξ)
          '∘
@@ -623,7 +632,8 @@
   [(ζ (Stxξ ph (GenStx `(,(? Id? id_app)
                            ,stx_fun ,stl_args ...) ctx) ξ)
        '∘ κ Θ (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (eq? '#%app (resolve ph id_app Σ))
+   #:when (let ([nam (resolve ph id_app Σ)])
+            (and (eq? '#%app nam) (not (TStop? (lookup-ξ ξ nam)))))
    (let-values ([(𝓁_new Θ_1) (push-κ Θ κ)])
      (ζ (Stxξ ph (GenStx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
          '∘
@@ -636,7 +646,8 @@
                   (cons (? Id? id_app)
                         (GenStx `(,stx_fun ,stl_args ...) _)) ctx) ξ)
        '∘ κ Θ (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (eq? '#%app (resolve ph id_app Σ))
+   #:when (let ([nam (resolve ph id_app Σ)])
+            (and (eq? '#%app nam) (not (TStop? (lookup-ξ ξ nam)))))
    (let-values ([(𝓁_new Θ_1) (push-κ Θ κ)])
      (ζ (Stxξ ph (GenStx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
          '∘
@@ -649,7 +660,7 @@
        '∘ κ Θ (and Σ*_0 (Σ* Σ scps_p _)))
    #:when (or (not (Id? stx_fun))
               (let* ([name (resolve ph stx_fun Σ)]
-                     [at (unstop (lookup-ξ ξ name))])
+                     [at (lookup-ξ ξ name)])
                 (or (TVar? at)
                     (and (eq? 'not-found at)
                          (not (member name
@@ -779,21 +790,20 @@
   parser)
 
 
+#;
 (define (main [mode : Symbol 'check])
   (run-examples run core:examples mode)
   (run-examples run phases:examples mode)
   (run-examples run local:examples mode)
   (run-examples run defs:examples mode))
 
-;; too long to type-check all interpreters
-#;
 (define main
-  (let ([all-runs `([core ,core:run]
-                    [phases ,phases:run]
+  (let ([all-runs `(;[core ,core:run]
+                    ;[phases ,phases:run]
                     [full ,run])]
-        [all-examples (list core:examples
-                            phases:examples
-                            ;(append local:examples defs:examples)
+        [all-examples (list 
+                       (append core:examples phases:examples
+                               local:examples defs:examples)
                             )])
     (run-all-examples all-runs all-examples)))
 
@@ -899,6 +909,7 @@
                                     'expression '() defs))))])
           (m f)) 'eval))
 
+;; 本物の処理系では動くが，defs-modelでは (f) のまま．
 (define (unit-4)
   (run '(let-syntax
             ([m (lambda (stx)

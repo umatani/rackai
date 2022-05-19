@@ -584,7 +584,7 @@
        (side-condition
         (or (not (redex-match? Lph id (term stx_fun)))
             (let* ([name (term (resolve ph stx_fun Σ))]
-                   [at (term (unstop (lookup-ξ ξ ,name)))])
+                   [at (term (lookup-ξ ξ ,name))])
               (or (redex-match? Lph (TVar id) at)
                   (and (redex-match? Lph not-found at)
                        (not (member name

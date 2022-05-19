@@ -57,7 +57,7 @@
                            ,stx_body) ctx)
               ξ scps_p) '∘ κ Θ Σ)
    #:when (eq? 'lambda (resolve ph id_lam Σ))
-   (let*-values ([(scp_new Σ_1) (alloc-scope Σ)]
+   (let*-values ([(scp_new Σ_1) (alloc-scope 'lam Σ)]
                  [(stl_args2 ξ_new Σ_2)
                   (regist-vars ph scp_new stl_args ξ Σ_1)]
                  [(𝓁_new Θ_1) (push-κ Θ κ)])
@@ -76,7 +76,7 @@
                            ,stx_body) ctx) ξ scps_p) '∘ κ Θ Σ)
    #:when (eq? 'let (resolve ph id_let Σ))
    (let*-values ([(stl_vars stl_rhs) (unzip stl_binds)]
-                 [(scp_new Σ_1) (alloc-scope Σ)]
+                 [(scp_new Σ_1) (alloc-scope 'let Σ)]
                  [(stl_vars2 ξ_new Σ_2) (regist-vars ph scp_new stl_vars ξ Σ_1)]
                  [(𝓁_new Θ_1) (push-κ Θ κ)])
      (ζ (Stxξ ph (add ph stx_body scp_new) ξ_new (union (set scp_new) scps_p))
@@ -152,7 +152,7 @@
                  ,(Stxξ ph stx_body ξ scps_p)) ctx) '∘ κ Θ Σ)
    #:when (eq? 'let-syntax (resolve ph id_ls Σ))
    (let*-values ([(nam_new Σ_1) (alloc-name id Σ)]
-                 [(scp_new Σ_2) (alloc-scope Σ_1)]
+                 [(scp_new Σ_2) (alloc-scope 'ls Σ_1)]
                  [(id_new) (cast (add ph id scp_new) Id)]
                  [(Σ_3) (bind ph Σ_2 id_new nam_new)]
                  [(𝓁_new Θ_1) (push-κ Θ κ)]
@@ -193,8 +193,8 @@
        '∘ κ Θ Σ)
    #:when (Val? (lookup-ξ ξ (resolve ph id_mac Σ)))
    (let*-values ([(val) (lookup-ξ ξ (resolve ph id_mac Σ))]
-                 [(scp_u Σ_1) (alloc-scope Σ)]
-                 [(scp_i Σ_2) (alloc-scope Σ_1)])
+                 [(scp_u Σ_1) (alloc-scope 'u Σ)]
+                 [(scp_i Σ_2) (alloc-scope 'i Σ_1)])
      (InEval
       `(,(AstEnv (App (cast val Val)
                       (list (flip ph (add ph stx_macapp scp_u) scp_i)))
