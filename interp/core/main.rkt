@@ -5,9 +5,9 @@
          (only-in "syntax.rkt" strip)
          (only-in "conf.rkt" empty-ctx init-env init-store
                   init-ξ init-Θ init-Σ)
-         (only-in "eval.rkt" -->c)
+         (only-in "eval.rkt" -->c eval)
          (only-in "parse.rkt" parse)
-         (only-in "expand.rkt" ==>c)
+         (only-in "expand.rkt" ==>c expand)
          "../example.rkt"
          (for-syntax racket/list))
 
@@ -59,5 +59,3 @@
    (reducer-of ==>c)
    (ζ (Stxξ (reader form) (init-ξ)) '∘ '• (init-Θ) (init-Σ))
    #:steps steps))
-
-
