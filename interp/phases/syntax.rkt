@@ -1,9 +1,8 @@
 #lang racket
-(require "struct.rkt"
-         (except-in "../core/syntax.rkt"
-                    in-hole
-                    add add-stl flip flip-stl
-                    bind resolve))
+(require (only-in "../core/syntax.rkt"
+                  in-hole-stl addremove subtract
+                  lookup-Σ biggest-subset binding-lookup)
+         "struct.rkt")
 (provide (all-defined-out))
 
 ;(: in-hole : Stx Stx -> Stx)

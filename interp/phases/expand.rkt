@@ -1,15 +1,15 @@
 #lang racket
 (require "../reduction.rkt"
-         "struct.rkt"
          (only-in "../core/syntax.rkt" zip unzip snoc union)
-         (only-in "syntax.rkt" in-hole add flip prune bind at-phase resolve)
          (only-in "../core/conf.rkt" init-env init-store init-ξ init-Θ)
-         (only-in "conf.rkt" empty-ctx)
-         (only-in "parse.rkt" parse)
-         (only-in "../core/eval.rkt" [-->c -->p])
+         (only-in "../core/eval.rkt" -->c)
          (only-in "../core/expand.rkt"
                   alloc-name alloc-scope extend-ξ lookup-ξ
-                  lookup-κ push-κ))
+                  lookup-κ push-κ)
+         "struct.rkt"
+         (only-in "syntax.rkt" in-hole add flip prune bind at-phase resolve)
+         (only-in "conf.rkt" empty-ctx)
+         (only-in "parse.rkt" parse))
 (provide (all-defined-out))
 
 ;; This is the same as the single-phase one, but with `ph`
@@ -318,7 +318,7 @@
 
   ;; in-eval
   [(InEval s1 ζ0)
-   #:with ((reducer-of -->p) s1)
+   #:with ((reducer-of -->c) s1)
    (λ (s2) (InEval s2 ζ0))
    ex-in-eval])
 

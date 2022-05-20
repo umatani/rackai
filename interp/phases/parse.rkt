@@ -1,6 +1,6 @@
 #lang racket
-(require "struct.rkt"
-         (only-in "../core/syntax.rkt" unzip strip)
+(require (only-in "../core/syntax.rkt" unzip strip)
+         "struct.rkt"
          (only-in "syntax.rkt" resolve))
 (provide (all-defined-out))
 

@@ -1,6 +1,4 @@
 #lang racket
-(require (except-in "../core/conf.rkt"
-                    empty-ctx))
-(provide (all-defined-out))
+(provide empty-ctx)
 
 (define (empty-ctx) '()) ;; TODO: change to hashtable

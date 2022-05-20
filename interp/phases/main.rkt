@@ -11,6 +11,7 @@
          (only-in "parse.rkt" parse)
          (only-in "expand.rkt" ==>p expand)
          (for-syntax racket/list))
+(provide reader printer run)
 
 (define-helpers (empty-ctx) reader printer)
 
