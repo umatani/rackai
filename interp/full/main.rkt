@@ -44,8 +44,7 @@
         [all-examples (list
                        core:examples
                        phases:examples
-                       (append core:examples phases:examples
-                               local:examples defs:examples))])
+                       (append local:examples defs:examples))])
     (run-all-examples all-runs all-examples)))
 
 
