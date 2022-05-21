@@ -10,7 +10,7 @@
          (only-in "expand.rkt" ==>c expand)
          "../example.rkt"
          (for-syntax racket/list))
-(provide run)
+(provide run main)
 
 ;(: expander : Stx -> (Values Stx Σ))
 (define (expander stx)
@@ -40,23 +40,22 @@
 
 ; (: eval--> : Sexp -> (Setof State))
 (define (eval--> form)
-  ((reducer-of -->c)
+  (-->c
    `(,(AstEnv (run form 'parse) (init-env)) • ,(init-store))))
 
 ; (: eval-->* : Sexp -> (Listof State))
 (define (eval-->* form)
   (apply-reduction-relation*
-   (reducer-of -->c)
+   -->c
    `(,(AstEnv (run form 'parse) (init-env)) • ,(init-store))))
 
 ;(: expand==> : Sexp -> (Setof ζ))
 (define (expand==> form)
-  ((reducer-of ==>c)
-   (ζ (Stxξ (reader form) (init-ξ)) '∘ '• (init-Θ) (init-Σ))))
+  (==>c (ζ (Stxξ (reader form) (init-ξ)) '∘ '• (init-Θ) (init-Σ))))
 
 ;(: expand==>* : (->* (Sexp) (#:steps (Option Natural)) (Listof ζ)))
 (define (expand==>* form #:steps [steps #f])
   (apply-reduction-relation*
-   (reducer-of ==>c)
+   ==>c
    (ζ (Stxξ (reader form) (init-ξ)) '∘ '• (init-Θ) (init-Σ))
    #:steps steps))

@@ -32,7 +32,7 @@
 (define stx-nil (GenStx '() (empty-ctx)))
 
 ;; (: ==>p :  ζ -> (Setof ζ))
-(define-reduction-relation ==>p
+(define-parameterized-reduction-relation ==>p/Σ (bind)
 
   ;; lambda
   [(ζ (Stxξ ph (GenStx `(,(? Id? id_lam)
@@ -318,13 +318,15 @@
 
   ;; in-eval
   [(InEval s1 ζ0)
-   #:with ((reducer-of -->c) s1)
+   #:with (-->c s1)
    (λ (s2) (InEval s2 ζ0))
    ex-in-eval])
+
+(define ==>p ((reducer-of ==>p/Σ) bind))
 
 ;(: expand : Ph Stx ξ Scps Σ -> (Values Stx Σ))
 (define (expand ph stx ξ scps_p Σ)
   (let ([init-ζ (ζ (Stxξ ph stx ξ scps_p) '∘ '• (init-Θ) Σ)])
     (match-let ([(list (ζ stx_new '• '• Θ_new Σ_new))
-                 (apply-reduction-relation* (reducer-of ==>p) init-ζ)])
+                 (apply-reduction-relation* ==>p init-ζ)])
       (values stx_new Σ_new))))

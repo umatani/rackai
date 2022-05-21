@@ -67,7 +67,7 @@
 
 
 ;; (: -->f : State -> (Setof State))
-(define-reduction-relation -->f
+(define-parameterized-reduction-relation -->f/store (update-store*)
 
   ;; propagate env into subterms
   [`(,(AstEnv ph (If ast_test ast_then ast_else) env maybe-scp_i ξ)
@@ -337,23 +337,24 @@
 
   ;; in-expand
   [(InExpand ζ1 s0)
-   #:with ((reducer-of ==>f) ζ1)
+   #:with (==>f ζ1)
    (λ (ζ2) (InExpand ζ2 s0))
    ex-in-expand])
 
+(define -->f ((reducer-of -->f/store) update-store*))
 
 ;(: eval : Ph Ast MaybeScp ξ Σ* -> (Values Val Σ*))
 (define (eval ph ast maybe-scp_i ξ Σ*)
   (match-let ([`((,(? Val? val) • ,_store ,Σ*_2))
                (apply-reduction-relation*
-                (reducer-of -->f)
+                -->f
                 `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
                   • ,(init-store) ,Σ*))])
     (values val Σ*_2)))
 
 
 ;; (: ==>f : ζ -> (Setof ζ))
-(define-reduction-relation ==>f
+(define-parameterized-reduction-relation ==>f/Σ (bind)
 
   ;; stops
   [(ζ (Stxξ ph (and stx (GenStx `(,(? Id? id_stop)
@@ -424,7 +425,7 @@
                           ,id_let
                           ,(GenStx `(,(GenStx stl_vars ctx_1) ,(Hole)) ctx_1)
                           ,stx_body) ctx)
-                 ξ) '∘ Σ*_0 𝓁_new)
+                    ξ) '∘ Σ*_0 𝓁_new)
          Θ_1 (Σ* Σ scps_p (set))))
    ex-let-rhs]  
 
@@ -681,13 +682,15 @@
 
   ;; in-eval
   [(InEval s1 ζ0)
-   #:with ((reducer-of -->f) s1)
+   #:with (-->f s1)
    (λ (s2) (InEval s2 ζ0))
    ex-in-eval])
+
+(define ==>f ((reducer-of ==>f/Σ) bind))
 
 ;(: expand : Ph Stx ξ Σ* -> (Values Stx Σ*))
 (define (expand ph stx ξ Σ*)
   (let ([init-ζ (ζ (Stxξ ph stx ξ) '∘ '• (init-Θ) Σ*)])
     (match-let ([(list (ζ stx_new '• '• Θ_new Σ*_new))
-                 (apply-reduction-relation* (reducer-of ==>f) init-ζ)])
+                 (apply-reduction-relation* ==>f init-ζ)])
       (values stx_new Σ*_new))))

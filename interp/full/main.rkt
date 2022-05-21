@@ -52,27 +52,26 @@
 
 ;(: eval--> : Sexp -> (Setof State))
 (define (eval--> form)
-  ((reducer-of -->f)
-   `(,(AstEnv 0 (run form 'parse)
-              (init-env) 'no-scope (init-ξ))
-     • ,(init-store) ,(Σ* (init-Σ) (set) (set)))))
+  (-->f `(,(AstEnv 0 (run form 'parse)
+                   (init-env) 'no-scope (init-ξ))
+          • ,(init-store) ,(Σ* (init-Σ) (set) (set)))))
 
 ;(: eval-->* : Sexp -> (Listof State))
 (define (eval-->* form)
   (apply-reduction-relation*
-   (reducer-of -->f)
+   -->f
    `(,(AstEnv 0 (run form 'parse)
               (init-env) 'no-scope (init-ξ))
      • ,(init-store) ,(Σ* (init-Σ) (set) (set)))))
 
 ;(: expand==> : Sexp -> (Setof ζ))
 (define (expand==> form)
-  ((reducer-of ==>f)
+  (==>f
    (ζ (Stxξ 0 (reader form) (init-ξ)) '∘ '• (init-Θ) (Σ* (init-Σ) (set) (set)))))
 
 ;(: expand==>* : (->* (Sexp) (#:steps (Option Natural)) (Listof ζ)))
 (define (expand==>* form #:steps [steps #f])
   (apply-reduction-relation*
-   (reducer-of ==>f)
+   ==>f
    (ζ (Stxξ 0 (reader form) (init-ξ)) '∘ '• (init-Θ) (Σ* (init-Σ) (set) (set)))
    #:steps steps))

@@ -3,6 +3,8 @@
          (for-syntax racket syntax/id-table))
 (provide define-reduction-relation
          define-extended-reduction-relation
+         define-parameterized-reduction-relation
+         define-parameterized-extended-reduction-relation
          reducer-of
          apply-reduction-relation*)
 
@@ -75,6 +77,18 @@
 (define-syntax (define-extended-reduction-relation stx)
   (syntax-case stx ()
     [(_ rel super-rel clause ...)
+     #'(define-parameterized-extended-reduction-relation
+         rel super-rel () clause ...)]))
+
+(define-syntax (define-parameterized-reduction-relation stx)
+  (syntax-case stx ()
+    [(_ rel (param ...) clause ...)
+     #'(define-parameterized-extended-reduction-relation
+         rel #f (param ...) clause ...)]))
+
+(define-syntax (define-parameterized-extended-reduction-relation stx)
+  (syntax-case stx ()
+    [(_ rel super-rel (param ...) clause ...)
      (with-syntax ([(rel-f) (generate-temporaries #'(rel))])
        (let ([super-clause-map
               (and (syntax->datum #'super-rel)  ;; not #f
@@ -89,10 +103,16 @@
                            super-clause-map
                            (syntax->list #'(clause ...))))
          #`(begin
-             (define (rel-f s)
-               #,(make-reducer-body #'s
-                                    (hash-values
-                                     (dict-ref #%reduction->clause-map #'rel))))
+             (define rel-f 
+               (let ([f (lambda (param ...)
+                          (λ (s)
+                            #,(make-reducer-body
+                               #'s
+                               (hash-values
+                                (dict-ref #%reduction->clause-map #'rel)))))])
+                 #,(if (null? (syntax->list #'(param ...)))
+                       #'(f)
+                       #'f)))
              (define-syntax rel (reduction-desc #'rel-f)))))]))
 
 
@@ -117,3 +137,9 @@
     (if steps
         (hash-keys all-states) ;; for debug
         (hash-keys normal-forms))))
+
+(define-parameterized-reduction-relation -->test
+  (inc)
+  [x
+   (inc x)
+   hoge])
