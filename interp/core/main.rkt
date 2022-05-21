@@ -32,30 +32,35 @@
 
 ;; run example
 
-(define (main [mode 'check])
+(define ((main/run run) [mode 'check])
   (run-examples run core:examples mode))
+(define main (main/run run))
 
 
 ;; for debug
 
 ; (: eval--> : Sexp -> (Setof State))
-(define (eval--> form)
-  (-->c
+(define ((eval-->/--> -->) form)
+  (-->
    `(,(AstEnv (run form 'parse) (init-env)) • ,(init-store))))
+(define eval--> (eval-->/--> -->c))
 
 ; (: eval-->* : Sexp -> (Listof State))
-(define (eval-->* form)
+(define ((eval-->*/--> -->) form)
   (apply-reduction-relation*
-   -->c
+   -->
    `(,(AstEnv (run form 'parse) (init-env)) • ,(init-store))))
+(define eval-->* (eval-->*/--> -->c))
 
 ;(: expand==> : Sexp -> (Setof ζ))
-(define (expand==> form)
-  (==>c (ζ (Stxξ (reader form) (init-ξ)) '∘ '• (init-Θ) (init-Σ))))
+(define ((expand==>/==> ==>) form)
+  (==> (ζ (Stxξ (reader form) (init-ξ)) '∘ '• (init-Θ) (init-Σ))))
+(define expand==> (expand==>/==> ==>c))
 
 ;(: expand==>* : (->* (Sexp) (#:steps (Option Natural)) (Listof ζ)))
-(define (expand==>* form #:steps [steps #f])
+(define ((expand==>*/==> ==>) form #:steps [steps #f])
   (apply-reduction-relation*
-   ==>c
+   ==>
    (ζ (Stxξ (reader form) (init-ξ)) '∘ '• (init-Θ) (init-Σ))
    #:steps steps))
+(define expand==>* (expand==>*/==> ==>c))

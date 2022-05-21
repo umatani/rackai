@@ -37,41 +37,45 @@
   (run-examples run local:examples mode)
   (run-examples run defs:examples mode))
 
-(define main
+(define (main/runs core:run phases:run full:run)
   (let ([all-runs `([core ,core:run]
                     [phases ,phases:run]
-                    [full ,run])]
+                    [full ,full:run])]
         [all-examples (list
                        core:examples
                        phases:examples
                        (append local:examples defs:examples))])
     (run-all-examples all-runs all-examples)))
-
+(define main (main/runs core:run phases:run run))
 
 ;; for debug
 
 ;(: eval--> : Sexp -> (Setof State))
-(define (eval--> form)
-  (-->f `(,(AstEnv 0 (run form 'parse)
-                   (init-env) 'no-scope (init-ξ))
-          • ,(init-store) ,(Σ* (init-Σ) (set) (set)))))
+(define ((eval-->/--> -->) form)
+  (--> `(,(AstEnv 0 (run form 'parse)
+                  (init-env) 'no-scope (init-ξ))
+         • ,(init-store) ,(Σ* (init-Σ) (set) (set)))))
+(define eval--> (eval-->/--> -->f))
 
 ;(: eval-->* : Sexp -> (Listof State))
-(define (eval-->* form)
+(define ((eval-->*/--> -->) form)
   (apply-reduction-relation*
-   -->f
+   -->
    `(,(AstEnv 0 (run form 'parse)
               (init-env) 'no-scope (init-ξ))
      • ,(init-store) ,(Σ* (init-Σ) (set) (set)))))
+(define eval-->* (eval-->*/--> -->f))
 
 ;(: expand==> : Sexp -> (Setof ζ))
-(define (expand==> form)
-  (==>f
+(define ((expand==>/==> ==>) form)
+  (==>
    (ζ (Stxξ 0 (reader form) (init-ξ)) '∘ '• (init-Θ) (Σ* (init-Σ) (set) (set)))))
+(define expand==> (expand==>/==> ==>f))
 
 ;(: expand==>* : (->* (Sexp) (#:steps (Option Natural)) (Listof ζ)))
-(define (expand==>* form #:steps [steps #f])
+(define ((expand==>*/==> ==>) form #:steps [steps #f])
   (apply-reduction-relation*
-   ==>f
+   ==>
    (ζ (Stxξ 0 (reader form) (init-ξ)) '∘ '• (init-Θ) (Σ* (init-Σ) (set) (set)))
    #:steps steps))
+(define expand==>* (expand==>*/==> ==>f))

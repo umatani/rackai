@@ -30,30 +30,34 @@
   parser)
 
 
-(define (main [mode 'check])
+(define ((main/run run) [mode 'check])
   (run-examples run core:examples mode)
   (run-examples run phases:examples mode))
-
+(define main (main/run run))
 
 ;; for debug
 
 ; (: eval--> : Sexp -> (Setof State))
-(define (eval--> form)
-  (-->c `(,(AstEnv (run form 'parse) (init-env)) • ,(init-store))))
+(define ((eval-->/--> -->) form)
+  (--> `(,(AstEnv (run form 'parse) (init-env)) • ,(init-store))))
+(define eval--> (eval-->/--> -->c))
 
 ; (: eval-->* : Sexp -> (Listof State))
-(define (eval-->* form)
+(define ((eval-->*/--> -->) form)
   (apply-reduction-relation*
-   -->c
+   -->
    `(,(AstEnv (run form 'parse) (init-env)) • ,(init-store))))
+(define eval-->* (eval-->*/--> -->c))
 
 ;(: expand==> : Sexp -> (Setof ζ))
-(define (expand==> form)
-  (==>p (ζ (Stxξ 0 (reader form) (init-ξ) (set)) '∘ '• (init-Θ) (init-Σ))))
+(define ((expand==>/==> ==>) form)
+  (==> (ζ (Stxξ 0 (reader form) (init-ξ) (set)) '∘ '• (init-Θ) (init-Σ))))
+(define expand==> (expand==>/==> ==>p))
 
 ;(: expand==>* : (->* (Sexp) (#:steps (Option Natural)) (Listof ζ)))
-(define (expand==>* form #:steps [steps #f])
+(define ((expand==>*/==> ==>) form #:steps [steps #f])
   (apply-reduction-relation*
-   ==>p
+   ==>
    (ζ (Stxξ 0 (reader form) (init-ξ) (set)) '∘ '• (init-Θ) (init-Σ))
    #:steps steps))
+(define expand==>* (expand==>*/==> ==>p))
