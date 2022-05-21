@@ -362,8 +362,10 @@
 (define ==>c ((reducer-of ==>c/Σ) bind))
 
 ;(: expand : Stx ξ Σ -> (Values Stx Σ))
-(define (expand stx ξ Σ)
+(define ((expand/==> ==>) stx ξ Σ)
   (let ([init-ζ (ζ (Stxξ stx ξ) '∘ '• (init-Θ) Σ)])
     (match-let ([(list (ζ stx_new '• '• Θ_new Σ_new))
-                 (apply-reduction-relation* ==>c init-ζ)])
+                 (apply-reduction-relation* ==> init-ζ)])
       (values stx_new Σ_new))))
+
+(define expand (expand/==> ==>c))

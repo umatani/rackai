@@ -325,8 +325,10 @@
 (define ==>p ((reducer-of ==>p/Σ) bind))
 
 ;(: expand : Ph Stx ξ Scps Σ -> (Values Stx Σ))
-(define (expand ph stx ξ scps_p Σ)
+(define ((expand/==> ==>) ph stx ξ scps_p Σ)
   (let ([init-ζ (ζ (Stxξ ph stx ξ scps_p) '∘ '• (init-Θ) Σ)])
     (match-let ([(list (ζ stx_new '• '• Θ_new Σ_new))
-                 (apply-reduction-relation* ==>p init-ζ)])
+                 (apply-reduction-relation* ==> init-ζ)])
       (values stx_new Σ_new))))
+
+(define expand (expand/==> ==>p))

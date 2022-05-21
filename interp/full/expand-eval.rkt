@@ -344,13 +344,15 @@
 (define -->f ((reducer-of -->f/store) update-store*))
 
 ;(: eval : Ph Ast MaybeScp ξ Σ* -> (Values Val Σ*))
-(define (eval ph ast maybe-scp_i ξ Σ*)
+(define ((eval/--> -->) ph ast maybe-scp_i ξ Σ*)
   (match-let ([`((,(? Val? val) • ,_store ,Σ*_2))
                (apply-reduction-relation*
-                -->f
+                -->
                 `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
                   • ,(init-store) ,Σ*))])
     (values val Σ*_2)))
+
+(define eval (eval/--> -->f))
 
 
 ;; (: ==>f : ζ -> (Setof ζ))
@@ -689,8 +691,10 @@
 (define ==>f ((reducer-of ==>f/Σ) bind))
 
 ;(: expand : Ph Stx ξ Σ* -> (Values Stx Σ*))
-(define (expand ph stx ξ Σ*)
+(define ((expand/==> ==>) ph stx ξ Σ*)
   (let ([init-ζ (ζ (Stxξ ph stx ξ) '∘ '• (init-Θ) Σ*)])
     (match-let ([(list (ζ stx_new '• '• Θ_new Σ*_new))
-                 (apply-reduction-relation* ==>f init-ζ)])
+                 (apply-reduction-relation* ==> init-ζ)])
       (values stx_new Σ*_new))))
+
+(define expand (expand/==> ==>f))

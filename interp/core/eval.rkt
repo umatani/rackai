@@ -144,9 +144,11 @@
 (define -->c ((reducer-of -->c/store) update-store*))
 
 ; (: eval : Ast -> Val)
-(define (eval ast)
+(define ((eval/--> -->) ast)
   (match-let ([`((,(? Val? val) • ,_store))
                (apply-reduction-relation*
-                -->c
+                -->
                 `(,(AstEnv ast (init-env)) • ,(init-store)))])
     val))
+
+(define eval (eval/--> -->c))

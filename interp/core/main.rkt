@@ -10,7 +10,7 @@
          (only-in "expand.rkt" ==>c expand)
          "../example.rkt"
          (for-syntax racket/list))
-(provide run main)
+(provide (all-defined-out))
 
 ;(: expander : Stx -> (Values Stx Σ))
 (define (expander stx)
