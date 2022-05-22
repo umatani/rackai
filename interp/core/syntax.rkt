@@ -1,6 +1,9 @@
 #lang racket
-(require "struct.rkt")
+(require "../dprint.rkt"
+         "struct.rkt")
 (provide (all-defined-out))
+
+(define (empty-ctx) (set))
 
 ;; ----------------------------------------
 ;; stx utils
@@ -77,10 +80,6 @@
 ;(: union : Scps Scps -> Scps)
 (define (union scps1 scps2) (set-union scps1 scps2))
 
-;(: lookup-Σ : Σ Nam -> (U (Setof StoBind) Val ξ))
-(define (lookup-Σ Σ0 nam)
-  (hash-ref (Σ-tbl Σ0) nam (λ () (set))))
-
 ;(: binding-lookup : (Setof StoBind) Scps -> (Option Nam))
 (define (binding-lookup sbs scps)
   (let ([r (member scps (set->list sbs)
@@ -155,11 +154,17 @@
 ;; them in the store to a given name
 ;(: bind : Σ Id Nam -> Σ)
 (define (bind Σ0 id nam)
+  (dprint 'core 'bind "")
   (match-let ([(Σ size tbl) Σ0]
               [(GenStx (Sym nam_1) ctx_1) id])
     (Σ size (hash-update tbl nam_1
                           (λ (sbs) (set-add sbs (StoBind ctx_1 nam)))
                           (λ () (set))))))
+
+;(: lookup-Σ : Σ Nam -> (U (Setof StoBind) Val ξ))
+(define (lookup-Σ Σ0 nam)
+  (dprint 'core 'lookup-Σ "")
+  (hash-ref (Σ-tbl Σ0) nam (λ () (set))))
 
 ;(: resolve : Id Σ -> Nam)
 (define (resolve id Σ0)

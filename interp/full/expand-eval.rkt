@@ -1,22 +1,24 @@
 #lang racket
 (require "../reduction.rkt"
+         "../dprint.rkt"
          (only-in "../core/delta.rkt" δ)
-         (only-in "../core/conf.rkt" init-env init-store init-ξ init-Θ)
          (only-in "../core/syntax.rkt" zip unzip snoc union)
          (only-in "../core/expand.rkt"
-                  lookup-ξ extend-ξ alloc-name alloc-scope
-                  push-κ lookup-κ)
+                  init-ξ lookup-ξ extend-ξ alloc-name alloc-scope
+                  push-κ lookup-κ init-Θ)
          (only-in "../core/eval.rkt"
-                  lookup-store update-store* lookup-env update-env alloc-loc*
-                  push-cont)
-         (only-in "../phases/conf.rkt" empty-ctx)
+                  init-env lookup-env update-env
+                  init-store lookup-store update-store*
+                  alloc-loc* push-cont)
+
          (only-in "../phases/syntax.rkt"
-                  add flip prune bind at-phase resolve)
+                  empty-ctx add flip prune bind at-phase resolve)
          (only-in "../phases/parse.rkt" parse)
          (only-in "../phases/expand.rkt"
                   regist-vars id-seq id-kont id-snoc stx-nil)
+
          "struct.rkt"
-         "syntax.rkt")
+         (only-in "syntax.rkt" in-hole resolve*/resolve))
 (provide (all-defined-out))
 
 ;(: extend-ξ* : ξ (Listof (Pairof Nam AllTransform)) -> ξ)
@@ -36,15 +38,19 @@
 
 ;(: alloc-box : Σ -> (Values 𝓁 Σ))
 (define (alloc-box Σ0)
+  (dprint 'full 'alloc-box "")
   (match-let ([(Σ size tbl) Σ0])
     (values (𝓁 (string->symbol (format "b:~a" size)))
             (Σ (add1 size) tbl))))
 
 ;(: box-lookup : Σ 𝓁 -> Val)
-(define (box-lookup Σ 𝓁) (hash-ref (Σ-tbl Σ) 𝓁))
+(define (box-lookup Σ 𝓁)
+  (dprint 'full 'box-lookup "")
+  (hash-ref (Σ-tbl Σ) 𝓁))
 
 ;(: box-update : Σ 𝓁 Val -> Σ)
 (define (box-update Σ0 𝓁0 val)
+  (dprint 'full 'box-update "")
   (match-let ([(Σ size binds) Σ0])
     (Σ size (hash-set binds 𝓁0 val))))
 
@@ -53,21 +59,30 @@
 
 ;(: alloc-def-ξ : Σ -> (Values 𝓁 Σ))
 (define (alloc-def-ξ Σ0)
+  (dprint 'full 'alloc-def-ξ "")
   (match-let ([(Σ size tbl) Σ0])
     (values (𝓁 (string->symbol (format "ξ:~a" size)))
             (Σ (add1 size) tbl))))
 
 ;(: def-ξ-lookup : Σ 𝓁 -> ξ)
-(define (def-ξ-lookup Σ0 𝓁) (hash-ref (Σ-tbl Σ0) 𝓁))
+(define (def-ξ-lookup Σ0 𝓁)
+  (dprint 'full 'def-ξ-lookup "")
+  (hash-ref (Σ-tbl Σ0) 𝓁))
 
 ;(: def-ξ-update : Σ 𝓁 ξ -> Σ)
 (define (def-ξ-update Σ0 𝓁 ξ)
+  (dprint 'full 'def-ξ-update "")
   (match-let ([(Σ size tbl) Σ0])
     (Σ size (hash-set tbl 𝓁 ξ))))
 
 
 ;; (: -->f : State -> (Setof State))
-(define-parameterized-reduction-relation -->f/store (update-store*)
+(define-parameterized-reduction-relation -->f/store
+  (lookup-store update-store* alloc-loc* push-cont
+                alloc-box box-lookup box-update
+                alloc-def-ξ def-ξ-lookup def-ξ-update
+                bind resolve alloc-name alloc-scope
+                parse ==>f)
 
   ;; propagate env into subterms
   [`(,(AstEnv ph (If ast_test ast_then ast_else) env maybe-scp_i ξ)
@@ -225,7 +240,7 @@
    (let* ([ξ_unstops (make-immutable-hash
                        (map (λ (p) (cons (car p) (unstop (cdr p))))
                             (hash->list ξ)))]
-          [nams_stop (resolve* ph val_idstops Σ)]
+          [nams_stop ((resolve*/resolve resolve) ph val_idstops Σ)]
           [ξ_stops (extend-ξ*
                      ξ_unstops
                      (map (λ (n) (cons n (TStop (lookup-ξ ξ_unstops n))))
@@ -253,7 +268,7 @@
           [ξ_unstops (make-immutable-hash
                        (map (λ (p) (cons (car p) (unstop (cdr p))))
                             (hash->list ξ_defs)))]
-          [nams_stop (resolve* ph val_idstops Σ)]
+          [nams_stop ((resolve*/resolve resolve) ph val_idstops Σ)]
           [ξ_stops (extend-ξ*
                      ξ_unstops
                      (map (λ (n) (cons n (TStop (lookup-ξ ξ_unstops n))))
@@ -337,26 +352,14 @@
 
   ;; in-expand
   [(InExpand ζ1 s0)
-   #:with (==>f ζ1)
+   #:with ((==>f) ζ1) ;; extra call due to mutually-recursive definitions
    (λ (ζ2) (InExpand ζ2 s0))
    ex-in-expand])
 
-(define -->f ((reducer-of -->f/store) update-store*))
-
-;(: eval : Ph Ast MaybeScp ξ Σ* -> (Values Val Σ*))
-(define ((eval/--> -->) ph ast maybe-scp_i ξ Σ*)
-  (match-let ([`((,(? Val? val) • ,_store ,Σ*_2))
-               (apply-reduction-relation*
-                -->
-                `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
-                  • ,(init-store) ,Σ*))])
-    (values val Σ*_2)))
-
-(define eval (eval/--> -->f))
-
 
 ;; (: ==>f : ζ -> (Setof ζ))
-(define-parameterized-reduction-relation ==>f/Σ (bind)
+(define-parameterized-reduction-relation ==>f/Σ
+  (bind resolve alloc-name alloc-scope regist-vars parse -->f)
 
   ;; stops
   [(ζ (Stxξ ph (and stx (GenStx `(,(? Id? id_stop)
@@ -684,11 +687,35 @@
 
   ;; in-eval
   [(InEval s1 ζ0)
-   #:with (-->f s1)
+   #:with ((-->f) s1) ;; extra call due to mutually-recursive definitions
    (λ (s2) (InEval s2 ζ0))
    ex-in-eval])
 
-(define ==>f ((reducer-of ==>f/Σ) bind))
+
+
+(define-values (-->f ==>f)
+  (letrec ([-->f (λ () ((reducer-of -->f/store)
+                         lookup-store update-store* alloc-loc* push-cont
+                         alloc-box box-lookup box-update
+                         alloc-def-ξ def-ξ-lookup def-ξ-update
+                         bind resolve alloc-name alloc-scope
+                         parse ==>f))]
+           [==>f (λ () ((reducer-of ==>f/Σ)
+                         bind resolve alloc-name alloc-scope regist-vars
+                         parse -->f))])
+    (values (-->f) (==>f))))
+
+
+;(: eval : Ph Ast MaybeScp ξ Σ* -> (Values Val Σ*))
+(define ((eval/--> -->) ph ast maybe-scp_i ξ Σ*)
+  (match-let ([`((,(? Val? val) • ,_store ,Σ*_2))
+               (apply-reduction-relation*
+                -->
+                `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
+                  • ,(init-store) ,Σ*))])
+    (values val Σ*_2)))
+
+(define eval (eval/--> -->f))
 
 ;(: expand : Ph Stx ξ Σ* -> (Values Stx Σ*))
 (define ((expand/==> ==>) ph stx ξ Σ*)

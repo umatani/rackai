@@ -1,12 +1,15 @@
 #lang racket
 (require "../reduction.rkt"
+         "../dprint.rkt"
          "struct.rkt"
-         "delta.rkt"
-         (only-in "conf.rkt" init-env init-store))
+         "delta.rkt")
 (provide (all-defined-out))
 
 ;; ----------------------------------------
 ;; Evaluating AST:
+
+; (: init-env : -> Env)
+(define (init-env) (make-immutable-hash))
 
 ;(: lookup-env : Env Var -> Loc)
 (define (lookup-env env var) (hash-ref env var))
@@ -16,23 +19,30 @@
   (foldl (λ (v l e) (hash-set e v l))
          env vars locs))
 
+; (: init-store : -> Store)
+(define (init-store) (Store 0 (make-immutable-hash)))
+
 ;(: lookup-store : Store Loc -> (U Val Cont))
 (define (lookup-store store loc)
+  (dprint 'core 'lookup-store "")
   (hash-ref (Store-tbl store) loc))
 
 ;(: update-store : Store Loc (U Val Cont) -> Store)
 (define (update-store store loc u)
+  (dprint 'core 'update-store "")
   (Store (Store-size store)
          (hash-set (Store-tbl store) loc u)))
 
 ;(: update-store* : Store (Listof Loc) (Listof (U Val Cont)) -> Store)
 (define (update-store* store locs us)
+  (dprint 'core 'update-store* "")
   (Store (Store-size store)
          (foldl (λ (l u t) (hash-set t l u))
                 (Store-tbl store) locs us)))
 
 ;(: alloc-loc : Store -> (Values Loc Store))
 (define (alloc-loc store)
+  (dprint 'core 'alloc-loc "")
   (let ([size (Store-size store)])
     (values (string->symbol (format "l~a" size))
             (Store (add1 size) (Store-tbl store)))))
@@ -40,6 +50,7 @@
 ;; for eval-time value binding
 ;(: alloc-loc* : (Listof Nam) Store -> (Values (Listof Loc) Store))
 (define (alloc-loc* nams store)
+  (dprint 'core 'alloc-loc* "")
   (match nams
     ['() (values '() store)]
     [(list nam1 nams ...)
@@ -50,13 +61,17 @@
          (values (cons loc_0 locs_new) store_new)))]))
 
 ;(: push-cont : Store Cont -> (Values Loc Store))
-(define (push-cont store cont)
+(define ((push-cont/alloc-loc/update-store alloc-loc update-store) store cont)
   (let-values ([(loc store_1) (alloc-loc store)])
     (let ([store_2 (update-store store_1 loc cont)])
       (values loc store_2))))
 
+(define push-cont (push-cont/alloc-loc/update-store alloc-loc update-store))
+
+
 ;; (: -->c : State -> (Setof State))
-(define-parameterized-reduction-relation -->c/store (update-store*)
+(define-parameterized-reduction-relation -->c/store
+  (lookup-store update-store* alloc-loc* push-cont)
   ;; propagate env into subterms
   [`(,(AstEnv (If ast_test ast_then ast_else) env) ,cont ,store)
    `(,(SIf (AstEnv ast_test env)
@@ -141,7 +156,8 @@
    `(,tm_then ,cont ,store)
    ev-if-#t])
 
-(define -->c ((reducer-of -->c/store) update-store*))
+(define -->c ((reducer-of -->c/store)
+              lookup-store update-store* alloc-loc* push-cont))
 
 ; (: eval : Ast -> Val)
 (define ((eval/--> -->) ast)

@@ -1,16 +1,12 @@
 #lang racket
 (require "../reduction.rkt"
+         "../dprint.rkt"
          "struct.rkt"
          (only-in "syntax.rkt"
-                  snoc zip unzip in-hole
-                  add flip bind
-                  resolve)
-         (only-in "conf.rkt"
-                  empty-ctx
-                  init-env init-store
-                  init-ξ init-Θ)
+                  empty-ctx snoc zip unzip in-hole
+                  add flip bind resolve)
          (only-in "parse.rkt" parse)
-         (only-in "eval.rkt" -->c))
+         (only-in "eval.rkt" init-env init-store -->c))
 (provide (all-defined-out))
 
 ;; ----------------------------------------
@@ -18,6 +14,9 @@
 
 ;; ----------------------------------------
 ;; Expand-time environment operations:
+
+; (: init-ξ : -> ξ)
+(define (init-ξ) (make-immutable-hash))
 
 ; (: lookup-ξ : ξ Nam -> AllTransform)
 (define (lookup-ξ ξ nam) (hash-ref ξ nam (λ () 'not-found)))
@@ -27,6 +26,9 @@
 
 ;; ----------------------------------------
 ;; Expand-time stack operations:
+
+; (: init-Θ : -> Θ)
+(define (init-Θ) (Θ 0 (make-immutable-hash)))
 
 ; (: alloc-κ : Θ -> (Values 𝓁 Θ))
 (define (alloc-κ θ)
@@ -50,8 +52,12 @@
 ;; ----------------------------------------
 ;; Alloc name & scope helpers for expander:
 
+; (: init-Σ : -> Σ)
+(define (init-Σ) (Σ 0 (make-immutable-hash)))
+
 ; (: alloc-name : Id Σ -> (Values Nam Σ))
 (define (alloc-name id Σ0)
+  (dprint 'core 'alloc-name "")
   (match-let ([(GenStx (Sym nam) _) id]
               [(Σ size tbl) Σ0])
     (values (string->symbol (format "~a:~a" nam size))
@@ -59,6 +65,7 @@
 
 ; (: alloc-scope : Symbol Σ -> (Values Scp Σ))
 (define (alloc-scope s Σ0)
+  (dprint 'core 'alloc-scope "")
   (match-let ([(Σ size tbl) Σ0])
     (values (string->symbol (format "~a::~a" s size))
             (Σ (add1 size) tbl))))
@@ -81,7 +88,8 @@
 (define stx-nil (GenStx '() (empty-ctx)))
 
 ;; (: ==>c : ζ -> (Setof ζ))
-(define-parameterized-reduction-relation ==>c/Σ (bind)
+(define-parameterized-reduction-relation ==>c/Σ
+  (bind resolve alloc-name alloc-scope regist-vars parse -->c)
 
   ;; lambda
   [(ζ (Stxξ (GenStx `(,(? Id? id_lam)
@@ -359,7 +367,8 @@
    (λ (s2) (InEval s2 ζ0))
    ex-in-eval])
 
-(define ==>c ((reducer-of ==>c/Σ) bind))
+(define ==>c ((reducer-of ==>c/Σ)
+              bind resolve alloc-name alloc-scope regist-vars parse -->c))
 
 ;(: expand : Stx ξ Σ -> (Values Stx Σ))
 (define ((expand/==> ==>) stx ξ Σ)

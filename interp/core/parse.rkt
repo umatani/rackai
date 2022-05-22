@@ -9,7 +9,7 @@
 ;;   modeling multiple phases):
 
 ;(: parse : Stx Σ -> Ast)
-(define (parse stx Σ)
+(define ((parse/parse*/resolve parse* resolve) stx Σ)
   (define (id=? nam)
     (λ (id) (eq? (resolve id Σ) nam)))
 
@@ -19,15 +19,15 @@
                ,(GenStx stl_ids _) ,stx_body) _)
      (Fun (map (λ (id) (Var (resolve id Σ)))
                stl_ids)
-          (parse stx_body Σ))]
+          ((parse/parse*/resolve parse* resolve) stx_body Σ))]
     ; (let ([id stx_rhs] ...) stx_body)
     [(GenStx `(,(? Id? (? (id=? 'let)))
                ,(GenStx (? ProperStl?  stl_binds) _) ,stx_body) _)
      (let-values ([(stl_ids stl_rhs) (unzip stl_binds)])
        (App (Fun (map (λ (id) (Var (resolve id Σ)))
                       stl_ids)
-                 (parse stx_body Σ))
-            (map (λ (stx_rhs) (parse stx_rhs Σ))
+                 ((parse/parse*/resolve parse* resolve) stx_body Σ))
+            (map (λ (stx_rhs) ((parse/parse*/resolve parse* resolve) stx_rhs Σ))
                  stl_rhs)))]
     ; (quote stx)
     [(GenStx `(,(? Id? (? (id=? 'quote))) ,stx) _)
@@ -38,18 +38,28 @@
     ; (#%app stx_fun stx_arg ...) stx-pair (cdr部もstx)であることに注意
     [(GenStx (cons (? Id? (? (id=? '#%app)))
                    (GenStx (cons stx_fun stl_args) _)) _)
-     (App (parse stx_fun Σ) (parse* stl_args Σ))]
+     (App ((parse/parse*/resolve parse* resolve) stx_fun Σ)
+          ((parse*) stl_args Σ))]
     ; (if stx stx stx)
     [(GenStx `(,(? Id? (? (id=? 'if))) ,stx_test ,stx_then ,stx_else) _)
-     (If (parse stx_test Σ) (parse stx_then Σ) (parse stx_else Σ))]
+     (If ((parse/parse*/resolve parse* resolve) stx_test Σ)
+         ((parse/parse*/resolve parse* resolve) stx_then Σ)
+         ((parse/parse*/resolve parse* resolve) stx_else Σ))]
     ; reference
     [(? Id? id) (Var (resolve id Σ))]
     ; literal
     [(GenStx (? Atom? atom) _) atom]))
 
 ;(: parse* : Stl Σ -> (Listof Ast))
-(define (parse* stl Σ)
+(define ((parse*/parse parse) stl Σ)
   (match stl
     ['() '()]
-    [(cons stx stl) (cons (parse stx Σ) (parse* stl Σ))]
-    [stx (list (parse stx Σ))]))
+    [(cons stx stl) (cons ((parse) stx Σ) ((parse*/parse parse) stl Σ))]
+    [stx (list ((parse) stx Σ))]))
+
+(define (parse&parse*/resolve resolve)
+  (letrec ([parse (λ () (parse/parse*/resolve parse* resolve))]
+           [parse* (λ () (parse*/parse parse))])
+    (values (parse) (parse*))))
+
+(define-values (parse parse*) (parse&parse*/resolve resolve))

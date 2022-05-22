@@ -2,7 +2,7 @@
 (require (only-in "../core/syntax.rkt" in-hole-stl)
          (only-in "../phases/syntax.rkt" resolve)
          "struct.rkt")
-(provide in-hole resolve*)
+(provide (all-defined-out))
 
 ;(: in-hole : Stx Stx -> Stx)
 (define (in-hole stx v)
@@ -15,7 +15,10 @@
     [_ stx]))
 
 ;(: resolve* : Ph (Listof Id) Σ -> (Listof Nam))
-(define (resolve* ph val Σ)
+(define ((resolve*/resolve resolve) ph val Σ)
   (match val
     ['() '()]
-    [(cons id val2) (cons (resolve ph id Σ) (resolve* ph val2 Σ))]))
+    [(cons id val2) (cons (resolve ph id Σ)
+                          ((resolve*/resolve resolve) ph val2 Σ))]))
+
+;(define resolve* (resolve*/resolve resolve))

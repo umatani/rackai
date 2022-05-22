@@ -1,21 +1,20 @@
 #lang racket
 (require "../reduction.rkt"
+         "../dprint.rkt"
          "struct.rkt"
          "misc.rkt"
-         (only-in "syntax.rkt" strip)
-         (only-in "conf.rkt" empty-ctx init-env init-store
-                  init-ξ init-Θ init-Σ)
-         (only-in "eval.rkt" -->c eval)
+         (only-in "syntax.rkt" empty-ctx strip)
+         (only-in "eval.rkt" init-env init-store -->c eval)
          (only-in "parse.rkt" parse)
-         (only-in "expand.rkt" ==>c expand)
+         (only-in "expand.rkt" init-ξ init-Θ init-Σ ==>c expand)
          "../example.rkt"
          (for-syntax racket/list))
 (provide (all-defined-out))
 
 ;(: expander : Stx -> (Values Stx Σ))
-(define (expander stx)
+(define ((expander/expand expand) stx)
   (expand stx (init-ξ) (init-Σ)))
-
+(define expander (expander/expand expand))
 
 (define-helpers (empty-ctx) reader printer)
 

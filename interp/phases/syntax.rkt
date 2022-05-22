@@ -1,9 +1,12 @@
 #lang racket
-(require (only-in "../core/syntax.rkt"
+(require "../dprint.rkt"
+         (only-in "../core/syntax.rkt"
                   in-hole-stl addremove subtract
                   lookup-Σ biggest-subset binding-lookup)
          "struct.rkt")
 (provide (all-defined-out))
+
+(define (empty-ctx) (make-immutable-hash))
 
 ;(: in-hole : Stx Stx -> Stx)
 (define (in-hole stx v)
@@ -94,6 +97,7 @@
 ;; the identifier
 ;(: bind : Ph Σ Id Nam -> Σ)
 (define (bind ph Σ0 id nam)
+  (dprint 'phases 'bind "")
   (match-let ([(Σ size tbl) Σ0]
               [(GenStx (Sym nam_1) ctx_1) id])
     (Σ size (hash-update
