@@ -12,7 +12,7 @@
 ;;;; non-deterministic reduction engine
 
 (begin-for-syntax
-  (struct reduction-desc (reducer-id) #:transparent
+  (struct reduction-desc (reducer-id clause-map) #:transparent
     #:property prop:procedure
     (λ (self stx) ; syntax transformer at phase 1
       (syntax-case stx ()
@@ -28,40 +28,68 @@
     (for/fold ([m (or super-clause-map (hasheq))])
               ([name (in-list names)]
                [clause (in-list clauses)])
-      (hash-set m name clause)))
+      (hash-set m name (syntax->datum clause))))
 
-  (define (make-reducer-body s clauses)
+  (define (make-with-body e ks)
+    (let loop ([e e] [ks (syntax->list ks)])
+      (if (null? ks)
+          e
+          (loop #`(list->set
+                   (set-map #,e (λ (alt) (#,(car ks) alt))))
+                (cdr ks)))))
+
+  (define (make-reducer-body rel s clauses)
     (let loop ([body #'(set)]
                [cs clauses])
       (if (null? cs)
-          body                                
+          body
           (loop
-           (syntax-case (car cs) ()
+           (syntax-case (datum->syntax rel (car cs)) ()
              [(p b rule-name)
               #`(let ([n #,body])
                   (match #,s
                     [p ;(println 'rule-name)
-                       (set-add n b)]
+                     (set-add n b)]
                     [_ n]))]
              [(p #:when t b rule-name)
               #`(let ([n #,body])
                   (match #,s
                     [p (if t
                            (begin ;(println 'rule-name)
-                                  (set-add n b))
+                             (set-add n b))
                            n)]
                     [_ n]))]
-             [(p #:with e k rule-name)
+             [(p #:with e k ... rule-name)
               #`(let ([n #,body])
                   (match #,s
                     [p (set-union
                         n
-                        (list->set
-                         (set-map e (λ (alt) (k alt)))))]
+                        #,(make-with-body #'e #'(k ...)))]
                     [_ n]))])
-           (cdr cs)))))
+           (cdr cs))))))
 
-  (define #%reduction->clause-map (make-free-id-table)))
+(define-syntax (define-parameterized-extended-reduction-relation stx)
+  (syntax-case stx ()
+    [(_ rel super-rel (param ...) clause ...)
+     (with-syntax ([(rel-f) (generate-temporaries #'(rel))])
+       (let* ([super-clause-map
+               (and (syntax->datum #'super-rel)  ;; not #f
+                    (reduction-desc-clause-map
+                     (syntax-local-value #'super-rel)))]
+              [rel-dict-map (make-clause-map
+                             super-clause-map
+                             (syntax->list #'(clause ...)))])
+         #`(begin
+             (define-syntax rel
+               (reduction-desc #'rel-f #,rel-dict-map))
+             (define rel-f 
+               (let ([f (λ (param ...)
+                          (λ (s)
+                            #,(make-reducer-body #'rel
+                               #'s (hash-values rel-dict-map))))])
+                 #,(if (null? (syntax->list #'(param ...)))
+                       #'(f)
+                       #'f))))))]))
 
 ;; (reducer-of rel) : state -> (Set state ...)
 (define-syntax (reducer-of stx)
@@ -86,36 +114,6 @@
      #'(define-parameterized-extended-reduction-relation
          rel #f (param ...) clause ...)]))
 
-(define-syntax (define-parameterized-extended-reduction-relation stx)
-  (syntax-case stx ()
-    [(_ rel super-rel (param ...) clause ...)
-     (with-syntax ([(rel-f) (generate-temporaries #'(rel))])
-       (let ([super-clause-map
-              (and (syntax->datum #'super-rel)  ;; not #f
-                   (dict-ref #%reduction->clause-map
-                             #'super-rel
-                             (λ () (raise-syntax-error
-                                     'define-extended-reduction-relation
-                                     "super relation not found"
-                                     #'super-rel))))])
-         (dict-set! #%reduction->clause-map
-                    #'rel (make-clause-map
-                           super-clause-map
-                           (syntax->list #'(clause ...))))
-         #`(begin
-             (define rel-f 
-               (let ([f (lambda (param ...)
-                          (λ (s)
-                            #,(make-reducer-body
-                               #'s
-                               (hash-values
-                                (dict-ref #%reduction->clause-map #'rel)))))])
-                 #,(if (null? (syntax->list #'(param ...)))
-                       #'(f)
-                       #'f)))
-             (define-syntax rel (reduction-desc #'rel-f)))))]))
-
-
 (define (apply-reduction-relation* --> s #:steps [steps #f])
   (let ([all-states (make-hash)]
         [normal-forms (make-hash)]
@@ -138,6 +136,7 @@
         (hash-keys all-states) ;; for debug
         (hash-keys normal-forms))))
 
+#;
 (define-parameterized-reduction-relation -->test
   (inc)
   [x

@@ -1,24 +1,36 @@
 #lang racket
-(require (only-in "../../interp/reduction.rkt" reducer-of)
+(require (only-in "../../interp/reduction.rkt"
+                  reducer-of
+                  define-parameterized-extended-reduction-relation)
          "../../interp/core/struct.rkt"
-         (only-in "../../interp/core/eval.rkt" -->c/store eval/-->
-                  push-cont/alloc-loc/update-store))
+         "../../interp/core/delta.rkt"
+         (only-in "../../interp/core/eval.rkt"
+                  [-->c/store interp:-->c/store]
+                  eval/-->
+                  push-cont/alloc-loc/update-store
+                  lookup-env update-env))
 (provide (all-defined-out))
 
-;(: lookup-store : Store Loc -> (U Val Cont))
+;; Set-based heap
+
+;(: lookup-store : Store Loc -> (Setof (U Val Cont))
 (define (lookup-store store loc)
   (hash-ref (Store-tbl store) loc))
 
 ;(: update-store : Store Loc (U Val Cont) -> Store)
 (define (update-store store loc u)
   (Store (Store-size store)
-         (hash-set (Store-tbl store) loc u)))
+         (hash-update (Store-tbl store) loc (λ (old) (set-add old u)) (set))))
 
 ;(: update-store* : Store (Listof Loc) (Listof (U Val Cont)) -> Store)
 (define (update-store* store locs us)
   (Store (Store-size store)
-         (foldl (λ (l u t) (hash-set t l u))
+         (foldl (λ (loc u tbl)
+                  (hash-update tbl loc (λ (old) (set-add old u)) (set)))
                 (Store-tbl store) locs us)))
+
+
+;; Finite-domain allocation
 
 ;(: alloc-loc : Store -> (Values Loc Store))
 (define (alloc-loc store)
@@ -40,7 +52,34 @@
 
 (define push-cont (push-cont/alloc-loc/update-store alloc-loc update-store))
 
+
+;; Revised reduction rules
+
+;; (: -->c : State -> (Setof State))
+(define-parameterized-extended-reduction-relation -->c/store interp:-->c/store
+  (lookup-store update-store* alloc-loc* push-cont)
+
+  ;; reference
+  [`(,(AstEnv (? Var? var) env) ,cont ,store)
+   #:with (lookup-store store (lookup-env env var))
+   (λ (val) `(,(AstEnv val env) ,cont ,store))
+   ev-x]
+
+  ;; application
+  [`(,(? Val? val) ,(KApp vals tms loc_cont) ,store)
+   #:with (lookup-store store loc_cont)
+   (λ (cont)`(,(SApp (append vals (list val)) tms) ,cont ,store))
+   ev-pop-app]
+
+  ;; if
+  [`(,(? Val? val) ,(KIf tm_then tm_else loc_cont) ,store)
+   #:with (lookup-store store loc_cont)
+   (λ (cont) `(,(SIf val tm_then tm_else) ,cont ,store))
+   ev-pop-if]
+
+  )
+
+
 (define -->c ((reducer-of -->c/store)
               lookup-store update-store* alloc-loc* push-cont))
-
 (define eval (eval/--> -->c))

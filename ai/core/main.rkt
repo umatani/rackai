@@ -1,5 +1,6 @@
 #lang racket
-(require (only-in "../../interp/core/misc.rkt" define-runner)
+(require "../../interp/dprint.rkt"
+         (only-in "../../interp/core/misc.rkt" define-runner)
          (only-in "../../interp/core/main.rkt"
                   reader printer expander/expand main/run
                   eval-->/--> eval-->*/--> expand==>/==> expand==>*/==>)
