@@ -18,7 +18,7 @@
                   regist-vars id-seq id-kont id-snoc stx-nil)
 
          "struct.rkt"
-         (only-in "syntax.rkt" in-hole resolve*/resolve))
+         (only-in "syntax.rkt" in-hole resolve*/resolve  id=?))
 (provide (all-defined-out))
 
 ;(: extend-ξ* : ξ (Listof (Pairof Nam AllTransform)) -> ξ)
@@ -146,8 +146,6 @@
             `(syntax-local-value ,(? Id? id) #f ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    (let ([ξ_defs (def-ξ-lookup Σ 𝓁)])
-     ;(printf "lvalue-defs nam: ~a\n" (resolve ph id Σ))
-     ;(printf "           keys: ~a\n" (hash-keys ξ_defs))
      `(,(lookup-ξ ξ_defs (resolve ph id Σ)) ,cont ,store ,Σ*_0))
    ev-lval-defs]
 
@@ -352,14 +350,14 @@
 
   ;; in-expand
   [(InExpand ζ1 s0)
-   #:with ((==>f) ζ1) ;; extra call due to mutually-recursive definitions
-   (λ (ζ2) (InExpand ζ2 s0))
+   #:with ζ2 <- ((==>f) ζ1) ;; extra call due to mutually-recursive definitions
+   (InExpand ζ2 s0)
    ex-in-expand])
 
 
 ;; (: ==>f : ζ -> (Setof ζ))
 (define-parameterized-reduction-relation ==>f/Σ
-  (bind resolve alloc-name alloc-scope regist-vars parse -->f)
+  (bind resolve id=? alloc-name alloc-scope regist-vars parse -->f)
 
   ;; stops
   [(ζ (Stxξ ph (and stx (GenStx `(,(? Id? id_stop)
@@ -374,8 +372,7 @@
                            ,(GenStx (? ProperStl? stl_args) ctx_0)
                            ,stx_body) ctx)
               ξ) '∘ κ0 Θ (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (let ([nam (resolve ph id_lam Σ)])
-            (and (eq? 'lambda nam) (not (TStop? (lookup-ξ ξ nam)))))
+   #:when (id=? ph id_lam 'lambda ξ Σ)
    (let*-values ([(scp_new Σ_1) (alloc-scope 'lam Σ)]
                  [(stl_args2 ξ_new Σ_2)
                   (regist-vars ph scp_new stl_args ξ Σ_1)]
@@ -395,8 +392,7 @@
                            ,(GenStx (? ProperStl? stl_binds) ctx_1)
                            ,stx_body) ctx)
               ξ) '∘ κ0 Θ (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (let ([nam (resolve ph id_let Σ)])
-            (and (eq? 'let nam) (not (TStop? (lookup-ξ ξ nam)))))
+   #:when (id=? ph id_let 'let ξ Σ)
    (let*-values ([(stl_vars stl_rhs) (unzip stl_binds)]
                  [(scp_new Σ_1) (alloc-scope 'let Σ)]
                  [(stl_vars2 ξ_new Σ_2) (regist-vars ph scp_new stl_vars ξ Σ_1)]
@@ -420,8 +416,8 @@
                                ,(GenStx (? ProperStl? stl_rhs) _)) ctx_1)
                          ξ) ,stx_body) ctx)
        '∘ κ0 Θ (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (and (eq? '#%kont (resolve ph id_kont Σ))
-               (eq? 'let (resolve ph id_let Σ)))
+   #:when (and (id=? ph id_kont '#%kont ξ Σ)
+               (id=? ph id_let  'let    ξ Σ))
    (let-values ([(𝓁_new Θ_1) (push-κ Θ κ0)])
      (ζ (Stxξ ph (GenStx `(,id-seq ,stx-nil ,@stl_rhs) ctx_1) ξ)
          '∘
@@ -440,8 +436,8 @@
                                       ,(GenStx (? ProperStl? val_rhs) _)) ctx_1)
                            ,stx_body) ctx)
               ξ) '∘ κ Θ (and Σ*_0 (Σ* Σ _ _)))
-   #:when (and (eq? '#%kont (resolve ph id_kont Σ))
-               (eq? 'let (resolve ph id_let Σ)))
+   #:when (and (id=? ph id_kont '#%kont ξ Σ)
+               (id=? ph id_let  'let    ξ Σ))
    (ζ (GenStx `(,id_let ,(GenStx (zip stl_vars val_rhs ctx_1) ctx_1)
                          ,stx_body) ctx)
        '• κ Θ Σ*_0)
@@ -450,8 +446,7 @@
   ;; quote (same as phases)
   [(ζ (Stxξ ph (and stx (GenStx `(,(? Id? id_quote) ,_) _)) ξ)
        '∘ κ Θ (and Σ*_0 (Σ* Σ _ _)))
-   #:when (let ([nam (resolve ph id_quote Σ)])
-            (and (eq? 'quote nam) (not (TStop? (lookup-ξ ξ nam)))))
+   #:when (id=? ph id_quote 'quote ξ Σ)
 
    (ζ stx '• κ Θ Σ*_0)
    ex-quote]
@@ -459,8 +454,7 @@
   ;; syntax (same as phases)
   [(ζ (Stxξ ph (GenStx `(,(? Id? id_syntax) ,stx) ctx) ξ)
        '∘ κ Θ (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (let ([nam (resolve ph id_syntax Σ)])
-            (and (eq? 'syntax nam) (not (TStop? (lookup-ξ ξ nam)))))
+   #:when (id=? ph id_syntax 'syntax ξ Σ)
    (let ([stx_pruned (prune ph stx scps_p)])
      (ζ (GenStx `(,id_syntax ,stx_pruned) ctx) '• κ Θ Σ*_0))
    ex-stx]
@@ -470,8 +464,7 @@
                            ,(GenStx `(,(GenStx `(,id ,stx_rhs) ctx_0)) ctx_1)
                            ,stx_body) ctx) ξ
               ) '∘ κ Θ (and Σ*_0 (Σ* Σ _ _)))
-   #:when (let ([nam (resolve ph id_ls Σ)])
-            (and (eq? 'let-syntax nam) (not (TStop? (lookup-ξ ξ nam)))))
+   #:when (id=? ph id_ls 'let-syntax ξ Σ)
    (ζ (GenStx `(,id_ls
                  ,(GenStx `(,(GenStx `(,id ,stx_rhs) ctx_0)) ctx_1)
                  ,(Stxξ ph stx_body ξ)) ctx)
@@ -482,8 +475,7 @@
                  ,(GenStx `(,(GenStx `(,(? Id? id) ,stx_rhs) ctx_0)) ctx_1)
                  ,(Stxξ ph stx_body ξ)) ctx)
        '∘ κ0 Θ (and Σ*_0 (Σ* Σ _ _)))
-   #:when (let ([nam (resolve ph id_ls Σ)])
-            (and (eq? 'let-syntax nam) (not (TStop? (lookup-ξ ξ nam)))))
+   #:when (id=? ph id_ls 'let-syntax ξ Σ)
    (let*-values ([(nam_new Σ_1) (alloc-name id Σ)]
                  [(scp_new Σ_2) (alloc-scope 'ls Σ_1)]
                  [(id_new) (add ph id scp_new)]
@@ -506,8 +498,8 @@
                  ,(Stxξ ph stx_body ξ)
                  ,(GenStx #f ctx_new)) ctx)
        '∘ κ Θ (Σ* Σ scps_p _))
-   #:when (and (eq? '#%kont     (resolve ph id_kont Σ))
-               (eq? 'let-syntax (resolve ph id_ls Σ)))
+   #:when (and (id=? ph id_kont '#%kont     ξ Σ)
+               (id=? ph id_ls   'let-syntax ξ Σ))
    (let ([nam_new (resolve ph id_new Σ)])
      (InEval `(,(AstEnv ph (parse (add1 ph) stx_exp Σ) (init-env) 'no-scope ξ)
                • ,(init-store) ,(Σ* Σ scps_p (set)))
@@ -558,8 +550,7 @@
   ;; if
   [(ζ (Stxξ ph (GenStx `(,(? Id? id_if) ,stl_exps ...) ctx) ξ)
        '∘ κ0 Θ (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (let ([nam (resolve ph id_if Σ)])
-            (and (eq? 'if nam) (not (TStop? (lookup-ξ ξ nam)))))
+   #:when (id=? ph id_if 'if ξ Σ)
    (let-values ([(𝓁_new Θ_1) (push-κ Θ κ0)])
      (ζ (Stxξ ph (GenStx `(,id-seq ,stx-nil ,@stl_exps) ctx) ξ)
          '∘
@@ -572,8 +563,8 @@
                            ,(? Id? id_if)
                            ,(GenStx (? ProperStl? val_exps) ctx)) _)
               ξ) '∘ κ Θ (and Σ*_0 (Σ* Σ _ _)))
-   #:when (and (eq? '#%kont (resolve ph id_kont Σ))
-               (eq? 'if     (resolve ph id_if Σ)))
+   #:when (and (id=? ph id_kont '#%kont ξ Σ)
+               (id=? ph id_if   'if     ξ Σ))
    (ζ (GenStx `(,id_if ,@val_exps) ctx) '• κ Θ Σ*_0)
    ex-if-kont]
 
@@ -581,8 +572,7 @@
   [(ζ (Stxξ ph (GenStx `(,(? Id? id_app)
                            ,stx_fun ,stl_args ...) ctx) ξ)
        '∘ κ0 Θ (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (let ([nam (resolve ph id_app Σ)])
-            (and (eq? '#%app nam) (not (TStop? (lookup-ξ ξ nam)))))
+   #:when (id=? ph id_app '#%app ξ Σ)
    (let-values ([(𝓁_new Θ_1) (push-κ Θ κ0)])
      (ζ (Stxξ ph (GenStx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
          '∘
@@ -595,8 +585,7 @@
                   (cons (? Id? id_app)
                         (GenStx `(,stx_fun ,stl_args ...) _)) ctx) ξ)
        '∘ κ0 Θ (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (let ([nam (resolve ph id_app Σ)])
-            (and (eq? '#%app nam) (not (TStop? (lookup-ξ ξ nam)))))
+   #:when (id=? ph id_app '#%app ξ Σ)
    (let-values ([(𝓁_new Θ_1) (push-κ Θ κ0)])
      (ζ (Stxξ ph (GenStx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)
          '∘
@@ -652,7 +641,7 @@
                            ,(GenStx (? ProperStl? val_dones) _)
                            ,stx_exp0 ,stl_exps ...) ctx) ξ)
        '∘ κ0 Θ (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (eq? '#%seq (resolve ph id_seq Σ))
+   #:when (id=? ph id_seq '#%seq ξ Σ)
    (let-values ([(𝓁_new Θ_1) (push-κ Θ κ0)])
      (ζ (Stxξ ph stx_exp0 ξ) '∘
          (κ
@@ -669,8 +658,8 @@
                             ,(GenStx (? ProperStl? val_dones) ctx_1)
                             ,(? Stx? stx_done)) _)
                  ,stl_exps ...) ctx) '∘ κ Θ (and Σ*_0 (Σ* Σ _ _)))
-   #:when (and (eq? '#%seq  (resolve ph id_seq Σ))
-               (eq? '#%snoc (resolve ph id_snoc Σ)))
+   #:when (and (id=? ph id_seq  '#%seq  ξ Σ)
+               (id=? ph id_snoc '#%snoc ξ Σ))
    (let ([val_dones2 (snoc val_dones stx_done)])
      (ζ (Stxξ ph (GenStx `(,id_seq ,(GenStx val_dones2 ctx_1)
                                      ,@stl_exps) ctx) ξ)
@@ -681,17 +670,15 @@
   [(ζ (Stxξ ph (GenStx `(,(? Id? id_seq)
                            ,(GenStx (? ProperStl? val_dones) _)) ctx) ξ)
        '∘ κ Θ (and Σ*_0 (Σ* Σ _ _)))
-   #:when (eq? '#%seq (resolve ph id_seq Σ))
+   #:when (id=? ph id_seq '#%seq ξ Σ)
    (ζ (GenStx val_dones ctx) '• κ Θ Σ*_0)
    ex-seq-nil]
 
   ;; in-eval
   [(InEval s1 ζ0)
-   #:with ((-->f) s1) ;; extra call due to mutually-recursive definitions
-   (λ (s2) (InEval s2 ζ0))
+   #:with s2 <- ((-->f) s1) ;; extra call due to mutually-recursive definitions
+   (InEval s2 ζ0)
    ex-in-eval])
-
-
 
 (define-values (-->f ==>f)
   (letrec ([-->f (λ () ((reducer-of -->f/store)
@@ -701,7 +688,7 @@
                          bind resolve alloc-name alloc-scope
                          parse ==>f))]
            [==>f (λ () ((reducer-of ==>f/Σ)
-                         bind resolve alloc-name alloc-scope regist-vars
+                         bind resolve id=? alloc-name alloc-scope regist-vars
                          parse -->f))])
     (values (-->f) (==>f))))
 
@@ -717,11 +704,11 @@
 
 (define eval (eval/--> -->f))
 
-;(: expand : Ph Stx ξ Σ* -> (Values Stx Σ*))
+;(: expand : Ph Stx ξ Σ* -> (Cons Stx Σ*))
 (define ((expand/==> ==>) ph stx ξ Σ*)
   (let ([init-ζ (ζ (Stxξ ph stx ξ) '∘ '• (init-Θ) Σ*)])
     (match-let ([(list (ζ stx_new '• '• Θ_new Σ*_new))
                  (apply-reduction-relation* ==> init-ζ)])
-      (values stx_new Σ*_new))))
+      (cons stx_new Σ*_new))))
 
 (define expand (expand/==> ==>f))

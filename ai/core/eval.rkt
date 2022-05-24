@@ -75,9 +75,7 @@
   [`(,(? Val? val) ,(KIf tm_then tm_else loc_cont) ,store)
    #:with (lookup-store store loc_cont)
    (λ (cont) `(,(SIf val tm_then tm_else) ,cont ,store))
-   ev-pop-if]
-
-  )
+   ev-pop-if])
 
 
 (define -->c ((reducer-of -->c/store)

@@ -1,6 +1,7 @@
 #lang racket
 (require (only-in "../core/syntax.rkt" in-hole-stl)
          (only-in "../phases/syntax.rkt" resolve)
+         (only-in "../core/expand.rkt" lookup-ξ)
          "struct.rkt")
 (provide (all-defined-out))
 
@@ -22,3 +23,7 @@
                           ((resolve*/resolve resolve) ph val2 Σ))]))
 
 ;(define resolve* (resolve*/resolve resolve))
+
+(define (id=? ph id nam ξ Σ)
+  (let ([nam0 (resolve ph id Σ)])
+    (and (eq? nam nam0) (not (TStop? (lookup-ξ ξ nam))))))

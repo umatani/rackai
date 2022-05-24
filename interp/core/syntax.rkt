@@ -174,3 +174,6 @@
            [scps_biggest (biggest-subset ctx scpss)]
            [nam_biggest (binding-lookup sbs scps_biggest)])
       (or nam_biggest nam))))
+
+;(: id=? : Id Nam Σ -> Boolean)
+(define (id=? id nam Σ) (eq? (resolve id Σ) nam))

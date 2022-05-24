@@ -1,12 +1,8 @@
 #lang racket
 (require "queue.rkt"
+         "nondet.rkt"
          (for-syntax racket syntax/id-table))
-(provide define-reduction-relation
-         define-extended-reduction-relation
-         define-parameterized-reduction-relation
-         define-parameterized-extended-reduction-relation
-         reducer-of
-         apply-reduction-relation*)
+(provide (all-defined-out))
 
 
 ;;;; non-deterministic reduction engine
@@ -30,13 +26,15 @@
                [clause (in-list clauses)])
       (hash-set m name (syntax->datum clause))))
 
-  (define (make-with-body e ks)
-    (let loop ([e e] [ks (syntax->list ks)])
-      (if (null? ks)
-          e
-          (loop #`(list->set
-                   (set-map #,e (λ (alt) (#,(car ks) alt))))
-                (cdr ks)))))
+  (define (make-match-body bs)
+    (syntax-case bs ()
+      [(b) #'((pure b))]
+      [(#:when t b ...)
+       (with-syntax ([(b2 ...) (make-match-body #'(b ...))])
+         #'(#:failif (not t) #f b2 ...))]
+      [(#:with x <- e b ...)
+       (with-syntax ([(b2 ...) (make-match-body #'(b ...))])
+         #'(x <- e b2 ...))]))
 
   (define (make-reducer-body rel s clauses)
     (let loop ([body #'(set)]
@@ -45,26 +43,12 @@
           body
           (loop
            (syntax-case (datum->syntax rel (car cs)) ()
-             [(p b rule-name)
-              #`(let ([n #,body])
-                  (match #,s
-                    [p ;(println 'rule-name)
-                     (set-add n b)]
-                    [_ n]))]
-             [(p #:when t b rule-name)
-              #`(let ([n #,body])
-                  (match #,s
-                    [p (if t
-                           (begin ;(println 'rule-name)
-                             (set-add n b))
-                           n)]
-                    [_ n]))]
-             [(p #:with e k ... rule-name)
+             [(p b ... rule-name)
               #`(let ([n #,body])
                   (match #,s
                     [p (set-union
                         n
-                        #,(make-with-body #'e #'(k ...)))]
+                        (car (do #,@(make-match-body #'(b ...)))))]
                     [_ n]))])
            (cdr cs))))))
 

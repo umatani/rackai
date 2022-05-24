@@ -25,11 +25,8 @@
 (define parser (parser/parse parse))
 
 (define-runner run
-  reader
-  expander
-  stripper printer
-  eval
-  parser)
+  reader printer
+  expander parser eval)
 
 
 (define ((main/run run) [mode 'check])

@@ -118,3 +118,6 @@
            [scps_biggest (biggest-subset (at-phase ctx ph) scpss)]
            [nam_biggest (binding-lookup sbs scps_biggest)])
       (or nam_biggest nam))))
+
+;(: id=? : ph Id Nam Σ -> Boolean)
+(define (id=? ph id nam Σ) (eq? (resolve ph id Σ) nam))

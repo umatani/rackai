@@ -1,11 +1,11 @@
 #lang racket
 (require "../../interp/dprint.rkt"
-         (only-in "../../interp/core/misc.rkt" define-runner)
          (only-in "../../interp/core/main.rkt"
                   reader printer expander/expand main/run
                   eval-->/--> eval-->*/--> expand==>/==> expand==>*/==>)
 
          ;; Abstract version
+         (only-in "misc.rkt" define-runner)
          (only-in "eval.rkt" -->c eval)
          (only-in "parse.rkt" parse)
          (only-in "expand.rkt" ==>c expand)
@@ -16,11 +16,8 @@
 (define expander (expander/expand expand))
 
 (define-runner run
-  reader
-  expander
-  stripper printer
-  eval
-  parse)
+  reader printer
+  expander parse eval)
 
 (define main (main/run run))
 

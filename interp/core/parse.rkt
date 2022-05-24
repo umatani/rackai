@@ -1,6 +1,6 @@
 #lang racket
 (require "struct.rkt"
-         (only-in "syntax.rkt" unzip strip resolve))
+         (only-in "syntax.rkt" unzip strip resolve [id=? stx:id=?]))
 (provide (all-defined-out))
 
 ;; ----------------------------------------
@@ -10,8 +10,7 @@
 
 ;(: parse : Stx Σ -> Ast)
 (define ((parse/parse*/resolve parse* resolve) stx Σ)
-  (define (id=? nam)
-    (λ (id) (eq? (resolve id Σ) nam)))
+  (define (id=? nam) (λ (id) (stx:id=? id nam Σ)))
 
   (match stx
     ; (lambda (id ...) stx_body)

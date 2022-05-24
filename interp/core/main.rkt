@@ -22,11 +22,8 @@
 (define (stripper stx) (strip stx))
 
 (define-runner run
-  reader
-  expander
-  stripper printer
-  eval
-  parse)
+  reader printer
+  expander parse eval)
 
 
 ;; run example

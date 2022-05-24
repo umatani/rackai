@@ -30,11 +30,8 @@
 (define evaluate (evaluate/eval eval))
 
 (define-runner run
-  reader
-  expander
-  stripper printer
-  evaluate
-  parser)
+  reader printer
+  expander parser evaluate)
 
 #;
 (define (main [mode : Symbol 'check])

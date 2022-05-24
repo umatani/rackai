@@ -1,8 +1,8 @@
 #lang racket
-(require (rename-in racket [eval r:eval])
+(require (only-in "../nondet.rkt" do pure break)
+         (only-in racket [eval r:eval])
          "struct.rkt")
-(provide define-helpers define-runner
-         run-ex run-examples run-all-examples)
+(provide (all-defined-out))
 
 ;;;; reader & printer
 
@@ -45,25 +45,37 @@
 
 ;;;; runner
 
-(define-syntax-rule (define-runner run reader expander stripper printer
-                      evaluate parser)
-  (begin
-    (define (run form mode)
-     (if (eq? mode 'none)
-         form
-         (let ([stx (reader form)])
-           (if (eq? mode 'read)
-               stx
-               (let-values ([(stx2 Σ2) (expander stx)])
-                 (if (eq? mode 'expand)
-                     stx2 #;(printer (stripper stx2))
-                     (let ([ast (parser stx2 Σ2)])
-                       (if (eq? mode 'parse)
-                           ast
-                           (let ([ast2 (evaluate ast)])
-                             (if (eq? mode 'eval)
-                                 (printer ast2)
-                                 (error 'run "unknown mode: ~e" mode)))))))))))))
+(define-syntax-rule (define-runner run reader printer expander parser evaluater)
+  (define (run form mode)
+    (set-first
+     (cdr (do stx := (reader form)
+              #:failif (eq? mode 'read) stx
+              (cons stx2 Σ2) := (expander stx)
+              #:failif (eq? mode 'expand) stx2
+              ast := (parser stx2 Σ2)
+              #:failif (eq? mode 'parse) ast
+              ast2 := (evaluater ast)
+              #:failif (eq? mode 'eval) (printer ast2)
+              (error 'run "unknown mode: ~e" mode))))))
+
+
+(define-syntax-rule (define-runner2 run reader printer expander parser evaluater)
+  (define (run form mode)
+    (if (eq? mode 'none)
+        form
+        (let ([stx (reader form)])
+          (if (eq? mode 'read)
+              stx
+              (let-values ([(stx2 Σ2) (expander stx)])
+                (if (eq? mode 'expand)
+                    stx2
+                    (let ([ast (parser stx2 Σ2)])
+                      (if (eq? mode 'parse)
+                          ast
+                          (let ([ast2 (evaluater ast)])
+                            (if (eq? mode 'eval)
+                                (printer ast2)
+                                (error 'run "unknown mode: ~e" mode))))))))))))
 
 ;;;; Example runner
 
