@@ -1,5 +1,5 @@
 #lang racket
-(require "../dprint.rkt"
+(require "../set.rkt" "../dprint.rkt"
          "struct.rkt")
 (provide (all-defined-out))
 

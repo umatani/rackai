@@ -1,7 +1,6 @@
 #lang racket
-(require "../reduction.rkt"
+(require "../set.rkt" "../dprint.rkt" "../reduction.rkt"
          "../example.rkt"
-         "../dprint.rkt"
          (only-in "../core/misc.rkt"
                   define-helpers define-runner run-examples)
          (only-in "../core/eval.rkt" init-env init-store -->c eval)
@@ -28,11 +27,9 @@
   reader printer
   expander parser eval)
 
-
-(define ((main/run run) [mode 'check])
+(define (main [mode 'check])
   (run-examples run core:examples mode)
   (run-examples run phases:examples mode))
-(define main (main/run run))
 
 ;; for debug
 

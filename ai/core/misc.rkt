@@ -1,64 +1,48 @@
 #lang racket
-(require (only-in "../../interp/core/nondet.rkt" do pure break))
+(require (only-in racket [eval r:eval])
+         "../../interp/set.rkt"
+         (only-in "../../interp/nondet.rkt" do pure break)
+         (only-in "../../interp/core/misc.rkt"
+                  fail-count run-ex/ex-runner
+                  run-examples/ex-runner
+                  run-all-examples/run-examples))
 (provide (all-defined-out))
 
 ;;;; runner
 
 (define-syntax-rule (define-runner run reader printer expander parser evaluater)
   (define (run form mode)
-    (set-first
-     (cdr (do stx := (reader form)
-              #:failif (eq? mode 'read) stx
-              (cons stx2 Σ2) := (expander stx)
-              #:failif (eq? mode 'expand) stx2
-              ast <- (parser stx2 Σ2)
-              #:failif (eq? mode 'parse) ast
-              ast2 := (evaluater ast)
-              #:failif (eq? mode 'eval) (printer ast2)
-              (error 'run "unknown mode: ~e" mode))))))
+    (cdr (do stx := (reader form)
+             #:failif (eq? mode 'read) stx
+             (cons stx2 Σ2) <- (expander stx)
+             #:failif (eq? mode 'expand) stx2
+             ast <- (parser stx2 Σ2)
+             #:failif (eq? mode 'parse) ast
+             ast2 <- (evaluater ast)
+             #:failif (eq? mode 'eval) (printer ast2)
+             (error 'run "unknown mode: ~e" mode)))))
 
+;;;; Example runner
 
-(define-syntax-rule (define-runner3 run reader printer expander parser evaluater)
-  (define (run form mode)
-    (for/set (#:do [(define result #f)
-                    (define stx (reader form))]
-              #:do [(when (and (not result)
-                               (eq? mode 'read)) (set! result stx))]
-              #:do [(define-values (stx2 Σ2)
-                      (if result
-                          (values #f #f)
-                          (expander stx)))]
-              #:do [(when (and (not result)
-                               (eq? mode 'expand)) (set! result stx2))]
-              [ast (in-set (if result
-                               (set)
-                               (parser stx2 Σ2)))]
-              #:do [(when (and (not result)
-                               (eq? mode 'parse)) (set! result ast))]
-              #:do [(define ast2
-                      (if result
-                          #f
-                          (evaluater ast)))]
-              #:do [(when (and (not result)
-                               (eq? mode 'eval)) (set! result (printer ast2)))])
-      (or result (error 'run "unknown mode: ~e" mode)))))
+;; Updated for check
+(define (ex-runner run example mode)
+  (printf "~a: " (car example))
+  (println
+   (case mode
+     [(raw) (first (call-with-values (λ () (r:eval (cadr example)))
+                                     (λ args args)))]
+     [(check)
+      (fail-count (if (< (fail-count) 0) 0 (fail-count)))
+      (let* ([r1 (set-first (run (cadr example) 'eval))]
+             [r2 (first (call-with-values
+                         (λ () (r:eval (cadr example)))
+                         (λ args args)))]
+             [result (equal? r1 r2)])
+        (unless result
+          (fail-count (+ (fail-count) 1)))
+        result)]
+     [else (run (cadr example) mode)])))
 
-#;
-(define-syntax-rule (define-runner2 run reader printer expander parser evaluater)
-  (define (run form mode)
-    (if (eq? mode 'none)
-        form
-        (let ([stx (reader form)])
-          (if (eq? mode 'read)
-              stx
-              (let-values ([(stx2 Σ2) (expander stx)])
-                (if (eq? mode 'expand)
-                    stx2
-                    (let ([ast (parser stx2 Σ2)])
-                      (if (eq? mode 'parse)
-                          ast
-                          (let ([ast2 (evaluater ast)])
-                            (if (eq? mode 'eval)
-                                (printer ast2)
-                                (error 'run "unknown mode: ~e" mode))))))))))))
-
+(define run-ex (run-ex/ex-runner ex-runner))
+(define run-examples (run-examples/ex-runner ex-runner))
+(define run-all-examples (run-all-examples/run-examples run-examples))

@@ -1,4 +1,5 @@
 #lang racket
+(require "set.rkt")
 (provide with-dprint dprint)
 
 (define enable-dprint (make-parameter #f))

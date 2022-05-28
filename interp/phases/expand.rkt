@@ -1,5 +1,5 @@
 #lang racket
-(require "../reduction.rkt"
+(require "../set.rkt" "../reduction.rkt"
          (only-in "../core/syntax.rkt" zip unzip snoc union)
          (only-in "../core/eval.rkt" init-env init-store -->c)
          (only-in "../core/expand.rkt"
@@ -15,16 +15,19 @@
 ;; This is the same as the single-phase one, but with `ph`
 ;; threaded through to `add` & `bind`
 ;(: regist-vars : Ph Scp ProperStl ξ Σ -> (Values ProperStl ξ Σ))
-(define (regist-vars ph scp stl ξ Σ)
+(define ((regist-vars/bind/alloc-name bind alloc-name) ph scp stl ξ Σ)
   (match stl
     ['() (values '() ξ Σ)]
     [(cons (app (λ (stx) stx) id) stl)
-     (let*-values ([(stl_reg ξ_1 Σ_1) (regist-vars ph scp stl ξ Σ)]
+     (let*-values ([(stl_reg ξ_1 Σ_1)
+                    ((regist-vars/bind/alloc-name bind alloc-name)
+                     ph scp stl ξ Σ)]
                    [(nam_new Σ_2) (alloc-name id Σ_1)]
                    [(id_new) (add ph id scp)]
                    [(Σ_3) (bind ph Σ_2 id_new nam_new)]
                    [(ξ_2) (extend-ξ ξ_1 nam_new (TVar id_new))])
        (values (cons id_new stl_reg) ξ_2 Σ_3))]))
+(define regist-vars (regist-vars/bind/alloc-name bind alloc-name))
 
 (define id-kont (GenStx (Sym '#%kont) (empty-ctx)))
 (define id-seq (GenStx (Sym '#%seq)  (empty-ctx)))
@@ -175,9 +178,9 @@
   ;; macro invocation
   [(ζ (Stxξ ph (and stx_macapp (GenStx `(,(? Id? id_mac) ,_ ...) ctx)) ξ scps_p)
        '∘ κ Θ Σ)
-   #:when (Val? (lookup-ξ ξ (resolve ph id_mac Σ)))
-   (let*-values ([(val) (lookup-ξ ξ (resolve ph id_mac Σ))]
-                 [(scp_u Σ_1) (alloc-scope 'u Σ)]
+   #:with val := (lookup-ξ ξ (resolve ph id_mac Σ))
+   #:when (Val? val)
+   (let*-values ([(scp_u Σ_1) (alloc-scope 'u Σ)]
                  [(scp_i Σ_2) (alloc-scope 'i Σ_1)])
      (InEval
       `(,(AstEnv (App val
@@ -330,7 +333,7 @@
 (define ((expand/==> ==>) ph stx ξ scps_p Σ)
   (let ([init-ζ (ζ (Stxξ ph stx ξ scps_p) '∘ '• (init-Θ) Σ)])
     (match-let ([(list (ζ stx_new '• '• Θ_new Σ_new))
-                 (apply-reduction-relation* ==> init-ζ)])
+                 (set->list (apply-reduction-relation* ==> init-ζ))])
       (cons stx_new Σ_new))))
 
 (define expand (expand/==> ==>p))

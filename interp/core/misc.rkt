@@ -1,5 +1,6 @@
 #lang racket
-(require (only-in "../nondet.rkt" do pure break)
+(require "../set.rkt"
+         (only-in "../nondet.rkt" do pure break)
          (only-in racket [eval r:eval])
          "struct.rkt")
 (provide (all-defined-out))
@@ -58,25 +59,6 @@
               #:failif (eq? mode 'eval) (printer ast2)
               (error 'run "unknown mode: ~e" mode))))))
 
-
-(define-syntax-rule (define-runner2 run reader printer expander parser evaluater)
-  (define (run form mode)
-    (if (eq? mode 'none)
-        form
-        (let ([stx (reader form)])
-          (if (eq? mode 'read)
-              stx
-              (let-values ([(stx2 Σ2) (expander stx)])
-                (if (eq? mode 'expand)
-                    stx2
-                    (let ([ast (parser stx2 Σ2)])
-                      (if (eq? mode 'parse)
-                          ast
-                          (let ([ast2 (evaluater ast)])
-                            (if (eq? mode 'eval)
-                                (printer ast2)
-                                (error 'run "unknown mode: ~e" mode))))))))))))
-
 ;;;; Example runner
 
 (define fail-count (make-parameter -1))
@@ -98,15 +80,18 @@
         result)]
      [else (run (cadr example) mode)])))
 
-(define (run-ex run examples name [mode 'check])
+(define ((run-ex/ex-runner ex-runner) run examples name [mode 'check])
   (let ([example (assoc name examples)])
     (when example (ex-runner run example mode))))
+(define run-ex (run-ex/ex-runner ex-runner))
 
-(define (run-examples run examples [mode 'check])
+(define ((run-examples/ex-runner ex-runner) run examples [mode 'check])
   (for ([example (in-list examples)])
     (ex-runner run example mode)))
+(define run-examples (run-examples/ex-runner ex-runner))
 
-(define ((run-all-examples all-runs all-examples) [mode 'check])
+(define (((run-all-examples/run-examples run-examples)
+          all-runs all-examples) [mode 'check])
   (parameterize ([fail-count (if (eq? mode 'check) 0 -1)])
     (for ([run (in-list all-runs)]
           [idx (in-naturals 1)])
@@ -116,3 +101,4 @@
         (run-examples (cadr run) examples mode)))
     (when (>= (fail-count) 0)
       (printf "\nfail-count: ~a\n" (fail-count)))))
+(define run-all-examples (run-all-examples/run-examples run-examples))

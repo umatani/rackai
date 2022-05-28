@@ -1,6 +1,5 @@
 #lang racket
-(require "queue.rkt"
-         "nondet.rkt"
+(require "set.rkt" "queue.rkt" "nondet.rkt"
          (for-syntax racket syntax/id-table))
 (provide (all-defined-out))
 
@@ -27,14 +26,20 @@
       (hash-set m name (syntax->datum clause))))
 
   (define (make-match-body bs)
-    (syntax-case bs ()
+    (syntax-case bs (<- :=)
       [(b) #'((pure b))]
       [(#:when t b ...)
        (with-syntax ([(b2 ...) (make-match-body #'(b ...))])
          #'(#:failif (not t) #f b2 ...))]
+      [(#:with x := e b ...)
+       (with-syntax ([(b2 ...) (make-match-body #'(b ...))])
+         #'(x := e b2 ...))]
       [(#:with x <- e b ...)
        (with-syntax ([(b2 ...) (make-match-body #'(b ...))])
-         #'(x <- e b2 ...))]))
+         #'(x <- e b2 ...))]
+      [(b1 b ...)
+       (with-syntax ([(b2 ...) (make-match-body #'(b ...))])
+         #'(b1 b2 ...))]))
 
   (define (make-reducer-body rel s clauses)
     (let loop ([body #'(set)]
@@ -98,9 +103,12 @@
      #'(define-parameterized-extended-reduction-relation
          rel #f (param ...) clause ...)]))
 
+#;(: apply-reduction-relation* (∀ [A] (->* ((-> A (Setof A)) A)
+                                          (#:steps (Option Natural))
+                                          (Setof A))))
 (define (apply-reduction-relation* --> s #:steps [steps #f])
-  (let ([all-states (make-hash)]
-        [normal-forms (make-hash)]
+  (let ([all-states (mutable-set)]
+        [normal-forms (mutable-set)]
         [worklist (make-queue)])
     (define (loop steps)
       (unless (or (queue-empty? worklist)
@@ -108,21 +116,12 @@
         (let* ([s (dequeue! worklist)]
                [nexts (--> s)])
           (if (set-empty? nexts)
-              (hash-set! normal-forms s #t)
+              (set-add! normal-forms s)
               (for ([next (in-set nexts)]
-                #:when (not (hash-ref all-states next #f)))
-                (hash-set! all-states next #t)
+                #:when (not (set-member? all-states next)))
+                (set-add! all-states next)
                 (enqueue! worklist next))))
         (loop (and steps (sub1 steps)))))
     (enqueue! worklist s)
     (loop steps)
-    (if steps
-        (hash-keys all-states) ;; for debug
-        (hash-keys normal-forms))))
-
-#;
-(define-parameterized-reduction-relation -->test
-  (inc)
-  [x
-   (inc x)
-   hoge])
+    (if steps all-states normal-forms)))

@@ -1,13 +1,13 @@
 #lang racket
-(require "../../interp/core/struct.rkt"
+(require "../../interp/set.rkt"
+         "../../interp/core/struct.rkt"
          (only-in "../../interp/core/syntax.rkt" unzip strip)
          ;(only-in "../../interp/core/parse.rkt" parse&parse*/resolve)
          (only-in "syntax.rkt" resolve [id=? stx:id=?]))
 (provide (all-defined-out))
 
-;(define-values (parse parse*) (parse&parse*/resolve resolve))
 
-;; parserの non-deterministic 化
+;; Non-deterministic parsing
 
 ;(: build-alt-lists : (Listof (Setof A)) -> (Setof (Listof A)))
 (define (build-alt-lists alts-list)

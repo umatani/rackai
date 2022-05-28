@@ -22,8 +22,6 @@
     [(cons id val2) (cons (resolve ph id Σ)
                           ((resolve*/resolve resolve) ph val2 Σ))]))
 
-;(define resolve* (resolve*/resolve resolve))
-
 (define (id=? ph id nam ξ Σ)
   (let ([nam0 (resolve ph id Σ)])
     (and (eq? nam nam0) (not (TStop? (lookup-ξ ξ nam))))))

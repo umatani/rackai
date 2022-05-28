@@ -1,5 +1,5 @@
 #lang racket
-(require "../dprint.rkt"
+(require "../set.rkt" "../dprint.rkt"
          (only-in "../core/syntax.rkt"
                   in-hole-stl addremove subtract
                   lookup-Σ biggest-subset binding-lookup)

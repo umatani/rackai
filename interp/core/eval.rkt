@@ -1,6 +1,5 @@
 #lang racket
-(require "../reduction.rkt"
-         "../dprint.rkt"
+(require "../set.rkt" "../dprint.rkt" "../reduction.rkt"
          "struct.rkt"
          "delta.rkt")
 (provide (all-defined-out))
@@ -162,9 +161,9 @@
 ; (: eval : Ast -> Val)
 (define ((eval/--> -->) ast)
   (match-let ([`((,(? Val? val) • ,_store))
-               (apply-reduction-relation*
-                -->
-                `(,(AstEnv ast (init-env)) • ,(init-store)))])
+               (set->list (apply-reduction-relation*
+                           -->
+                           `(,(AstEnv ast (init-env)) • ,(init-store))))])
     val))
 
 (define eval (eval/--> -->c))

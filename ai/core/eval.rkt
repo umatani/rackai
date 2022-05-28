@@ -1,14 +1,15 @@
 #lang racket
-(require (only-in "../../interp/reduction.rkt"
+(require "../../interp/set.rkt"
+         (only-in "../../interp/reduction.rkt"
                   reducer-of
-                  define-parameterized-extended-reduction-relation)
+                  define-parameterized-extended-reduction-relation
+                  apply-reduction-relation*)
          "../../interp/core/struct.rkt"
          "../../interp/core/delta.rkt"
          (only-in "../../interp/core/eval.rkt"
                   [-->c/store interp:-->c/store]
-                  eval/-->
-                  push-cont/alloc-loc/update-store
-                  lookup-env update-env))
+                  init-env lookup-env update-env
+                  init-store push-cont/alloc-loc/update-store))
 (provide (all-defined-out))
 
 ;; Set-based heap
@@ -61,23 +62,32 @@
 
   ;; reference
   [`(,(AstEnv (? Var? var) env) ,cont ,store)
-   #:with (lookup-store store (lookup-env env var))
-   (λ (val) `(,(AstEnv val env) ,cont ,store))
+   #:with val <- (lookup-store store (lookup-env env var))
+   `(,(AstEnv val env) ,cont ,store)
    ev-x]
 
   ;; application
   [`(,(? Val? val) ,(KApp vals tms loc_cont) ,store)
-   #:with (lookup-store store loc_cont)
-   (λ (cont)`(,(SApp (append vals (list val)) tms) ,cont ,store))
+   #:with cont <- (lookup-store store loc_cont)
+   `(,(SApp (append vals (list val)) tms) ,cont ,store)
    ev-pop-app]
 
   ;; if
   [`(,(? Val? val) ,(KIf tm_then tm_else loc_cont) ,store)
-   #:with (lookup-store store loc_cont)
-   (λ (cont) `(,(SIf val tm_then tm_else) ,cont ,store))
+   #:with cont <- (lookup-store store loc_cont)
+   `(,(SIf val tm_then tm_else) ,cont ,store)
    ev-pop-if])
 
 
 (define -->c ((reducer-of -->c/store)
               lookup-store update-store* alloc-loc* push-cont))
+
+; (: eval : Ast -> (Setof Val))
+(define ((eval/--> -->) ast)
+  (match-let ([(set `(,(? Val? val) • ,_store) ...)
+               (apply-reduction-relation*
+                -->
+                `(,(AstEnv ast (init-env)) • ,(init-store)))])
+    (list->set val)))
+
 (define eval (eval/--> -->c))

@@ -1,5 +1,6 @@
 #lang racket
-(require "../../interp/core/struct.rkt"
+(require "../../interp/set.rkt"
+         "../../interp/core/struct.rkt"
          (only-in "../../interp/core/syntax.rkt" biggest-subset binding-lookup))
 (provide (all-defined-out))
 
@@ -29,7 +30,7 @@
   (match-let ([(GenStx (Sym nam) ctx) id])
     (let* ([sbss (filter set? (set->list (lookup-Σ Σ0 nam)))]
            [scpsss
-            (map (λ (sbs) (set-map (λ (sb) (StoBind-scps sb)) sbs))
+            (map (λ (sbs) (set-map sbs (λ (sb) (StoBind-scps sb))))
                  sbss)]
            [scps_biggests (map (λ (scpss) (biggest-subset ctx scpss))
                                scpsss)]

@@ -1,6 +1,5 @@
 #lang racket
-(require "../reduction.rkt"
-         "../dprint.rkt"
+(require "../set.rkt" "../dprint.rkt" "../reduction.rkt"
          (only-in "../core/delta.rkt" δ)
          (only-in "../core/syntax.rkt" zip unzip snoc union)
          (only-in "../core/expand.rkt"
@@ -500,13 +499,14 @@
        '∘ κ Θ (Σ* Σ scps_p _))
    #:when (and (id=? ph id_kont '#%kont     ξ Σ)
                (id=? ph id_ls   'let-syntax ξ Σ))
-   (let ([nam_new (resolve ph id_new Σ)])
-     (InEval `(,(AstEnv ph (parse (add1 ph) stx_exp Σ) (init-env) 'no-scope ξ)
-               • ,(init-store) ,(Σ* Σ scps_p (set)))
-             (ζ (GenStx `(,(GenStx (Sym nam_new) (empty-ctx))
-                           ,(Stxξ ph stx_body ξ)
-                           ,(GenStx #f ctx_new)) (empty-ctx))
-                 '∘ κ Θ (Σ* Σ scps_p (set)))))
+   #:with nam_new := (resolve ph id_new Σ)
+   #:with ast_exp := (parse (add1 ph) stx_exp Σ)
+   (InEval `(,(AstEnv ph ast_exp (init-env) 'no-scope ξ)
+             • ,(init-store) ,(Σ* Σ scps_p (set)))
+           (ζ (GenStx `(,(GenStx (Sym nam_new) (empty-ctx))
+                         ,(Stxξ ph stx_body ξ)
+                         ,(GenStx #f ctx_new)) (empty-ctx))
+               '∘ κ Θ (Σ* Σ scps_p (set))))
    ex-ls-eval]
 
   [(InEval `(,(? Val? val) • ,store_0 ,(Σ* Σ _ _))
@@ -524,9 +524,9 @@
   ;; macro invocation
   [(ζ (Stxξ ph (and stx_macapp (GenStx `(,(? Id? id_mac) ,_ ...) ctx)) ξ)
        '∘ κ Θ (and Σ*_0 (Σ* Σ scps_p scps_u)))
-   #:when (Val? (lookup-ξ ξ (resolve ph id_mac Σ)))
-   (let*-values ([(val) (lookup-ξ ξ (resolve ph id_mac Σ))]
-                 [(scp_u Σ_1) (alloc-scope 'u Σ)]
+   #:with val := (lookup-ξ ξ (resolve ph id_mac Σ))
+   #:when (Val? val)
+   (let*-values ([(scp_u Σ_1) (alloc-scope 'u Σ)]
                  [(scp_i Σ_2) (alloc-scope 'i Σ_1)]
                  [(Σ*_2) (Σ* Σ_2
                                (union (set scp_u) scps_p)
@@ -616,9 +616,9 @@
   ;; reference (same as phases)
   [(ζ (Stxξ ph (and id (GenStx (Sym nam) ctx)) ξ)
        '∘ κ Θ (and Σ*_0 (Σ* Σ _ _)))
-   #:when (TVar? (lookup-ξ ξ (resolve ph id Σ)))
-   (match-let ([(TVar id_new) (lookup-ξ ξ (resolve ph id Σ))])
-     (ζ id_new '• κ Θ Σ*_0))
+   #:with val := (lookup-ξ ξ (resolve ph id Σ))
+   #:when (TVar? val)
+   (match-let ([(TVar id_new) val]) (ζ id_new '• κ Θ Σ*_0))
    ex-var]
 
   ;; literal (same as phases)
@@ -696,10 +696,10 @@
 ;(: eval : Ph Ast MaybeScp ξ Σ* -> (Values Val Σ*))
 (define ((eval/--> -->) ph ast maybe-scp_i ξ Σ*)
   (match-let ([`((,(? Val? val) • ,_store ,Σ*_2))
-               (apply-reduction-relation*
-                -->
-                `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
-                  • ,(init-store) ,Σ*))])
+               (set->list (apply-reduction-relation*
+                           -->
+                           `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
+                             • ,(init-store) ,Σ*)))])
     (values val Σ*_2)))
 
 (define eval (eval/--> -->f))
@@ -708,7 +708,7 @@
 (define ((expand/==> ==>) ph stx ξ Σ*)
   (let ([init-ζ (ζ (Stxξ ph stx ξ) '∘ '• (init-Θ) Σ*)])
     (match-let ([(list (ζ stx_new '• '• Θ_new Σ*_new))
-                 (apply-reduction-relation* ==> init-ζ)])
+                 (set->list (apply-reduction-relation* ==> init-ζ))])
       (cons stx_new Σ*_new))))
 
 (define expand (expand/==> ==>f))

@@ -1,7 +1,6 @@
 #lang racket
-(require "../reduction.rkt"
+(require "../set.rkt" "../dprint.rkt""../reduction.rkt"
          "../example.rkt"
-         "../dprint.rkt"
          (only-in "../core/misc.rkt" define-runner run-all-examples)
          (only-in "../core/eval.rkt" init-env init-store)
          (only-in "../core/expand.rkt" init-ξ init-Θ init-Σ)
@@ -23,11 +22,10 @@
 (define parser (parser/parse parse))
 
 ;(: evaluate : Ast -> Val)
-(define ((evaluate/eval eval) ast)
+(define (evaluate ast)
   (call-with-values
    (λ () (eval 0 ast 'no-scope (init-ξ) (Σ* (init-Σ) (set) (set))))
    (λ (val Σ*) val)))
-(define evaluate (evaluate/eval eval))
 
 (define-runner run
   reader printer
@@ -40,7 +38,7 @@
   (run-examples run local:examples mode)
   (run-examples run defs:examples mode))
 
-(define (main/runs core:run phases:run full:run)
+(define (main/runs core:run phases:run full:run run-all-examples)
   (let ([all-runs `([core ,core:run]
                     [phases ,phases:run]
                     [full ,full:run])]
@@ -49,7 +47,7 @@
                        phases:examples
                        (append local:examples defs:examples))])
     (run-all-examples all-runs all-examples)))
-(define main (main/runs core:run phases:run run))
+(define main (main/runs core:run phases:run run run-all-examples))
 
 ;; for debug
 

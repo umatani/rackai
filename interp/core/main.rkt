@@ -1,6 +1,5 @@
 #lang racket
-(require "../reduction.rkt"
-         "../dprint.rkt"
+(require "../dprint.rkt" "../reduction.rkt"
          "struct.rkt"
          "misc.rkt"
          (only-in "syntax.rkt" empty-ctx strip)
@@ -25,13 +24,10 @@
   reader printer
   expander parse eval)
 
-
 ;; run example
 
-(define ((main/run run) [mode 'check])
+(define (main [mode 'check])
   (run-examples run core:examples mode))
-(define main (main/run run))
-
 
 ;; for debug
 

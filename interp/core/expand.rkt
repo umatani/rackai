@@ -1,6 +1,5 @@
 #lang racket
-(require "../reduction.rkt"
-         "../dprint.rkt"
+(require "../set.rkt" "../dprint.rkt" "../reduction.rkt"
          "struct.rkt"
          (only-in "syntax.rkt"
                   empty-ctx snoc zip unzip in-hole
@@ -71,16 +70,18 @@
             (Σ (add1 size) tbl))))
 
 ;(: regist-vars : Scp ProperStl ξ Σ -> (Values ProperStl ξ Σ))
-(define (regist-vars scp stl ξ Σ)
+(define ((regist-vars/bind/alloc-name bind alloc-name) scp stl ξ Σ)
   (match stl
     ['() (values '() ξ Σ)]
     [(cons (app (λ (stx) stx) id) stl)
-     (let*-values ([(stl_reg ξ_1 Σ_1) (regist-vars scp stl ξ Σ)]
+     (let*-values ([(stl_reg ξ_1 Σ_1)
+                    ((regist-vars/bind/alloc-name bind alloc-name) scp stl ξ Σ)]
                    [(nam_new Σ_2) (alloc-name id Σ_1)]
                    [(id_new) (add id scp)]
                    [(Σ_3) (bind Σ_2 id_new nam_new)]
                    [(ξ_2) (extend-ξ ξ_1 nam_new (TVar id_new))])
        (values (cons id_new stl_reg) ξ_2 Σ_3))]))
+(define regist-vars (regist-vars/bind/alloc-name bind alloc-name))
 
 (define id-kont (GenStx (Sym '#%kont) (empty-ctx)))
 (define id-seq (GenStx (Sym '#%seq)  (empty-ctx)))
@@ -225,9 +226,9 @@
   ;; macro invocation
   [(ζ (Stxξ (and stx_macapp (GenStx `(,(? Id? id_mac) ,_ ...) ctx)) ξ)
        '∘ κ Θ Σ)
-   #:when (Val? (lookup-ξ ξ (resolve id_mac Σ)))
-   (let*-values ([(val) (lookup-ξ ξ (resolve id_mac Σ))]
-                 [(scp_u Σ_1) (alloc-scope 'u Σ)]
+   #:with val := (lookup-ξ ξ (resolve id_mac Σ))
+   #:when (Val? val)
+   (let*-values ([(scp_u Σ_1) (alloc-scope 'u Σ)]
                  [(scp_i Σ_2) (alloc-scope 'i Σ_1)])
      (InEval
       `(,(AstEnv (App val
@@ -374,7 +375,7 @@
 (define ((expand/==> ==>) stx ξ Σ)
   (let ([init-ζ (ζ (Stxξ stx ξ) '∘ '• (init-Θ) Σ)])
     (match-let ([(list (ζ stx_new '• '• Θ_new Σ_new))
-                 (apply-reduction-relation* ==> init-ζ)])
+                 (set->list (apply-reduction-relation* ==> init-ζ))])
       (cons stx_new Σ_new))))
 
 (define expand (expand/==> ==>c))

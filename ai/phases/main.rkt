@@ -1,11 +1,12 @@
 #lang racket
 (require "../../interp/dprint.rkt"
-         (only-in "../../interp/core/misc.rkt" define-runner)
+         (only-in "../../interp/example.rkt" core:examples phases:examples)
          (only-in "../../interp/phases/main.rkt"
-                  reader printer expander/expand parser/parse main/run
+                  reader printer expander/expand parser/parse
                   eval-->/--> eval-->*/--> expand==>/==> expand==>*/==>)
 
          ;; Abstract version
+         (only-in "../core/misc.rkt" define-runner run-examples)
          (only-in "../core/eval.rkt" -->c eval)
          (only-in "parse.rkt" parse)
          (only-in "expand.rkt" ==>p expand)
@@ -17,13 +18,12 @@
 (define parser (parser/parse parse))
 
 (define-runner run
-  reader
-  expander
-  stripper printer
-  eval
-  parser)
+  reader printer
+  expander parser eval)
 
-(define main (main/run run))
+(define (main [mode 'check])
+  (run-examples run core:examples mode)
+  (run-examples run phases:examples mode))
 
 ;; for debug
 
