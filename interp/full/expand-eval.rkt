@@ -1,6 +1,6 @@
 #lang racket
 (require "../set.rkt" "../dprint.rkt" "../reduction.rkt"
-         (only-in "../core/delta.rkt" δ)
+         (only-in "../core/delta.rkt" delta)
          (only-in "../core/syntax.rkt" zip unzip snoc union)
          (only-in "../core/expand.rkt"
                   init-ξ lookup-ξ extend-ξ alloc-name alloc-scope
@@ -323,8 +323,8 @@
   ;; primitive application (except StxPrim)
   [`(,(SApp `(,ph ,maybe-scp_i ,ξ) vals '()) ,cont ,store ,Σ*)
    #:when (and (pair? vals) (Prim? (car vals)) (not (StxPrim? (car vals))))
-   `(,(δ (car vals) (cdr vals)) ,cont ,store ,Σ*)
-   ev-δ]
+   `(,(delta (car vals) (cdr vals)) ,cont ,store ,Σ*)
+   ev-delta]
 
   ;; if
   [`(,(SIf (? (λ (x) (not (Val? x))) ser_test) tm_then tm_else)

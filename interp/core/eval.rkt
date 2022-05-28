@@ -1,7 +1,7 @@
 #lang racket
 (require "../set.rkt" "../dprint.rkt" "../reduction.rkt"
          "struct.rkt"
-         "delta.rkt")
+         (only-in "delta.rkt" delta))
 (provide (all-defined-out))
 
 ;; ----------------------------------------
@@ -132,8 +132,8 @@
   [`(,(SApp vals '()) ,cont ,store)
    #:when (and (pair? vals)
                (Prim? (car vals)))
-   `(,(δ (car vals) (cdr vals)) ,cont ,store)
-   ev-δ]
+   `(,(delta (car vals) (cdr vals)) ,cont ,store)
+   ev-delta]
 
   ;; if
   [`(,(SIf (? (λ (x) (not (Val? x))) ser_test) tm_then tm_else) ,cont ,store)

@@ -1,6 +1,6 @@
 #lang racket
 (require "struct.rkt")
-(provide δ)
+(provide delta)
 
 ;; ----------------------------------------
 ;; Implementation of primitives:
@@ -15,8 +15,8 @@
   (match* (sym1 sym2)
     [((Sym nam1) (Sym nam2)) (eq? nam1 nam2)]))
 
-;(: δ : Prim (Listof Val) -> Val)
-(define (δ p vs)
+;(: delta : Prim (Listof Val) -> Val)
+(define (delta p vs)
   (match (cons p vs)
     [`(+ ,(? real? ns) ...)
      (apply plus ns)]
@@ -38,7 +38,7 @@
     [`(cdr ,(cons _ v2)) v2]
 
     [`(list) '()]
-    [`(list ,v1 ,vs ...) (δ 'cons (list v1 (δ 'list vs)))]
+    [`(list ,v1 ,vs ...) (delta 'cons (list v1 (delta 'list vs)))]
     [`(second (,_ ,v2 ,_ ...)) v2]
     [`(third  (,_ ,_ ,v3 ,_ ...)) v3]
     [`(fourth (,_ ,_ ,_ ,v4 ,_ ...)) v4]
@@ -50,8 +50,8 @@
     [`(syntax-e ,(GenStx e _)) e]
     [`(datum->syntax ,_ ,(? Stx? stx)) stx]
     [`(datum->syntax ,(and stx0 (GenStx _ ctx_0)) (,v1 ,vs ...))
-     (GenStx `(,(δ 'datum->syntax `(,stx0 ,v1))
-               ,@(δ 'syntax-e `(,(δ 'datum->syntax `(,stx0 ,vs)))))
+     (GenStx `(,(delta 'datum->syntax `(,stx0 ,v1))
+               ,@(delta 'syntax-e `(,(delta 'datum->syntax `(,stx0 ,vs)))))
              ctx_0)]
     [`(datum->syntax ,(GenStx _ ctx) ,(? Atom? atom))
      (GenStx atom ctx)]))

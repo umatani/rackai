@@ -33,11 +33,11 @@
                                      (λ args args)))]
      [(check)
       (fail-count (if (< (fail-count) 0) 0 (fail-count)))
-      (let* ([r1 (set-first (run (cadr example) 'eval))]
+      (let* ([r1 (run (cadr example) 'eval)]
              [r2 (first (call-with-values
                          (λ () (r:eval (cadr example)))
                          (λ args args)))]
-             [result (equal? r1 r2)])
+             [result (subset? (set r2) r1)])
         (unless result
           (fail-count (+ (fail-count) 1)))
         result)]
