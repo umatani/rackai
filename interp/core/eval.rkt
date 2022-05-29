@@ -69,8 +69,9 @@
 
 
 ;; (: -->c : State -> (Setof State))
-(define-parameterized-reduction-relation -->c/store
-  (lookup-store update-store* alloc-loc* push-cont)
+(define-parameterized-reduction-relation 
+  (-->c/store lookup-store update-store* alloc-loc* push-cont)
+
   ;; propagate env into subterms
   [`(,(AstEnv (If ast_test ast_then ast_else) env) ,cont ,store)
    `(,(SIf (AstEnv ast_test env)
@@ -160,10 +161,9 @@
 
 ; (: eval : Ast -> Val)
 (define ((eval/--> -->) ast)
-  (match-let ([`((,(? Val? val) • ,_store))
-               (set->list (apply-reduction-relation*
-                           -->
-                           `(,(AstEnv ast (init-env)) • ,(init-store))))])
+  (match-let ([(set `(,(? Val? val) • ,_store))
+               (apply-reduction-relation*
+                --> `(,(AstEnv ast (init-env)) • ,(init-store)))])
     val))
 
 (define eval (eval/--> -->c))

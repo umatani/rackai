@@ -29,8 +29,9 @@
 (define regist-vars (regist-vars/bind/alloc-name bind alloc-name))
 
 ;; (: ==>p : ζ -> (Setof ζ))
-(define-parameterized-extended-reduction-relation ==>p/Σ interp:==>p/Σ
-  (bind resolve id=? alloc-name alloc-scope regist-vars parse -->c)
+(define-parameterized-extended-reduction-relation
+  (==>p/Σ bind resolve id=? alloc-name alloc-scope regist-vars parse -->c)
+  (interp:==>p/Σ bind resolve id=? alloc-name alloc-scope regist-vars parse -->c)
 
   [(ζ (GenStx `(,(? Id? id_kont)
                  ,(? Id? id_ls)

@@ -41,8 +41,9 @@
 ;; Revised reduction rules
 
 ;; (: ==>c : ζ -> (Setof ζ))
-(define-parameterized-extended-reduction-relation ==>c/Σ interp:==>c/Σ
-  (bind resolve id=? alloc-name alloc-scope regist-vars parse -->c)
+(define-parameterized-extended-reduction-relation 
+  (==>c/Σ bind resolve id=? alloc-name alloc-scope regist-vars parse -->c)
+  (interp:==>c/Σ bind resolve id=? alloc-name alloc-scope regist-vars parse -->c)
 
   [(ζ (GenStx `(,(? Id? id_kont)
                  ,(? Id? id_ls)

@@ -31,13 +31,6 @@
   reader printer
   expander parser evaluate)
 
-#;
-(define (main [mode : Symbol 'check])
-  (run-examples run core:examples mode)
-  (run-examples run phases:examples mode)
-  (run-examples run local:examples mode)
-  (run-examples run defs:examples mode))
-
 (define (main/runs core:run phases:run full:run run-all-examples)
   (let ([all-runs `([core ,core:run]
                     [phases ,phases:run]

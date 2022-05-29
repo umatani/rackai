@@ -70,12 +70,17 @@
     (Σ size (hash-set tbl 𝓁 ξ))))
 
 
-(define-parameterized-extended-reduction-relation -->f/store interp:-->f/store
-  (lookup-store update-store* alloc-loc* push-cont
-                alloc-box box-lookup box-update
-                alloc-def-ξ def-ξ-lookup def-ξ-update
-                bind resolve alloc-name alloc-scope
-                parse ==>f)
+(define-parameterized-extended-reduction-relation
+  (-->f/store lookup-store update-store* alloc-loc* push-cont
+              alloc-box box-lookup box-update
+              alloc-def-ξ def-ξ-lookup def-ξ-update
+              bind resolve alloc-name alloc-scope
+              parse ==>f)
+  (interp:-->f/store lookup-store update-store* alloc-loc* push-cont
+                     alloc-box box-lookup box-update
+                     alloc-def-ξ def-ξ-lookup def-ξ-update
+                     bind resolve alloc-name alloc-scope
+                     parse ==>f)
 
   ;; reference
   [`(,(AstEnv ph (? Var? var) env maybe-scp_i ξ) ,cont ,store ,Σ*)
@@ -180,8 +185,9 @@
    ev-pop-if])
 
 
-(define-parameterized-extended-reduction-relation ==>f/Σ interp:==>f/Σ
-  (bind resolve id=? alloc-name alloc-scope regist-vars parse -->f)
+(define-parameterized-extended-reduction-relation 
+  (==>f/Σ bind resolve id=? alloc-name alloc-scope regist-vars parse -->f)
+  (interp:==>f/Σ bind resolve id=? alloc-name alloc-scope regist-vars parse -->f)
 
   ;; stops
   [(ζ (Stxξ ph (and stx (GenStx `(,(? Id? id_stop)
@@ -289,9 +295,8 @@
 (define ((eval/--> -->) ph ast maybe-scp_i ξ Σ*)
   (match-let ([(set `(,(? Val? val) • ,_store ,Σ*_2) ...)
                (apply-reduction-relation*
-                           -->
-                           `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
-                             • ,(init-store) ,Σ*))])
+                --> `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
+                      • ,(init-store) ,Σ*))])
     (list->set (map cons val Σ*_2))))
 
 ;(: expand : Ph Stx ξ Σ* -> (Setof (Cons Stx Σ*)))

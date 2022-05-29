@@ -76,12 +76,12 @@
 
 
 ;; (: -->f : State -> (Setof State))
-(define-parameterized-reduction-relation -->f/store
-  (lookup-store update-store* alloc-loc* push-cont
-                alloc-box box-lookup box-update
-                alloc-def-ξ def-ξ-lookup def-ξ-update
-                bind resolve alloc-name alloc-scope
-                parse ==>f)
+(define-parameterized-reduction-relation 
+  (-->f/store lookup-store update-store* alloc-loc* push-cont
+              alloc-box box-lookup box-update
+              alloc-def-ξ def-ξ-lookup def-ξ-update
+              bind resolve alloc-name alloc-scope
+              parse ==>f)
 
   ;; propagate env into subterms
   [`(,(AstEnv ph (If ast_test ast_then ast_else) env maybe-scp_i ξ)
@@ -355,8 +355,8 @@
 
 
 ;; (: ==>f : ζ -> (Setof ζ))
-(define-parameterized-reduction-relation ==>f/Σ
-  (bind resolve id=? alloc-name alloc-scope regist-vars parse -->f)
+(define-parameterized-reduction-relation 
+  (==>f/Σ bind resolve id=? alloc-name alloc-scope regist-vars parse -->f)
 
   ;; stops
   [(ζ (Stxξ ph (and stx (GenStx `(,(? Id? id_stop)
@@ -695,11 +695,10 @@
 
 ;(: eval : Ph Ast MaybeScp ξ Σ* -> (Values Val Σ*))
 (define ((eval/--> -->) ph ast maybe-scp_i ξ Σ*)
-  (match-let ([`((,(? Val? val) • ,_store ,Σ*_2))
-               (set->list (apply-reduction-relation*
-                           -->
-                           `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
-                             • ,(init-store) ,Σ*)))])
+  (match-let ([(set `(,(? Val? val) • ,_store ,Σ*_2))
+               (apply-reduction-relation*
+                --> `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
+                      • ,(init-store) ,Σ*))])
     (values val Σ*_2)))
 
 (define eval (eval/--> -->f))
@@ -707,8 +706,8 @@
 ;(: expand : Ph Stx ξ Σ* -> (Cons Stx Σ*))
 (define ((expand/==> ==>) ph stx ξ Σ*)
   (let ([init-ζ (ζ (Stxξ ph stx ξ) '∘ '• (init-Θ) Σ*)])
-    (match-let ([(list (ζ stx_new '• '• Θ_new Σ*_new))
-                 (set->list (apply-reduction-relation* ==> init-ζ))])
+    (match-let ([(set (ζ stx_new '• '• Θ_new Σ*_new))
+                 (apply-reduction-relation* ==> init-ζ)])
       (cons stx_new Σ*_new))))
 
 (define expand (expand/==> ==>f))

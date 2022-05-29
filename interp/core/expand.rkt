@@ -89,8 +89,8 @@
 (define stx-nil (GenStx '() (empty-ctx)))
 
 ;; (: ==>c : ζ -> (Setof ζ))
-(define-parameterized-reduction-relation ==>c/Σ
-  (bind resolve id=? alloc-name alloc-scope regist-vars parse -->c)
+(define-parameterized-reduction-relation 
+  (==>c/Σ bind resolve id=? alloc-name alloc-scope regist-vars parse -->c)
 
   ;; lambda
   [(ζ (Stxξ (GenStx `(,(? Id? id_lam)
@@ -374,8 +374,8 @@
 ;(: expand : Stx ξ Σ -> (Cons Stx Σ))
 (define ((expand/==> ==>) stx ξ Σ)
   (let ([init-ζ (ζ (Stxξ stx ξ) '∘ '• (init-Θ) Σ)])
-    (match-let ([(list (ζ stx_new '• '• Θ_new Σ_new))
-                 (set->list (apply-reduction-relation* ==> init-ζ))])
+    (match-let ([(set (ζ stx_new '• '• Θ_new Σ_new))
+                 (apply-reduction-relation* ==> init-ζ)])
       (cons stx_new Σ_new))))
 
 (define expand (expand/==> ==>c))

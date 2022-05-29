@@ -57,8 +57,9 @@
 ;; Revised reduction rules
 
 ;; (: -->c : State -> (Setof State))
-(define-parameterized-extended-reduction-relation -->c/store interp:-->c/store
-  (lookup-store update-store* alloc-loc* push-cont)
+(define-parameterized-extended-reduction-relation 
+  (-->c/store lookup-store update-store* alloc-loc* push-cont)
+  (interp:-->c/store lookup-store update-store* alloc-loc* push-cont)
 
   ;; reference
   [`(,(AstEnv (? Var? var) env) ,cont ,store)
