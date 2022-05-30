@@ -70,13 +70,8 @@
     (Σ size (hash-set tbl 𝓁 ξ))))
 
 
-(define-parameterized-extended-reduction-relation
-  (-->f/store lookup-store update-store* alloc-loc* push-cont
-              alloc-box box-lookup box-update
-              alloc-def-ξ def-ξ-lookup def-ξ-update
-              bind resolve alloc-name alloc-scope
-              parse ==>f)
-  (interp:-->f/store lookup-store update-store* alloc-loc* push-cont
+(define-parameterized-extended-reduction-relation (-->f/store delta ==>f)
+  (interp:-->f/store delta lookup-store update-store* alloc-loc* push-cont
                      alloc-box box-lookup box-update
                      alloc-def-ξ def-ξ-lookup def-ξ-update
                      bind resolve alloc-name alloc-scope
@@ -185,8 +180,7 @@
    ev-pop-if])
 
 
-(define-parameterized-extended-reduction-relation 
-  (==>f/Σ bind resolve id=? alloc-name alloc-scope regist-vars parse -->f)
+(define-parameterized-extended-reduction-relation (==>f/Σ -->f)
   (interp:==>f/Σ bind resolve id=? alloc-name alloc-scope regist-vars parse -->f)
 
   ;; stops
@@ -280,15 +274,8 @@
 
 
 (define-values (-->f ==>f)
-  (letrec ([-->f (λ () ((reducer-of -->f/store)
-                         lookup-store update-store* alloc-loc* push-cont
-                         alloc-box box-lookup box-update
-                         alloc-def-ξ def-ξ-lookup def-ξ-update
-                         bind resolve alloc-name alloc-scope
-                         parse ==>f))]
-           [==>f (λ () ((reducer-of ==>f/Σ)
-                         bind resolve id=? alloc-name alloc-scope regist-vars
-                         parse -->f))])
+  (letrec ([-->f (λ () ((reducer-of -->f/store) delta ==>f))]
+           [==>f (λ () ((reducer-of ==>f/Σ) -->f))])
     (values (-->f) (==>f))))
 
 ;(: eval : Ph Ast MaybeScp ξ Σ* -> (Setof (Cons Val Σ*)))

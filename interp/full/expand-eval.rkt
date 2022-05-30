@@ -77,7 +77,7 @@
 
 ;; (: -->f : State -> (Setof State))
 (define-parameterized-reduction-relation 
-  (-->f/store lookup-store update-store* alloc-loc* push-cont
+  (-->f/store delta lookup-store update-store* alloc-loc* push-cont
               alloc-box box-lookup box-update
               alloc-def-ξ def-ξ-lookup def-ξ-update
               bind resolve alloc-name alloc-scope
@@ -682,7 +682,7 @@
 
 (define-values (-->f ==>f)
   (letrec ([-->f (λ () ((reducer-of -->f/store)
-                         lookup-store update-store* alloc-loc* push-cont
+                         delta lookup-store update-store* alloc-loc* push-cont
                          alloc-box box-lookup box-update
                          alloc-def-ξ def-ξ-lookup def-ξ-update
                          bind resolve alloc-name alloc-scope

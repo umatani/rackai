@@ -18,13 +18,15 @@
          (only-in "expand-eval.rkt" -->f eval ==>f expand)
 
          (for-syntax racket/list))
+(provide (all-defined-out))
 
 ;(: evaluate : Ast -> (Setof Val))
-(define (evaluate ast)
+(define ((evaluate/eval eval) ast)
   (for/set ([val+Σ*
              (in-set (eval 0 ast 'no-scope (init-ξ)
                            (Σ* (init-Σ) (set) (set))))])
     (car val+Σ*)))
+(define evaluate (evaluate/eval eval))
 
 (define parser (parser/parse parse))
 (define expander (expander/expand expand))

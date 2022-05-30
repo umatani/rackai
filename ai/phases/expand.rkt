@@ -29,8 +29,7 @@
 (define regist-vars (regist-vars/bind/alloc-name bind alloc-name))
 
 ;; (: ==>p : ζ -> (Setof ζ))
-(define-parameterized-extended-reduction-relation
-  (==>p/Σ bind resolve id=? alloc-name alloc-scope regist-vars parse -->c)
+(define-parameterized-extended-reduction-relation (==>p/Σ -->c)
   (interp:==>p/Σ bind resolve id=? alloc-name alloc-scope regist-vars parse -->c)
 
   [(ζ (GenStx `(,(? Id? id_kont)
@@ -103,8 +102,7 @@
        [_ (error '==>p "unbound identifier: ~a" nam)]))
    ex-var])
 
-(define ==>p ((reducer-of ==>p/Σ)
-              bind resolve id=? alloc-name alloc-scope regist-vars parse -->c))
+(define ==>p ((reducer-of ==>p/Σ) -->c))
 
 ;(: expand : Ph Stx ξ Scps Σ -> (Setof (Cons Stx Σ)))
 (define ((expand/==> ==>) ph stx ξ scps_p Σ)

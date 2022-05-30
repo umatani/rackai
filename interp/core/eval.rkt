@@ -70,7 +70,7 @@
 
 ;; (: -->c : State -> (Setof State))
 (define-parameterized-reduction-relation 
-  (-->c/store lookup-store update-store* alloc-loc* push-cont)
+  (-->c/store delta lookup-store update-store* alloc-loc* push-cont)
 
   ;; propagate env into subterms
   [`(,(AstEnv (If ast_test ast_then ast_else) env) ,cont ,store)
@@ -157,7 +157,7 @@
    ev-if-#t])
 
 (define -->c ((reducer-of -->c/store)
-              lookup-store update-store* alloc-loc* push-cont))
+              delta lookup-store update-store* alloc-loc* push-cont))
 
 ; (: eval : Ast -> Val)
 (define ((eval/--> -->) ast)
