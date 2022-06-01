@@ -1,5 +1,6 @@
 #lang racket
 (require "../../interp/dprint.rkt"
+         "../../interp/nondet.rkt"
          (only-in "../../interp/example.rkt" core:examples)
          (only-in "../../interp/core/main.rkt"
                   reader printer expander/expand

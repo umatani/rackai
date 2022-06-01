@@ -1,5 +1,6 @@
 #lang racket
-(require "../set.rkt" "../dprint.rkt" "../reduction.rkt"
+(require "../set.rkt" "../dprint.rkt"
+         "../reduction.rkt"
          "struct.rkt"
          (only-in "delta.rkt" delta))
 (provide (all-defined-out))
@@ -69,8 +70,7 @@
 
 
 ;; (: -->c : State -> (Setof State))
-(define-parameterized-reduction-relation 
-  (-->c/store delta lookup-store update-store* alloc-loc* push-cont)
+(define-parameterized-reduction-relation (-->c/store delta :=<1>)
 
   ;; propagate env into subterms
   [`(,(AstEnv (If ast_test ast_then ast_else) env) ,cont ,store)
@@ -93,8 +93,8 @@
 
   ;; reference
   [`(,(AstEnv (? Var? var) env) ,cont ,store)
-   `(,(AstEnv (lookup-store store (lookup-env env var)) env)
-     ,cont ,store)
+   #:with val :=<1> (lookup-store store (lookup-env env var))
+   `(,(AstEnv val env) ,cont ,store)
    ev-x]
 
   ;; lambda
@@ -104,47 +104,45 @@
 
   ;; application
   [`(,(SApp `(,vals ...) `(,tm ,tms ...)) ,cont ,store)
-   (let-values ([(loc_new store_1) (push-cont store cont)])
-     `(,tm ,(KApp vals  tms loc_new) ,store_1))
+   #:with (values loc_new store_1) := (push-cont store cont)
+   `(,tm ,(KApp vals  tms loc_new) ,store_1)
    ev-push-app]
 
   [`(,(? Val? val) ,(KApp vals tms loc_cont) ,store)
-   `(,(SApp (append vals (list val)) tms)
-     ,(lookup-store store loc_cont) ,store)
+   #:with cont :=<1> (lookup-store store loc_cont)
+   `(,(SApp (append vals (list val)) tms) ,cont ,store)
    ev-pop-app]
 
   ;; β
   [`(,(SApp vals '()) ,cont ,store)
-   #:when (and (pair? vals)
-               (VFun? (car vals)))
-   (let*-values ([(vars ast env vals) (let ([f(car vals)])
-                                        (values (VFun-vars f)
-                                                (VFun-ast f)
-                                                (VFun-env f)
-                                                (cdr vals)))]
-                 [(nams) (map Var-nam vars)]
-                 [(locs store_1) (alloc-loc* nams store)]
-                 [(env_new) (update-env env vars locs)]
-                 [(store_2) (update-store* store_1 locs vals)])
-     `(,(AstEnv ast env_new) ,cont ,store_2))
+   #:when (and (pair? vals) (VFun? (car vals)))
+   #:with (values vars ast env vals) := (let ([f(car vals)])
+                                          (values (VFun-vars f)
+                                                  (VFun-ast f)
+                                                  (VFun-env f)
+                                                  (cdr vals)))
+   #:with                       nams := (map Var-nam vars)
+   #:with      (values locs store_1) := (alloc-loc* nams store)
+   #:with                    env_new := (update-env env vars locs)
+   #:with                    store_2 := (update-store* store_1 locs vals)
+   `(,(AstEnv ast env_new) ,cont ,store_2)
    ev-β]
 
   ;; primitive application
   [`(,(SApp vals '()) ,cont ,store)
-   #:when (and (pair? vals)
-               (Prim? (car vals)))
+   #:when (and (pair? vals) (Prim? (car vals)))
    `(,(delta (car vals) (cdr vals)) ,cont ,store)
    ev-delta]
 
   ;; if
   [`(,(SIf (? (λ (x) (not (Val? x))) ser_test) tm_then tm_else) ,cont ,store)
-   (let-values ([(loc_new store_1) (push-cont store cont)])
-     `(,ser_test ,(KIf tm_then tm_else loc_new) ,store_1))
+   #:with (values loc_new store_1) := (push-cont store cont)
+   `(,ser_test ,(KIf tm_then tm_else loc_new) ,store_1)
    ev-push-if]
 
   [`(,(? Val? val) ,(KIf tm_then tm_else loc_cont) ,store)
-   `(,(SIf val tm_then tm_else)
-     ,(lookup-store store loc_cont) ,store)
+   #:with cont :=<1> (lookup-store store loc_cont)
+   `(,(SIf val tm_then tm_else) ,cont ,store)
    ev-pop-if]
 
   [`(,(SIf #f _ tm_else) ,cont ,store)
@@ -156,8 +154,7 @@
    `(,tm_then ,cont ,store)
    ev-if-#t])
 
-(define -->c ((reducer-of -->c/store)
-              delta lookup-store update-store* alloc-loc* push-cont))
+(define -->c ((reducer-of -->c/store) delta :=))
 
 ; (: eval : Ast -> Val)
 (define ((eval/--> -->) ast)

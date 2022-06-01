@@ -1,6 +1,6 @@
 #lang racket
 (require "../set.rkt"
-         (only-in "../nondet.rkt" do pure break)
+         "../nondet.rkt"
          (only-in racket [eval r:eval])
          "struct.rkt")
 (provide (all-defined-out))

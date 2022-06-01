@@ -1,7 +1,7 @@
 #lang racket
 (require (only-in racket [eval r:eval])
          "../../interp/set.rkt"
-         (only-in "../../interp/nondet.rkt" do pure break)
+         "../../interp/nondet.rkt"
          (only-in "../../interp/core/misc.rkt"
                   fail-count run-ex/ex-runner
                   run-examples/ex-runner
@@ -14,11 +14,11 @@
   (define (run form mode)
     (cdr (do stx := (reader form)
              #:failif (eq? mode 'read) stx
-             (cons stx2 Σ2) <- (expander stx)
+             (cons stx2 Σ2) <- (lift (expander stx))
              #:failif (eq? mode 'expand) stx2
              ast <- (parser stx2 Σ2)
              #:failif (eq? mode 'parse) ast
-             ast2 <- (evaluater ast)
+             ast2 <- (lift (evaluater ast))
              #:failif (eq? mode 'eval) (printer ast2)
              (error 'run "unknown mode: ~e" mode)))))
 

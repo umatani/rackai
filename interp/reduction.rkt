@@ -1,24 +1,26 @@
 #lang racket
 (require "set.rkt" "queue.rkt" "nondet.rkt"
-         (for-syntax racket racket/hash))
-(provide (all-defined-out))
-
+         (for-syntax racket racket/hash
+                     syntax/parse))
+(provide (all-defined-out)
+         (all-from-out "nondet.rkt"))
 
 ;;;; non-deterministic reduction engine
 
 (begin-for-syntax
+
   (define (make-match-body bs)
-    (syntax-case bs (<- :=)
-      [(b) #'((pure b))]
+    (syntax-parse bs
+      [(b) #`((pure b))]
       [(#:when t b ...)
        (with-syntax ([(b2 ...) (make-match-body #'(b ...))])
-         #'(#:failif (not t) #f b2 ...))]
-      [(#:with x := e b ...)
+         #`(#:failif (not t) #f b2 ...))]
+      [(#:with x assign-id:assign e b ...)
        (with-syntax ([(b2 ...) (make-match-body #'(b ...))])
-         #'(x := e b2 ...))]
-      [(#:with x <- e b ...)
+         #'(x assign-id e b2 ...))]
+      [(#:with x elem-id:elem e b ...)
        (with-syntax ([(b2 ...) (make-match-body #'(b ...))])
-         #'(x <- e b2 ...))]
+         #`(x elem-id e b2 ...))]
       [(b1 b ...)
        (with-syntax ([(b2 ...) (make-match-body #'(b ...))])
          #'(b1 b2 ...))]))
@@ -41,7 +43,7 @@
     (let loop
         ([body
           (with-syntax ([(super-param ...) (datum->syntax rel super-params)]
-                        [(super-arg ...) super-args])
+                        [(super-arg ...) (datum->syntax rel super-args)])
             (let sloop ([sbody #'(set)]
                         [scs
                          (for/list
@@ -69,12 +71,15 @@
           (loop
            (syntax-case (datum->syntax rel (car cs)) ()
              [(p b ... rule-name)
-              #`(let ([nexts #,body])
-                  (match #,s
-                    [p (set-union
-                        nexts
-                        (car (do #,@(make-match-body #'(b ...)))))]
-                    [_ nexts]))])
+              (let* (;[_ (printf "BEFOREEEEE: ~a\n" #'(b ...))]
+                     [match-body (make-match-body #'(b ...))])
+                ;(println 'MATCH-BODYYYYYYY)
+                #`(let ([nexts #,body])
+                    (match #,s
+                      [p (set-union
+                          nexts
+                          (car (do #,@match-body)))]
+                      [_ nexts])))])
            (cdr cs))))))
 
 (define-syntax (define-parameterized-extended-reduction-relation stx)
@@ -85,6 +90,7 @@
             [super-params (if super-desc
                               (syntax->datum (reduction-desc-params super-desc))
                               '())]
+            [super-args (syntax->datum #'(arg ...))]
             [_ (unless (= (length super-params)
                           (length (syntax->list #'(arg ...))))
                  (raise-syntax-error
@@ -105,7 +111,7 @@
              (define (rel-f param ...) 
                (λ (s)
                  #,(make-reducer-body
-                    #'rel #'s super-params #'(arg ...)
+                    #'rel #'s super-params super-args
                     clause-map super-clause-map))))))]))
 
 (define-syntax (define-extended-reduction-relation stx)

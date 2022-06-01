@@ -1,9 +1,6 @@
 #lang racket
 (require "../../interp/set.rkt"
-         (only-in "../../interp/reduction.rkt"
-                  reducer-of
-                  define-parameterized-extended-reduction-relation
-                  apply-reduction-relation*)
+         "../../interp/reduction.rkt"
          "../../interp/core/struct.rkt"
          (only-in "../../interp/core/delta.rkt" delta)
          (only-in "../../interp/core/eval.rkt"
@@ -14,9 +11,9 @@
 
 ;; Set-based heap
 
-;(: lookup-store : Store Loc -> (Setof (U Val Cont))
+;(: lookup-store : Store Loc -> (SetM (U Val Cont))
 (define (lookup-store store loc)
-  (hash-ref (Store-tbl store) loc))
+  (lift (hash-ref (Store-tbl store) loc)))
 
 ;(: update-store : Store Loc (U Val Cont) -> Store)
 (define (update-store store loc u)
@@ -58,26 +55,7 @@
 
 ;; (: -->c : State -> (Setof State))
 (define-parameterized-extended-reduction-relation (-->c/store delta)
-  (interp:-->c/store delta lookup-store update-store* alloc-loc* push-cont)
-
-  ;; reference
-  [`(,(AstEnv (? Var? var) env) ,cont ,store)
-   #:with val <- (lookup-store store (lookup-env env var))
-   `(,(AstEnv val env) ,cont ,store)
-   ev-x]
-
-  ;; application
-  [`(,(? Val? val) ,(KApp vals tms loc_cont) ,store)
-   #:with cont <- (lookup-store store loc_cont)
-   `(,(SApp (append vals (list val)) tms) ,cont ,store)
-   ev-pop-app]
-
-  ;; if
-  [`(,(? Val? val) ,(KIf tm_then tm_else loc_cont) ,store)
-   #:with cont <- (lookup-store store loc_cont)
-   `(,(SIf val tm_then tm_else) ,cont ,store)
-   ev-pop-if])
-
+  (interp:-->c/store delta <-))
 
 (define -->c ((reducer-of -->c/store) delta))
 

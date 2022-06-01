@@ -1,5 +1,6 @@
 #lang racket
-(require "../../interp/phases/struct.rkt"
+(require "../../interp/nondet.rkt"
+         "../../interp/phases/struct.rkt"
          (only-in "../../interp/core/syntax.rkt" biggest-subset binding-lookup)
          (only-in "../../interp/phases/syntax.rkt" at-phase)
 
@@ -22,10 +23,10 @@
                    (λ () (set (set)))))))
 
 ;; Like the one-phase `resolve`, but at a particular phase
-;(: resolve : Ph Id Σ -> (Set of Nam))
+;(: resolve : Ph Id Σ -> (SetM Nam))
 (define (resolve ph id Σ0)
   (match-let ([(GenStx (Sym nam) ctx) id])
-    (let* ([sbss (filter set? (set->list (lookup-Σ Σ0 nam)))]
+    (let* ([sbss (filter set? (set->list (car (do (lookup-Σ Σ0 nam)))))]
            [scpsss
             (map (λ (sbs) (set-map sbs (λ (sb) (StoBind-scps sb))))
                  sbss)]
@@ -37,9 +38,9 @@
                     (for*/list ([sbs (in-list sbss)]
                                 [scps_biggest (in-list scps_biggests)])
                       (binding-lookup sbs scps_biggest)))])
-      (if (null? nam_biggests)
-          (set nam)
-          (list->set nam_biggests)))))
+      (lift (if (null? nam_biggests)
+                (set nam)
+                (list->set nam_biggests))))))
 
 ;(: id=? : Ph Id Nam Σ -> Boolean)
-(define (id=? ph id nam Σ) (subset? (set nam) (resolve ph id Σ)))
+(define (id=? ph id nam Σ) (subset? (set nam) (car (do (resolve ph id Σ)))))
