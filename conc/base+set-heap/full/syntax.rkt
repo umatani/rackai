@@ -1,7 +1,7 @@
 #lang racket
-(require "../../interp/nondet.rkt"
-         "../../interp/full/struct.rkt"
-         (only-in "../../interp/core/expand.rkt" lookup-ξ)
+(require "../../base/nondet.rkt"
+         "../../base/full/struct.rkt"
+         (only-in "../../base/core/expand.rkt" lookup-ξ)
 
          ;; Abstract version
          (only-in "../phases/syntax.rkt" resolve))

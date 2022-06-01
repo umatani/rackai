@@ -1,11 +1,11 @@
 #lang racket
-(require "../../interp/dprint.rkt"
-         "../../interp/full/struct.rkt"
-         (only-in "../../interp/core/expand.rkt"
+(require "../../base/dprint.rkt"
+         "../../base/full/struct.rkt"
+         (only-in "../../base/core/expand.rkt"
                   init-ξ init-Σ)
-         (only-in "../../interp/phases/main.rkt"
+         (only-in "../../base/phases/main.rkt"
                   reader printer)
-         (only-in "../../interp/full/main.rkt"
+         (only-in "../../base/full/main.rkt"
                   expander/expand parser/parse main/runs
                   eval-->/--> eval-->*/--> expand==>/==> expand==>*/==>)
          (only-in "../core/main.rkt" [run core:run])

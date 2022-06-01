@@ -1,17 +1,17 @@
 #lang racket
-(require "../../interp/set.rkt"
-         "../../interp/reduction.rkt"
-         "../../interp/phases/struct.rkt"
-         (only-in "../../interp/core/syntax.rkt" zip unzip snoc union)
-         (only-in "../../interp/phases/syntax.rkt"
+(require "../../base/set.rkt"
+         "../../base/reduction.rkt"
+         "../../base/phases/struct.rkt"
+         (only-in "../../base/core/syntax.rkt" zip unzip snoc union)
+         (only-in "../../base/phases/syntax.rkt"
                   empty-ctx in-hole add flip prune at-phase)
-         (only-in "../../interp/core/eval.rkt" init-env init-store)
-         (only-in "../../interp/core/expand.rkt"
+         (only-in "../../base/core/eval.rkt" init-env init-store)
+         (only-in "../../base/core/expand.rkt"
                   init-ξ extend-ξ lookup-ξ push-κ lookup-κ init-Θ)
-         (only-in "../../interp/phases/expand.rkt"
+         (only-in "../../base/phases/expand.rkt"
                   regist-vars/bind/alloc-name
                   id-seq id-kont id-snoc stx-nil
-                  [==>p/Σ interp:==>p/Σ])
+                  [==>p/Σ base:==>p/Σ])
 
          ;; Abstract version
          (only-in "../core/eval.rkt" -->c)
@@ -26,7 +26,7 @@
 (define regist-vars (regist-vars/bind/alloc-name bind alloc-name))
 
 ;; (: ==>p : ζ -> (Setof ζ))
-(define-extended-reduction-relation ==>p/Σ (interp:==>p/Σ <-))
+(define-extended-reduction-relation ==>p/Σ (base:==>p/Σ <-))
 
 (define ==>p ((reducer-of ==>p/Σ)))
 

@@ -1,8 +1,8 @@
 #lang racket
-(require "../../interp/dprint.rkt"
-         "../../interp/nondet.rkt"
-         (only-in "../../interp/example.rkt" core:examples)
-         (only-in "../../interp/core/main.rkt"
+(require "../../base/dprint.rkt"
+         "../../base/nondet.rkt"
+         (only-in "../../base/example.rkt" core:examples)
+         (only-in "../../base/core/main.rkt"
                   reader printer expander/expand
                   eval-->/--> eval-->*/--> expand==>/==> expand==>*/==>)
 

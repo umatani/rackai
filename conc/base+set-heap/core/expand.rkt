@@ -1,15 +1,15 @@
 #lang racket
-(require "../../interp/set.rkt"
-         "../../interp/reduction.rkt"
-         "../../interp/core/struct.rkt"
-         (only-in "../../interp/core/syntax.rkt"
+(require "../../base/set.rkt"
+         "../../base/reduction.rkt"
+         "../../base/core/struct.rkt"
+         (only-in "../../base/core/syntax.rkt"
                   snoc zip unzip add flip empty-ctx in-hole)
-         (only-in "../../interp/core/eval.rkt" init-env init-store)
-         (only-in "../../interp/core/expand.rkt"
+         (only-in "../../base/core/eval.rkt" init-env init-store)
+         (only-in "../../base/core/expand.rkt"
                   init-ξ extend-ξ lookup-ξ push-κ lookup-κ init-Θ
                   regist-vars/bind/alloc-name
                   id-kont id-seq id-snoc stx-nil
-                  [==>c/Σ interp:==>c/Σ])
+                  [==>c/Σ base:==>c/Σ])
 
          ;; Abstract version
          (only-in "syntax.rkt" bind resolve id=?)
@@ -38,7 +38,7 @@
 ;; Revised reduction rules
 
 ;; (: ==>c : ζ -> (Setof ζ))
-(define-extended-reduction-relation ==>c/Σ (interp:==>c/Σ <-))
+(define-extended-reduction-relation ==>c/Σ (base:==>c/Σ <-))
 
 (define ==>c ((reducer-of ==>c/Σ)))
 

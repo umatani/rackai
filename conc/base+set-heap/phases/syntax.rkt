@@ -1,8 +1,8 @@
 #lang racket
-(require "../../interp/nondet.rkt"
-         "../../interp/phases/struct.rkt"
-         (only-in "../../interp/core/syntax.rkt" biggest-subset binding-lookup)
-         (only-in "../../interp/phases/syntax.rkt" at-phase)
+(require "../../base/nondet.rkt"
+         "../../base/phases/struct.rkt"
+         (only-in "../../base/core/syntax.rkt" biggest-subset binding-lookup)
+         (only-in "../../base/phases/syntax.rkt" at-phase)
 
          ;; Abstract version
          (only-in "../core/syntax.rkt" lookup-Σ))

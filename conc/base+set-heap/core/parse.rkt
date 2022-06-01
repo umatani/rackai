@@ -1,9 +1,8 @@
 #lang racket
-(require "../../interp/set.rkt"
-         "../../interp/nondet.rkt"
-         "../../interp/core/struct.rkt"
-         (only-in "../../interp/core/syntax.rkt" unzip strip)
-         ;(only-in "../../interp/core/parse.rkt" parse&parse*/resolve)
+(require "../../base/set.rkt"
+         "../../base/nondet.rkt"
+         "../../base/core/struct.rkt"
+         (only-in "../../base/core/syntax.rkt" unzip strip)
          (only-in "syntax.rkt" resolve [id=? stx:id=?]))
 (provide (all-defined-out))
 

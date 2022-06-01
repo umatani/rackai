@@ -1,7 +1,7 @@
 #lang racket
-(require "../../interp/dprint.rkt"
-         (only-in "../../interp/example.rkt" core:examples phases:examples)
-         (only-in "../../interp/phases/main.rkt"
+(require "../../base/dprint.rkt"
+         (only-in "../../base/example.rkt" core:examples phases:examples)
+         (only-in "../../base/phases/main.rkt"
                   reader printer expander/expand parser/parse
                   eval-->/--> eval-->*/--> expand==>/==> expand==>*/==>)
 

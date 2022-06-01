@@ -1,8 +1,8 @@
 #lang racket
-(require "../../interp/set.rkt"
-         "../../interp/nondet.rkt"
-         "../../interp/core/struct.rkt"
-         (only-in "../../interp/core/syntax.rkt" biggest-subset binding-lookup))
+(require "../../base/set.rkt"
+         "../../base/nondet.rkt"
+         "../../base/core/struct.rkt"
+         (only-in "../../base/core/syntax.rkt" biggest-subset binding-lookup))
 (provide (all-defined-out))
 
 ;; Set-based Σ

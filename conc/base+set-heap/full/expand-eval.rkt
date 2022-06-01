@@ -1,22 +1,22 @@
 #lang racket
-(require "../../interp/set.rkt"
-         "../../interp/reduction.rkt"
-         "../../interp/full/struct.rkt"
-         "../../interp/core/delta.rkt"
-         (only-in "../../interp/core/syntax.rkt" zip unzip snoc union)
-         (only-in "../../interp/phases/syntax.rkt"
+(require "../../base/set.rkt"
+         "../../base/reduction.rkt"
+         "../../base/full/struct.rkt"
+         "../../base/core/delta.rkt"
+         (only-in "../../base/core/syntax.rkt" zip unzip snoc union)
+         (only-in "../../base/phases/syntax.rkt"
                   empty-ctx add flip prune at-phase)
-         (only-in "../../interp/full/syntax.rkt" in-hole)
-         (only-in "../../interp/core/eval.rkt"
+         (only-in "../../base/full/syntax.rkt" in-hole)
+         (only-in "../../base/core/eval.rkt"
                   init-env update-env lookup-env init-store)
-         (only-in "../../interp/core/expand.rkt"
+         (only-in "../../base/core/expand.rkt"
                   init-ξ extend-ξ lookup-ξ push-κ lookup-κ init-Θ)
-         (only-in "../../interp/phases/expand.rkt"
+         (only-in "../../base/phases/expand.rkt"
                   id-seq id-kont id-snoc stx-nil)
-         (only-in "../../interp/full/expand-eval.rkt"
+         (only-in "../../base/full/expand-eval.rkt"
                   extend-ξ* unstop
-                  [-->f/store interp:-->f/store]
-                  [==>f/Σ interp:==>f/Σ]
+                  [-->f/store base:-->f/store]
+                  [==>f/Σ base:==>f/Σ]
                   eval/--> expand/==>)
 
          ;; Abstract version
@@ -68,10 +68,10 @@
 
 
 (define-parameterized-extended-reduction-relation (-->f/store delta ==>f)
-  (interp:-->f/store delta ==>f <-))
+  (base:-->f/store delta ==>f <-))
 
 (define-parameterized-extended-reduction-relation (==>f/Σ -->f)
-  (interp:==>f/Σ -->f <-))
+  (base:==>f/Σ -->f <-))
 
 
 (define-values (-->f ==>f)

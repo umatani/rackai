@@ -1,8 +1,8 @@
 #lang racket
-(require "../../interp/nondet.rkt"
-         (only-in "../../interp/phases/parse.rkt" parse&parse*/resolve)
-         "../../interp/phases/struct.rkt"
-         (only-in "../../interp/core/syntax.rkt" unzip strip)
+(require "../../base/nondet.rkt"
+         (only-in "../../base/phases/parse.rkt" parse&parse*/resolve)
+         "../../base/phases/struct.rkt"
+         (only-in "../../base/core/syntax.rkt" unzip strip)
 
          (only-in "../core/parse.rkt" build-alt-lists)
          (only-in "syntax.rkt" resolve [id=? stx:id=?]))

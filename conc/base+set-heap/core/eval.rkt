@@ -1,10 +1,10 @@
 #lang racket
-(require "../../interp/set.rkt"
-         "../../interp/reduction.rkt"
-         "../../interp/core/struct.rkt"
-         (only-in "../../interp/core/delta.rkt" delta)
-         (only-in "../../interp/core/eval.rkt"
-                  [-->c/store interp:-->c/store]
+(require "../../base/set.rkt"
+         "../../base/reduction.rkt"
+         "../../base/core/struct.rkt"
+         (only-in "../../base/core/delta.rkt" delta)
+         (only-in "../../base/core/eval.rkt"
+                  [-->c/store base:-->c/store]
                   init-env lookup-env update-env
                   init-store push-cont/alloc-loc/update-store))
 (provide (all-defined-out))
@@ -55,7 +55,7 @@
 
 ;; (: -->c : State -> (Setof State))
 (define-parameterized-extended-reduction-relation (-->c/store delta)
-  (interp:-->c/store delta <-))
+  (base:-->c/store delta <-))
 
 (define -->c ((reducer-of -->c/store) delta))
 

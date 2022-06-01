@@ -1,8 +1,8 @@
 #lang racket
 (require (only-in racket [eval r:eval])
-         "../../interp/set.rkt"
-         "../../interp/nondet.rkt"
-         (only-in "../../interp/core/misc.rkt"
+         "../../base/set.rkt"
+         "../../base/nondet.rkt"
+         (only-in "../../base/core/misc.rkt"
                   fail-count run-ex/ex-runner
                   run-examples/ex-runner
                   run-all-examples/run-examples))
