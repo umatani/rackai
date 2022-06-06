@@ -4,6 +4,7 @@
          "../../base/phases/struct.rkt"
          (only-in "../../base/core/syntax.rkt" unzip strip)
 
+         ;; Set-based version
          (only-in "../core/parse.rkt" build-alt-lists)
          (only-in "syntax.rkt" resolve [id=? stx:id=?]))
 

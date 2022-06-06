@@ -35,7 +35,7 @@
 (define stx-nil (GenStx '() (empty-ctx)))
 
 ;; (: ==>p :  ζ -> (Setof ζ))
-(define-parameterized-reduction-relation (==>p/Σ :=<1>)
+(define-parameterized-reduction-relation (==>p/Σ :=<1> -->c)
 
   ;; lambda
   [(ζ (Stxξ ph (GenStx `(,(? Id? id_lam)
@@ -317,7 +317,7 @@
    (InEval s2 ζ0)
    ex-in-eval])
 
-(define ==>p ((reducer-of ==>p/Σ) :=))
+(define ==>p ((reducer-of ==>p/Σ) := -->c))
 
 ;(: expand : Ph Stx ξ Scps Σ -> (Cons Stx Σ))
 (define ((expand/==> ==>) ph stx ξ scps_p Σ)

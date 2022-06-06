@@ -8,7 +8,6 @@
 ;;;; non-deterministic reduction engine
 
 (begin-for-syntax
-
   (define (make-match-body bs)
     (syntax-parse bs
       [(b) #`((pure b))]
@@ -27,114 +26,99 @@
 
   (struct reduction-desc (reducer-id
                           params
-                          clause-map super-clause-map) #:transparent)
+                          super-red super-args
+                          clause-map) #:transparent)
 
   (define (make-clause-map clauses)
-    (define names (map last clauses))
-    (when (check-duplicates names)
+    (define names (map (compose1 last syntax->datum) clauses))
+    (when (check-duplicates names eq?)
       (raise-syntax-error #f "duplicate reduction names" names))
-    (for/fold ([m (hasheq)])
-              ([name (in-list names)]
+    (for/fold ([map    (hasheq)])
+              ([name   (in-list names)]
                [clause (in-list clauses)])
-      (hash-set m name clause)))
+      (hash-set map name clause)))
 
-  (define (make-reducer-body rel s super-params super-args
-                             clause-map super-clause-map)
-    (let loop
-        ([body
-          (with-syntax ([(super-param ...) (datum->syntax rel super-params)]
-                        [(super-arg ...) (datum->syntax rel super-args)])
-            (let sloop ([sbody #'(set)]
-                        [scs
-                         (for/list
-                             ([(k v) (in-hash super-clause-map)]
-                              #:when (not (hash-has-key? clause-map k)))
-                           v)])
-              (if (null? scs)
-                  sbody
-                  (sloop
-                   (syntax-case (datum->syntax rel (car scs)) ()
-                     [(p b ... rule-name)
-                      #`(let ([nexts #,sbody])
-                          (let-syntax ([super-param
-                                        (make-rename-transformer #'super-arg)]
-                                       ...)
-                            (match #,s
-                              [p (set-union
-                                  nexts
-                                  (car (do #,@(make-match-body #'(b ...)))))]
-                              [_ nexts])))])
-                   (cdr scs)))))]
-         [cs (hash-values clause-map)])
-      (if (null? cs)
-          body
-          (loop
-           (syntax-case (datum->syntax rel (car cs)) ()
-             [(p b ... rule-name)
-              (let* (;[_ (printf "BEFOREEEEE: ~a\n" #'(b ...))]
-                     [match-body (make-match-body #'(b ...))])
-                ;(println 'MATCH-BODYYYYYYY)
-                #`(let ([nexts #,body])
-                    (match #,s
-                      [p (set-union
-                          nexts
-                          (car (do #,@match-body)))]
-                      [_ nexts])))])
-           (cdr cs))))))
+  (define (make-reducer-body red red-desc s maybe-args sub-clause-names)
+    (define (stx-rescope stx)
+      (datum->syntax red (if (syntax? stx) (syntax->datum stx) stx)))
+
+    (define body (let ([super-red  (reduction-desc-super-red red-desc)]
+                       [super-args (reduction-desc-super-args red-desc)]
+                       [clause-map (reduction-desc-clause-map red-desc)])
+                   (if (syntax->datum super-red) ;; not #f
+                       (make-reducer-body
+                        red ;; super-red??
+                        (syntax-local-value super-red)
+                        s
+                        super-args
+                        (append sub-clause-names (hash-keys clause-map)))
+                       #'(set))))
+    (let* ([args (or maybe-args #'())]
+           [params (if maybe-args
+                       (reduction-desc-params red-desc)
+                       #'())]
+           [clause-map (reduction-desc-clause-map red-desc)])
+      (unless (= (length (syntax->list params))
+                 (length (syntax->list args)))
+        (raise-syntax-error
+         'define-parameterized-extended-reduction-relation
+         (format "red args arity mismatch: ~a ~a"
+                 (syntax->datum params)
+                 (syntax->datum args))))
+      (with-syntax ([(param ...) (stx-rescope params)]
+                    [(arg ...)   (stx-rescope args)])
+        #`(let-syntax ([param (make-rename-transformer #'arg)]
+                       ...)
+            #,(for/fold ([body body])
+                        ([clause
+                          (for/list
+                              ([(k v) (in-hash clause-map)]
+                               #:when (not (member k sub-clause-names)))
+                            v)])
+                (syntax-case (stx-rescope clause) ()
+                  [(p b ... rule-name)
+                   #`(let ([nexts #,body])
+                       (match #,s
+                         [p (set-union
+                             nexts
+                             (car (do #,@(make-match-body #'(b ...)))))]
+                         [_ nexts]))])))))))
 
 (define-syntax (define-parameterized-extended-reduction-relation stx)
   (syntax-case stx ()
-    [(_ (rel param ...) (super-rel arg ...) clause ...)
-     (let* ([super-desc (and (syntax->datum #'super-rel)  ;; not #f
-                             (syntax-local-value #'super-rel))]
-            [super-params (if super-desc
-                              (syntax->datum (reduction-desc-params super-desc))
-                              '())]
-            [super-args (syntax->datum #'(arg ...))]
-            [_ (unless (= (length super-params)
-                          (length (syntax->list #'(arg ...))))
-                 (raise-syntax-error
-                  'define-parameterized-extended-reduction-relation
-                  "super args arity mismatch" #'super-rel))]
-            [clause-map (make-clause-map (syntax->datum #'(clause ...)))]
-            [super-clause-map
-             (if super-desc
-                 (hash-union (reduction-desc-super-clause-map super-desc)
-                             (reduction-desc-clause-map super-desc)
-                             #:combine (λ (sc c) c))
-                 (hasheq))])
-       (with-syntax ([(rel-f) (generate-temporaries #'(rel))])
+    [(_ (red param ...) (super-red arg ...) clause ...)
+     (with-syntax ([(red-f) (generate-temporaries #'(red))])
+       (let* ([clause-map (make-clause-map (syntax->list #'(clause ...)))]
+              [red-desc (reduction-desc #'red-f #'(param ...)
+                                        #'super-red #'(arg ...) clause-map)])
          #`(begin
-             (define-syntax rel
-               (reduction-desc #'rel-f #'(param ...)
-                               #,clause-map #,super-clause-map))
-             (define (rel-f param ...) 
-               (λ (s)
-                 #,(make-reducer-body
-                    #'rel #'s super-params super-args
-                    clause-map super-clause-map))))))]))
+             (define-syntax red
+               (reduction-desc #'red-f #'(param ...)
+                               #'super-red #'(arg ...) #,clause-map))
+             (define (red-f param ...) 
+               (λ (s) #,(make-reducer-body #'red red-desc #'s #f '()))))))]))
 
 (define-syntax (define-extended-reduction-relation stx)
   (syntax-case stx ()
-    [(_ rel super-rel clause ...)
+    [(_ red super-red clause ...)
      #'(define-parameterized-extended-reduction-relation
-         (rel) super-rel clause ...)]))
+         (red) super-red clause ...)]))
 
 (define-syntax (define-parameterized-reduction-relation stx)
   (syntax-case stx ()
-    [(_ (rel param ...) clause ...)
+    [(_ (red param ...) clause ...)
      #'(define-parameterized-extended-reduction-relation
-         (rel param ...) (#f)  clause ...)]))
+         (red param ...) (#f)  clause ...)]))
 
 (define-syntax (define-reduction-relation stx)
   (syntax-case stx ()
-    [(_ rel clause ...)
-     #'(define-parameterized-reduction-relation (rel) clause ...)]))
+    [(_ red clause ...)
+     #'(define-parameterized-reduction-relation (red) clause ...)]))
 
-;; (reducer-of rel) : state -> (Set state ...)
+;; (reducer-of red) : state -> (Set state ...)
 (define-syntax (reducer-of stx)
   (syntax-case stx ()
-    [(_ rel) (reduction-desc-reducer-id (syntax-local-value #'rel))]))
+    [(_ red) (reduction-desc-reducer-id (syntax-local-value #'red))]))
 
 
 ;(: apply-reduction-relation* (∀ [A] (->* ((-> A (Setof A)) A)

@@ -11,7 +11,7 @@
                   id-kont id-seq id-snoc stx-nil
                   [==>c/Σ base:==>c/Σ])
 
-         ;; Abstract version
+         ;; Set-based version
          (only-in "syntax.rkt" bind resolve id=?)
          (only-in "eval.rkt" -->c)
          (only-in "parse.rkt" parse))
@@ -38,9 +38,10 @@
 ;; Revised reduction rules
 
 ;; (: ==>c : ζ -> (Setof ζ))
-(define-extended-reduction-relation ==>c/Σ (base:==>c/Σ <-))
+(define-parameterized-extended-reduction-relation (==>c/Σ -->c)
+  (base:==>c/Σ -->c <-))
 
-(define ==>c ((reducer-of ==>c/Σ)))
+(define ==>c ((reducer-of ==>c/Σ) -->c))
 
 ;(: expand : Stx ξ Σ -> (Setof (Cons Stx Σ))
 (define ((expand/==> ==>) stx ξ Σ)

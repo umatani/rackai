@@ -13,7 +13,7 @@
                   id-seq id-kont id-snoc stx-nil
                   [==>p/Σ base:==>p/Σ])
 
-         ;; Abstract version
+         ;; Set-based version
          (only-in "../core/eval.rkt" -->c)
          (only-in "../core/expand.rkt" alloc-name alloc-scope)
          (only-in "syntax.rkt" bind resolve id=?)
@@ -26,9 +26,10 @@
 (define regist-vars (regist-vars/bind/alloc-name bind alloc-name))
 
 ;; (: ==>p : ζ -> (Setof ζ))
-(define-extended-reduction-relation ==>p/Σ (base:==>p/Σ <-))
+(define-parameterized-extended-reduction-relation (==>p/Σ -->c)
+  (base:==>p/Σ <- -->c))
 
-(define ==>p ((reducer-of ==>p/Σ)))
+(define ==>p ((reducer-of ==>p/Σ) -->c))
 
 ;(: expand : Ph Stx ξ Scps Σ -> (Setof (Cons Stx Σ)))
 (define ((expand/==> ==>) ph stx ξ scps_p Σ)

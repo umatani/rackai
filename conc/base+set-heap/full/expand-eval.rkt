@@ -19,7 +19,7 @@
                   [==>f/Σ base:==>f/Σ]
                   eval/--> expand/==>)
 
-         ;; Abstract version
+         ;; Set-based version
          (only-in "../core/eval.rkt"
                   lookup-store update-store* alloc-loc* push-cont)
          (only-in "../core/expand.rkt" alloc-name alloc-scope)

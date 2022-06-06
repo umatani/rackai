@@ -89,7 +89,7 @@
 (define stx-nil (GenStx '() (empty-ctx)))
 
 ;; (: ==>c : ζ -> (Setof ζ))
-(define-parameterized-reduction-relation (==>c/Σ :=<1>)
+(define-parameterized-reduction-relation (==>c/Σ -->c :=<1>)
 
   ;; lambda
   [(ζ (Stxξ (GenStx `(,(? Id? id_lam)
@@ -367,7 +367,7 @@
    (InEval s2 ζ0)
    ex-in-eval])
 
-(define ==>c ((reducer-of ==>c/Σ) :=))
+(define ==>c ((reducer-of ==>c/Σ) -->c :=))
 
 ;(: expand : Stx ξ Σ -> (Cons Stx Σ))
 (define ((expand/==> ==>) stx ξ Σ)

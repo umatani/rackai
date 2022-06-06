@@ -3,7 +3,7 @@
          "../../base/full/struct.rkt"
          (only-in "../../base/core/expand.rkt" lookup-ξ)
 
-         ;; Abstract version
+         ;; Set-based version
          (only-in "../phases/syntax.rkt" resolve))
 (provide (all-defined-out))
 

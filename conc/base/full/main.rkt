@@ -1,7 +1,8 @@
 #lang racket
 (require "../set.rkt" "../dprint.rkt""../reduction.rkt"
          "../example.rkt"
-         (only-in "../core/misc.rkt" define-runner run-all-examples)
+         (only-in "../core/misc.rkt"
+                  define-runner run-examples run-all-examples)
          (only-in "../core/eval.rkt" init-env init-store)
          (only-in "../core/expand.rkt" init-ξ init-Θ init-Σ)
          (only-in "../core/main.rkt" [run core:run])
@@ -31,45 +32,46 @@
   reader printer
   expander parser evaluate)
 
-(define (main/runs core:run phases:run full:run run-all-examples)
-  (let ([all-runs `([core ,core:run]
-                    [phases ,phases:run]
-                    [full ,full:run])]
+(define (main [mode 'check])
+  (run-examples run core:examples mode)
+  (run-examples run phases:examples mode)
+  (run-examples run (append local:examples defs:examples) mode))
+
+(define (run-all/runs core:run phases:run full:run)
+  (let ([all-runs `([core 1 ,core:run]
+                    [phases 2 ,phases:run]
+                    [full 3 ,full:run])]
         [all-examples (list
                        core:examples
                        phases:examples
                        (append local:examples defs:examples))])
     (run-all-examples all-runs all-examples)))
-(define main (main/runs core:run phases:run run run-all-examples))
+(define run-all (run-all/runs core:run phases:run run))
 
 ;; for debug
 
 ;(: eval--> : Sexp -> (Setof State))
-(define ((eval-->/--> -->) form)
-  (--> `(,(AstEnv 0 (run form 'parse)
-                  (init-env) 'no-scope (init-ξ))
-         • ,(init-store) ,(Σ* (init-Σ) (set) (set)))))
-(define eval--> (eval-->/--> -->f))
+(define (eval--> form)
+  (car (do ast <- (lift (run form 'parse))
+           (lift (-->f `(,(AstEnv 0 ast (init-env) 'no-scope (init-ξ))
+                         • ,(init-store) ,(Σ* (init-Σ) (set) (set))))))))
 
-;(: eval-->* : Sexp -> (Listof State))
-(define ((eval-->*/--> -->) form)
-  (apply-reduction-relation*
-   -->
-   `(,(AstEnv 0 (run form 'parse)
-              (init-env) 'no-scope (init-ξ))
-     • ,(init-store) ,(Σ* (init-Σ) (set) (set)))))
-(define eval-->* (eval-->*/--> -->f))
+;(: eval-->* : Sexp -> (Setof State))
+(define (eval-->* form #:steps [steps #f])
+  (car (do ast <- (lift (run form 'parse))
+           (lift (apply-reduction-relation*
+                  -->f `(,(AstEnv 0 ast (init-env) 'no-scope (init-ξ))
+                         • ,(init-store) ,(Σ* (init-Σ) (set) (set)))
+                  #:steps steps)))))
 
 ;(: expand==> : Sexp -> (Setof ζ))
-(define ((expand==>/==> ==>) form)
-  (==>
+(define (expand==> form)
+  (==>f
    (ζ (Stxξ 0 (reader form) (init-ξ)) '∘ '• (init-Θ) (Σ* (init-Σ) (set) (set)))))
-(define expand==> (expand==>/==> ==>f))
 
-;(: expand==>* : (->* (Sexp) (#:steps (Option Natural)) (Listof ζ)))
-(define ((expand==>*/==> ==>) form #:steps [steps #f])
+;(: expand==>* : (->* (Sexp) (#:steps (Option Natural)) (Setof ζ)))
+(define (expand==>* form #:steps [steps #f])
   (apply-reduction-relation*
-   ==>
+   ==>f
    (ζ (Stxξ 0 (reader form) (init-ξ)) '∘ '• (init-Θ) (Σ* (init-Σ) (set) (set)))
    #:steps steps))
-(define expand==>* (expand==>*/==> ==>f))
