@@ -1,31 +1,47 @@
 #lang racket
-(require "../dprint.rkt" "../reduction.rkt"
-         "struct.rkt"
-         "misc.rkt"
-         (only-in "syntax.rkt" empty-ctx strip)
-         (only-in "eval.rkt" init-env init-store -->c eval)
-         (only-in "parse.rkt" parse)
-         (only-in "expand.rkt" init-ξ init-Θ init-Σ ==>c expand)
-         "../example.rkt"
+(require "../reduction.rkt" "../example.rkt"
+
+         "../struct-sig.rkt" "struct-unit.rkt"
+         "../syntax-sig.rkt" "syntax-unit.rkt"
+         "../io.rkt"
+         "../delta.rkt"
+         "../parse-sig.rkt"  "parse-unit.rkt"
+         "../eval-sig.rkt"   "eval-unit.rkt"
+         "../expand-sig.rkt" "expand-unit.rkt"
+         "../run.rkt"
+
          (for-syntax racket/list))
-(provide (all-defined-out))
 
-;(: expander : Stx -> (Values Stx Σ))
-(define ((expander/expand expand) stx)
-  (expand stx (init-ξ) (init-Σ)))
-(define expander (expander/expand expand))
 
-(define-helpers (empty-ctx) reader printer)
+(define-signature main^
+  (ast&env mk-ζ stx&ξ              ;; struct^
+   empty-ctx strip                 ;; syntax^
+   init-env init-store --> eval    ;; eval^
+   init-ξ init-Θ init-Σ ==> expand ;; expand^
+   reader printer                  ;; io^
+   run                             ;; run^
+   ))
 
-; (: stripper : Stx -> Val)
-(define (stripper stx) (strip stx))
-
-(define-runner run
-  reader printer
-  expander parse eval)
+(define-values/invoke-unit
+  (unit/new-import-export
+   (import)
+   (export main^)
+   ((struct^ syntax^ io^ eval^ expand^ run^)
+    (compound-unit
+     (import)
+     (export str stx io p ev ex r)
+     (link (([str : struct^]) struct@)
+           (([stx : syntax^]) syntax@ str)
+           (([io  : io^])     io@     str stx)
+           (([d   : delta^])  delta@  str)
+           (([p   : parse^])  parse@  str stx)
+           (([ev  : eval^])   eval@   str d)
+           (([ex  : expand^]) expand@ str stx p ev)
+           (([r   : run^])    run@    io p ev ex)))))
+  (import)
+  (export main^))
 
 ;; run example
-
 (define (main [mode 'check])
   (run-examples run core:examples mode))
 
@@ -34,22 +50,22 @@
 ; (: eval--> : Sexp -> (Setof State))
 (define (eval--> form)
   (car (do ast <- (lift (run form 'parse))
-           (lift (-->c `(,(AstEnv ast (init-env)) • ,(init-store)))))))
+           (lift (--> `(,(ast&env ast (init-env)) • ,(init-store)))))))
 
 ; (: eval-->* : Sexp -> (Setof State))
 (define (eval-->* form #:steps [steps #f])
   (car (do ast <- (lift (run form 'parse))
            (lift (apply-reduction-relation*
-                  -->c `(,(AstEnv ast (init-env)) • ,(init-store))
+                  --> `(,(ast&env ast (init-env)) • ,(init-store))
                   #:steps steps)))))
 
 ;(: expand==> : Sexp -> (Setof ζ))
 (define (expand==> form)
-  (==>c (ζ (Stxξ (reader form) (init-ξ)) '∘ '• (init-Θ) (init-Σ))))
+  (==> (mk-ζ (stx&ξ (reader form) (init-ξ)) '∘ '• (init-Θ) (init-Σ))))
 
 ;(: expand==>* : (->* (Sexp) (#:steps (Option Natural)) (Setof ζ)))
 (define (expand==>* form #:steps [steps #f])
   (apply-reduction-relation*
-   ==>c
-   (ζ (Stxξ (reader form) (init-ξ)) '∘ '• (init-Θ) (init-Σ))
+   ==>
+   (mk-ζ (stx&ξ (reader form) (init-ξ)) '∘ '• (init-Θ) (init-Σ))
    #:steps steps))

@@ -1,6 +1,49 @@
 #lang racket
-(require (for-syntax racket/list))
-(provide core:examples phases:examples local:examples defs:examples)
+(require [only-in racket [eval r:eval]]
+         (for-syntax racket/list))
+(provide ex-runner run-ex run-examples run-all-examples
+         core:examples phases:examples local:examples defs:examples)
+
+
+;;;; Example runner
+
+(define fail-count (make-parameter -1))
+
+(define (ex-runner run example mode)
+  (printf "~a: " (car example))
+  (println
+   (case mode
+     [(raw) (first (call-with-values (λ () (r:eval (cadr example)))
+                                     (λ args args)))]
+     [(check)
+      (fail-count (if (< (fail-count) 0) 0 (fail-count)))
+      (let* ([r1 (run (cadr example) 'eval)]
+             [r2 (first (call-with-values
+                         (λ () (r:eval (cadr example)))
+                         (λ args args)))]
+             [result (subset? (set r2) r1)])
+        (unless result
+          (fail-count (+ (fail-count) 1)))
+        result)]
+     [else (run (cadr example) mode)])))
+
+(define (run-ex run examples name [mode 'check])
+  (let ([example (assoc name examples)])
+    (when example (ex-runner run example mode))))
+
+(define (run-examples run examples [mode 'check])
+  (for ([example (in-list examples)])
+    (ex-runner run example mode)))
+
+(define ((run-all-examples all-runs all-examples) [mode 'check])
+  (parameterize ([fail-count (if (eq? mode 'check) 0 -1)])
+    (for ([run-info (in-list all-runs)])
+      (printf "[~a]\n" (car run-info))
+      (for ([i (in-range (cadr run-info))]
+            [examples (in-list all-examples)])
+        (run-examples (caddr run-info) examples mode)))
+    (when (>= (fail-count) 0)
+      (printf "\nfail-count: ~a\n" (fail-count)))))
 
 ;; ----------------------------------------
 ;; Core Examples:
