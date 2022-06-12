@@ -5,6 +5,7 @@
          "../struct-sig.rkt"
          "../syntax-sig.rkt"
          "../parse-sig.rkt"
+         "../store-sig.rkt"
          "../eval-sig.rkt"
          "../expand-sig.rkt")
 
@@ -15,7 +16,8 @@
         (only syntax^ empty-ctx snoc zip unzip in-hole add flip
               bind resolve id=?)
         (only parse^ parse)
-        (only eval^ init-env init-store -->))
+        (only store^ init-store)
+        (only eval^ init-env -->))
 (export expand^)
 
 ;; ----------------------------------------
@@ -97,7 +99,7 @@
 (define stx-nil (stx '() (empty-ctx)))
 
 ;; (: ==> : ζ -> (Setof ζ))
-(define-parameterized-reduction-relation (==>/Σ --> :=<1>)
+(define-reduction (==>/Σ --> :=<1>)
 
   ;; lambda
   [(ζ (Stxξ (Stx `(,(? id? id_lam)
@@ -275,7 +277,7 @@
   ;; application (canonical #%app version)
   [(ζ (Stxξ (Stx (cons (? id? id_app)
                          (Stx `(,stx_fun ,stl_args ...) _)) ctx) ξ)
-      '∘ κ0 Θ Σ)
+       '∘ κ0 Θ Σ)
    #:when (id=? id_app '#%app Σ)
    #:with (values 𝓁_new Θ_1) := (push-κ Θ κ0)
    (mk-ζ (stx&ξ (stx `(,id-seq ,stx-nil ,stx_fun ,@stl_args) ctx) ξ)

@@ -1,6 +1,6 @@
 #lang racket
 (require "../conc/base/reduction.rkt")
-(provide -->)
+(provide (reduction-out -->))
 
 (define-reduction (--> <+>) [(cons a b) (<+> a b) 'add])
 

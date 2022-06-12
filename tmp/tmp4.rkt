@@ -1,11 +1,10 @@
 #lang racket
 (require "../conc/base/reduction.rkt")
 
-(define-signature X^
-  (X))
-
-(define-signature Y^
-  (Y Y2))
+(define-signature I^ (I I2))
+(define-signature J^ (J))
+(define-signature X^ (X))
+(define-signature Y^ (Y Y2))
 
 (define-unit X@ (import) (export X^)
   (define X 200))
@@ -21,39 +20,51 @@
 (define-reduction (--> <+>) #:within-signatures [X^ Y^]
   [(cons a b) (<+> a b X Y Y2) 'add])
 
-(define reducer
-  (reducer-of --> #:within-units [X@ Y@])
-  ;; the above expands to the following code
-  #;
-  (invoke-unit
-   (compound-unit
-    (import) (export)
-    (link (([x : X^]) X@)
-          (([y : Y^]) Y@)
-          (([r : -->]) (unit (import (prefix x: X^)
-                                     (prefix y: Y^)) (export -->)
-                         (define X  x:X)
-                         (define Y  y:Y)
-                         (define Y2 y:Y2)) x y)
-          (() (unit (import -->) (export)
-                -->) r)))))
+;; reducer->unitで生成したunitがexportするred^を受け取るunitと
+;; 組み合わせる
+(define-unit reducer1@ (import red^) (export)
+  ((reducer +) (cons 5 6)))
+(invoke-unit (compound-unit
+              (import) (export)
+              (link (([x : X^]) X@)
+                    (([y : Y^]) Y@)
+                    (([r : red^]) (reduction->unit -->) x y)
+                    (() reducer1@ r))))
 
-((reducer *) (cons 3 4))
-
-(define reducer2
-  (reducer-of --> #:within-units [XY@])
-  ;; the above expands to the following code
-  #;
-  (invoke-unit
-   (compound-unit
-    (import) (export)
-    (link (([x : X^] [y : Y^]) XY@)
-          (([r : -->]) (unit (import (prefix x: X^)
-                                     (prefix y: Y^)) (export -->)
-                         (define X  x:X)
-                         (define Y  y:Y)
-                         (define Y2 y:Y2)) x y)
-          (() (unit (import -->) (export)
-                -->) r)))))
-
+;; reducer->unitで生成したunitが返すreducerを直接使用
+;; within-unitsとはcompound-unitで事前に組み合わせ
+(define reducer2 (invoke-unit (compound-unit
+                               (import) (export)
+                               (link (([x : X^] [y : Y^]) XY@)
+                                     (() (reduction->unit -->) x y)))))
 ((reducer2 +) (cons 3 4))
+
+
+;; reducer-ofの引数に直接within-unitsを渡してreducerを生成
+(define reducer3 (reducer-of --> #:within-units [X@ Y@]))
+((reducer3 *) (cons 3 4))
+
+;; reducer-ofの引数に渡すwithin-unitsは必要なsignaturesを供給していれば
+;; 個数は一致してなくても良い．
+(define reducer4 (reducer-of --> #:within-units [XY@]))
+((reducer4 +) (cons 3 4))
+
+(define-unit X/I@ (import I^) (export X^)
+  (define X I)
+  (printf "X: ~a\n" X))
+
+(define-unit Y/J@ (import J^) (export Y^)
+  (define Y J)
+  (define Y2 (* J J))
+  (printf "Y: ~a\n" Y)
+  (printf "Y2: ~a\n" Y2))
+
+(define I  22)
+(define I2 33)
+(define J  44)
+;; (invoke-unit (compose-unit X/I@ Y/J@)
+;;              (import I^ J^))
+
+;; reducer-of内部のinvoke-unitはcontextからII^, J^のbindingsを取得
+(define reducer5 (reducer-of --> #:within-units [X/I@ Y/J@]))
+((reducer5 /) (cons 3 4))

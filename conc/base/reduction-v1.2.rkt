@@ -1,12 +1,17 @@
 #lang racket
-(require "set.rkt" "queue.rkt" "nondet.rkt"
+(require racket/provide-syntax racket/require-syntax
+         "set.rkt" "queue.rkt" "nondet.rkt"
          (for-syntax racket racket/syntax
                      syntax/parse syntax/stx
                      racket/unit-exptime))
 (provide (all-defined-out)
-         (all-from-out "nondet.rkt"))
+         (all-from-out "nondet.rkt")
+         (for-syntax reduction-sig-id reduction-within-signatures
+                     signature-variables prefix-id))
 
 ;;;; non-deterministic reduction engine
+
+(define-signature red^ (reducer))
 
 (begin-for-syntax
   (define (make-clause-map clauses)
@@ -33,6 +38,8 @@
       [(b1 b ...)
        (with-syntax ([(b2 ...) (make-match-body #'(b ...))])
          #'(b1 b2 ...))]))
+
+  (struct reduction (sig-id within-signatures) #:transparent)
 
   (struct reduction-desc (params
                           super/meta super-args clause-map) #:transparent)
@@ -92,12 +99,12 @@
   (define-splicing-syntax-class options-spec
     (pattern (~seq (~alt (~optional (~seq #:super s:red-spec)
                                     #:name "#:super option")
-                         (~optional (~seq #:within-signatures [sig-id:id ...])
+                         (~optional (~seq #:within-signatures [sig-spec ...])
                                     #:name "#:within-units option"))
                    ...)
              #:with name #'(~? s.name #f)
              #:with args #'(~? s.params ())
-             #:with sigs #'(~? (sig-id ...) ())))
+             #:with sigs #'(~? (sig-spec ...) ())))
   )
 
 
@@ -105,23 +112,30 @@
   (syntax-parse stx
     [(_ r:red-spec opts:options-spec
         (~and [pat body ...+ name] clause) ...)
-     #:with red #'r.name
+     #:with red-st #'r.name
+     #:with red-sig (format-id #'red-st "~a^" #'red-st)
+     #:with red/meta (format-id #'red-st "~a/meta" #'red-st)
+     #:with super-red-st #'opts.name
+     #:with super-red-sig (and (syntax->datum #'super-red-st)
+                               (format-id #'super-red-st
+                                          "~a^" #'super-red-st))
+     #:with super-red/meta (and (syntax->datum #'super-red-st)
+                                (format-id #'super-red-st
+                                           "~a/meta" #'super-red-st))
      #:with (param ...) #'r.params
-     #:with super-red #'opts.name
-     #:with (arg ...) #'opts.args
-     #:with (sig-id ...) #'opts.sigs
-     (with-syntax ([red/meta (format-id #'red "~a/meta" #'red)]
-                   [super-red/meta (and (syntax->datum #'super-red)
-                                        (format-id #'super-red
-                                                   "~a/meta" #'super-red))])
-       (let* ([clause-map (make-clause-map (syntax->list #'(clause ...)))])
-         #`(define-signature red
-             #,@(if (syntax->datum #'super-red)
-                    #'(extends super-red)
+     #:with (arg ...)   #'opts.args
+     #:with (within-sig-id ...) #'opts.sigs
+     (let* ([clause-map (make-clause-map (syntax->list #'(clause ...)))]
+            [reduction-str (reduction #'red-sig #'(within-sig-id ...))])
+       #`(begin
+           (define-signature red-sig
+             #,@(if (syntax->datum #'super-red-sig)
+                    #`(extends super-red-sig)
                     #'())
-             ((open sig-id)
+
+             ((open within-sig-id)
               ...
-              (define-values (red) (#%reducer))
+              (define-values (red-sig) (#%reducer))
               (define-syntaxes (red/meta #%reducer)
                 (values
                  (reduction-desc #'(param ...)
@@ -129,10 +143,25 @@
                                  #'(arg ...) #,clause-map)
                  (λ (stx) #`(λ (param ...)
                                (λ (s) #,(make-reducer-body
-                                          #'red
+                                          #'red-st
                                           (syntax-local-value #'red/meta)
-                                          #'s #f '()))))))))))]))
+                                          #'s #f '()))))))))
+           (define-syntax red-st #,reduction-str)))]))
 
+(define-provide-syntax (reduction-out stx)
+  (syntax-case stx ()
+    [(_ red ...)
+     #`(combine-out red ...
+                    #,@(stx-map (λ (red) (format-id red "~a^" red))
+                                #'(red ...)))]))
+
+(define-require-syntax (reduction-in stx)
+  (syntax-case stx ()
+    [(_ path red ...)
+     #`(combine-in (only-in path red ...)
+                   (only-in path #,@(stx-map (λ (red)
+                                               (format-id red "~a^" red))
+                                             #'(red ...))))]))
 
 (begin-for-syntax
   (define (pair->tagged-sig-id p)
@@ -143,6 +172,10 @@
   (define ((prefix-id p) id)
     (format-id id "~a~a" p id))
 
+  (define (unit-static-imports unit-id err-syntax)
+    (call-with-values (λ () (unit-static-signatures unit-id err-syntax))
+                      (λ (impts _b) (map pair->tagged-sig-id impts))))
+
   (define (unit-static-exports unit-id err-syntax)
     (call-with-values (λ () (unit-static-signatures unit-id err-syntax))
                       (λ (_a expts) (map pair->tagged-sig-id expts))))
@@ -151,51 +184,84 @@
     (call-with-values (λ () (signature-members sig-id err-syntax))
                       (λ (_a vars _b _c) vars))))
 
+
+(define-syntax (reduction->unit stx)
+  (syntax-parse stx
+    [(_ red)
+     #:do [(define red-st (syntax-local-value #'red))]
+     #:with red-sig (reduction-sig-id red-st)
+     #:with (within-sig-id ...) (syntax-local-introduce
+                                 (reduction-within-signatures red-st))
+     #:with (link-id ...) (stx-map (λ (sig-id)
+                                     (generate-temporary sig-id))
+                                   #'(within-sig-id ...))
+     #:with (pre ...) (stx-map (λ (sig-id)
+                                 (generate-temporary sig-id))
+                               #'(within-sig-id ...))
+     #:with ((var ...) ...) (stx-map (λ (sig-id)
+                                       (signature-variables sig-id stx))
+                                     #'(within-sig-id ...))
+     #:with ((pvar ...) ...) (stx-map (λ (pre vars)
+                                        (stx-map (prefix-id pre) vars))
+                                      #'(pre ...) #'((var ...) ...))
+     #:with ((var2 ...) ...) (stx-map (λ (vars)
+                                        (stx-map syntax-local-introduce vars))
+                                      #'((var ...) ...))
+     #'(compound-unit
+        (import [link-id : within-sig-id] ...) (export r)
+        (link (([s : red-sig]) (unit
+                                 (import (prefix pre within-sig-id) ...)
+                                 (export red-sig)
+                                 (define var2 pvar) ... ...)
+                               link-id ...)
+              (([r : red^]) (unit (import red-sig) (export red^)
+                              (define reducer red-sig) reducer) s)))]))
+
+;; reductionとは直接関係のない unit の便利ユーティリティ
+(define-syntax (compose-unit stx)
+  (syntax-parse stx
+    [(_ unit-id ...)
+     #:with ((i-id ...) ...) (stx-map (λ (uid)
+                                        (unit-static-imports uid stx))
+                                      #'(unit-id ...))
+     #:with ((i-link ...) ...) (stx-map (λ (i-ids)
+                                          (stx-map generate-temporary i-ids))
+                                        #'((i-id ...) ...))
+     #:with ((e-id ...) ...) (stx-map (λ (uid)
+                                        (unit-static-exports uid stx))
+                                      #'(unit-id ...))
+     #:with ((e-link ...) ...) (stx-map (λ (e-ids)
+                                          (stx-map generate-temporary e-ids))
+                                        #'((e-id ...) ...))
+     #'(compound-unit
+        (import [i-link : i-id] ... ...) (export e-link ... ...)
+        (link (([e-link : e-id] ...) unit-id i-link ...)
+              ...))]))
+
+
 ;; (reducer-of red) : state -> (Set state ...)
 (define-syntax (reducer-of stx)
-  (syntax-case stx ()
+  (syntax-parse stx
     [(_ red)
      #'(reducer-of red #:within-units [])]
     [(_ red #:within-units [unit-id ...])
-     (with-syntax*
-       ([((sig-id ...) ...)
-         (stx-map (λ (unit-id) (unit-static-exports unit-id stx))
-                  #'(unit-id ...))]
-        [((link-id ...) ...)
-         (stx-map (λ (sig-ids) (generate-temporaries sig-ids))
-                  #'((sig-id ...) ...))]
-        [((pre ...) ...)
-         (stx-map (λ (sig-ids) (generate-temporaries sig-ids))
-                  #'((sig-id ...) ...))]
-        [(((var ...) ...) ...)
-         (stx-map (λ (sig-ids)
-                    (stx-map (λ (sig-id) (signature-variables sig-id stx))
-                             sig-ids))
-                  #'((sig-id ...) ...))]
-        [((pvar ...) ...)
-         (stx-map (λ (pres varss)
-                    (append-map (λ (pre vars)
-                                  (stx-map (prefix-id pre) vars))
-                                (syntax->list pres)
-                                (syntax->list varss)))
-                  #'((pre ...) ...) #'(((var ...) ...) ...))]
-        [((var2 ...) ...)
-         (stx-map (λ (varss)
-                    (append-map (λ (vars)
-                                  (stx-map syntax-local-introduce vars))
-                                (syntax->list varss)))
-                  #'(((var ...) ...) ...))])
-       #`(invoke-unit
-          (compound-unit
-           (import) (export)
-           (link (([link-id : sig-id] ...) unit-id)
-                 ...
-                 (([r : red]) (unit
-                                (import (prefix pre sig-id) ... ...)
-                                (export red)
-                                (define var2 pvar) ... ...)
-                              link-id ... ...)
-                 (() (unit (import red) (export) red) r)))))]))
+     #:with (within-sig-id ...) (reduction-within-signatures
+                                 (syntax-local-value #'red))
+     #:with (link-id ...) (stx-map (λ (sig-id)
+                                     (generate-temporary sig-id))
+                                   #'(within-sig-id ...))
+     #:with ((i-id ...) ...) (stx-map (λ (uid) (unit-static-imports uid stx))
+                                      #'(unit-id ...))
+     #:with ((i-link ...) ...) (stx-map (λ (i-ids)
+                                          (stx-map generate-temporary i-ids))
+                                        #'((i-id ...) ...))
+     #'(invoke-unit (compound-unit
+                     (import [i-link : i-id] ... ...) (export)
+                     (link (([link-id : within-sig-id] ...)
+                            (compose-unit unit-id ...)
+                            i-link ... ...)
+                           (() (reduction->unit red) link-id ...)))
+                    (import i-id ... ...))]))
 
 
 ;(: apply-reduction-relation* (∀ [A] (->* ((-> A (Setof A)) A)

@@ -6,6 +6,8 @@
          "../io.rkt"
          "../delta.rkt"
          "../parse-sig.rkt"  "parse-unit.rkt"
+         "../store-sig.rkt" "store-unit.rkt"
+         "../cont-sig.rkt" "cont-unit.rkt"
          "../eval-sig.rkt"   "eval-unit.rkt"
          "../expand-sig.rkt" "expand-unit.rkt"
          "../run.rkt"
@@ -16,7 +18,8 @@
 (define-signature main^
   (ast&env mk-ζ stx&ξ              ;; struct^
    empty-ctx strip                 ;; syntax^
-   init-env init-store --> eval    ;; eval^
+   init-store                      ;; store^
+   init-env --> eval               ;; eval^
    init-ξ init-Θ init-Σ ==> expand ;; expand^
    reader printer                  ;; io^
    run                             ;; run^
@@ -26,17 +29,19 @@
   (unit/new-import-export
    (import)
    (export main^)
-   ((struct^ syntax^ io^ eval^ expand^ run^)
+   ((struct^ syntax^ store^ eval^ expand^ io^ run^)
     (compound-unit
      (import)
-     (export str stx io p ev ex r)
+     (export str stx io p st ev ex r)
      (link (([str : struct^]) struct@)
            (([stx : syntax^]) syntax@ str)
            (([io  : io^])     io@     str stx)
            (([d   : delta^])  delta@  str)
            (([p   : parse^])  parse@  str stx)
-           (([ev  : eval^])   eval@   str d)
-           (([ex  : expand^]) expand@ str stx p ev)
+           (([st  : store^])  store@  str)
+           (([c   : cont^])   cont@   st)
+           (([ev  : eval^])   eval@   str d st c)
+           (([ex  : expand^]) expand@ str stx st p ev)
            (([r   : run^])    run@    io p ev ex)))))
   (import)
   (export main^))

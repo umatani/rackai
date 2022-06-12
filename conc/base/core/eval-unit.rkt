@@ -1,85 +1,20 @@
-#lang racket/unit
-(require (except-in racket set do)
-         "../set.rkt" "../dprint.rkt" "../reduction.rkt"
+#lang racket
+(require "../set.rkt" "../dprint.rkt" "../reduction.rkt"
 
          "../struct-sig.rkt"
          (only-in "../delta.rkt" delta^)
+         "../env-sig.rkt"
+         "../store-sig.rkt"
+         "../cont-sig.rkt"
          "../eval-sig.rkt")
-
-(import (only struct^
-              store Store-tbl Store-size Var? Var-nam
-              Fun VFun? VFun-vars VFun-ast VFun-env vfun
-              App SApp sapp KApp kapp 
-              If SIf sif KIf kif val? prim? AstEnv ast&env)
-        (only delta^
-              delta))
-(export eval^)
-
 
 ;; ----------------------------------------
 ;; Evaluating AST:
 
-; (: init-env : -> Env)
-(define (init-env) (make-immutable-hash))
-
-;(: lookup-env : Env Var -> Loc)
-(define (lookup-env env var) (hash-ref env var))
-
-;(: update-env : Env (Listof Var) (Listof Loc) -> Env)
-(define (update-env env vars locs)
-  (foldl (λ (v l e) (hash-set e v l))
-         env vars locs))
-
-; (: init-store : -> Store)
-(define (init-store) (store 0 (make-immutable-hash)))
-
-;(: lookup-store : Store Loc -> (U Val Cont))
-(define (lookup-store st loc)
-  (dprint 'core 'lookup-store "")
-  (hash-ref (Store-tbl st) loc))
-
-;(: update-store : Store Loc (U Val Cont) -> Store)
-(define (update-store st loc u)
-  (dprint 'core 'update-store "")
-  (store (Store-size st)
-         (hash-set (Store-tbl st) loc u)))
-
-;(: update-store* : Store (Listof Loc) (Listof (U Val Cont)) -> Store)
-(define (update-store* st locs us)
-  (dprint 'core 'update-store* "")
-  (store (Store-size st)
-         (foldl (λ (l u t) (hash-set t l u))
-                (Store-tbl st) locs us)))
-
-;(: alloc-loc : Store -> (Values Loc Store))
-(define (alloc-loc st)
-  (dprint 'core 'alloc-loc "")
-  (let ([size (Store-size st)])
-    (values (string->symbol (format "l~a" size))
-            (store (add1 size) (Store-tbl st)))))
-
-;; for eval-time value binding
-;(: alloc-loc* : (Listof Nam) Store -> (Values (Listof Loc) Store))
-(define (alloc-loc* nams st)
-  (dprint 'core 'alloc-loc* "")
-  (match nams
-    ['() (values '() st)]
-    [(list nam1 nams ...)
-     (let* ([size (Store-size st)]
-            [loc_0 (string->symbol (format "~a:~a" nam1 size))])
-       (let-values ([(locs_new store_new)
-                     (alloc-loc* nams (store (add1 size) (Store-tbl st)))])
-         (values (cons loc_0 locs_new) store_new)))]))
-
-;(: push-cont : Store Cont -> (Values Loc Store))
-(define (push-cont st cont)
-  (let-values ([(loc store_1) (alloc-loc st)])
-    (let ([store_2 (update-store store_1 loc cont)])
-      (values loc store_2))))
-
 
 ;; (: --> : State -> (Setof State))
-(define-parameterized-reduction-relation (-->/store delta :=<1>)
+(define-reduction (-->/store delta :=<1>)
+  #:within-signatures [struct^ env^ store^ cont^]
 
   ;; propagate env into subterms
   [`(,(AstEnv (If ast_test ast_then ast_else) env) ,cont ,store)
@@ -163,14 +98,30 @@
    `(,tm_then ,cont ,store)
    ev-if-#t])
 
-(define --> ((reducer-of -->/store) delta :=))
+#; (define --> ((reducer-of -->/store #:within-units ...) delta :=))
 
-; (: eval : Ast -> Val)
-(define ((eval/--> -->) ast)
-  (match-let ([(set `(,(? val? val) • ,_store))
-               (apply-reduction-relation*
-                --> `(,(ast&env ast (init-env)) • ,(init-store)))])
-    val))
+#;
+(define-unit eval@
+  (import (only struct^
+                store Store-tbl Store-size Var? Var-nam
+                Fun VFun? VFun-vars VFun-ast VFun-env vfun
+                App SApp sapp KApp kapp 
+                If SIf sif KIf kif val? prim? AstEnv ast&env)
+          (only store^
+                init-store lookup-store update-store* alloc-loc*)
+          (only cont^ push-cont)
+          (only delta^
+                delta))
+  (export eval^)
 
-(define eval (eval/--> -->))
-(define evaluate eval)
+
+
+  ; (: eval : Ast -> Val)
+  (define ((eval/--> -->) ast)
+    (match-let ([(set `(,(? val? val) • ,_store))
+                 (apply-reduction-relation*
+                  --> `(,(ast&env ast (init-env)) • ,(init-store)))])
+      val))
+
+  (define eval (eval/--> -->))
+  (define evaluate eval))

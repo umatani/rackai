@@ -211,6 +211,25 @@ reduction（==>/store）を内部で定義する unit は，
   ))
 ```
 
+### 結論
+
+他のunitのbindingsをreduction中で使用する名前の実体とするため，
+`tmp/tmp3.rkt`のようにunit定義の内部で`define-reduction`をしたいが，
+`unit`内部で展開コードの`define-signature`をしても無意味．
+
+紆余曲折の末，unitと組み合わせられるバージョンが完成（reduction-v1.2.rkt）．
+簡単な使い方は`tmp/tmp4.rkt`参照．
+
+それに伴い，`tmp3.rkt`のようにunitの内部ではなく define-reductionの
+superとして親定義を参照するためには，reduction構造体そのもの(-->)ではなく，
+それに対応する signature (-->^)を require しなければいけない．
+分かりにくいので，require/provideの derived form を用意し，
+```racket
+(provide (reduction-out --> ...))
+(require (reduction-in "tmp2.rkt" --> ...)
+```
+と書けるようにする．
+
 ## 評価
 
 「健全性(レキシカルスコープ)を捨て去ることによるデメリットはないのか？」

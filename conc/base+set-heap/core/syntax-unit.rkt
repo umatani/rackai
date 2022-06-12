@@ -7,7 +7,8 @@
 (define-unit syntax@
   (import (only struct^
                 Stx Sym Σ mk-Σ Σ-tbl StoBind-scps stobind)
-          (prefix base: syntax^))
+          (prefix base: (except syntax^
+                                bind lookup-Σ resolve id=?)))
   (export syntax^)
 
   (define empty-ctx      base:empty-ctx)
@@ -28,11 +29,6 @@
   (define add-stl        base:add-stl)
   (define flip           base:flip)
   (define flip-stl       base:flip-stl)
-  ;(define bind           base:bind)
-  ;(define lookup-Σ       base:lookup-Σ)
-  ;(define resolve        base:resolve)
-  ;(define id=?           base:id=?)
-
 
   ;; Set-based Σ
 
