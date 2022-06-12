@@ -5,8 +5,7 @@
          "../env-sig.rkt"
          "../store-sig.rkt"
          "../cont-sig.rkt"
-
-         (only-in "../delta.rkt" delta^)
+         "../delta-sig.rkt"
          "../eval-sig.rkt")
 (provide eval-red@ eval@)
 
