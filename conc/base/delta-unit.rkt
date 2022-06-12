@@ -1,7 +1,7 @@
 #lang racket/unit
 (require racket
-         "struct-sig.rkt"
-         "delta-sig.rkt")
+         "../../struct-sig.rkt"
+         "../../delta-sig.rkt")
 
 (import (only struct^ Sym Stx stx stx? Sym? atom?))
 (export delta^)

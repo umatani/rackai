@@ -1,12 +1,12 @@
 #lang racket/unit
 (require (rename-in (except-in racket do))
-         "nondet.rkt"
+         "../../nondet.rkt"
 
-         "eval-sig.rkt"
-         "parse-sig.rkt"
-         "expand-sig.rkt"
-         "io-sig.rkt"
-         "run-sig.rkt")
+         "../../eval-sig.rkt"
+         "../../parse-sig.rkt"
+         "../../expand-sig.rkt"
+         "../../io-sig.rkt"
+         "../../run-sig.rkt")
 
 ;;;; runner
 

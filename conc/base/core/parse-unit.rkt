@@ -1,9 +1,9 @@
 #lang racket/unit
 (require racket
-         "../struct-sig.rkt"
-         "../syntax-sig.rkt"
-         "../mstore-sig.rkt"
-         "../parse-sig.rkt")
+         "../../../struct-sig.rkt"
+         "../../../syntax-sig.rkt"
+         "../../../mstore-sig.rkt"
+         "../../../parse-sig.rkt")
 
 (import (only struct^
               Stx atom? id? var fun app iif proper-stl?)

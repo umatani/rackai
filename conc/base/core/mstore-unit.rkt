@@ -1,9 +1,11 @@
 #lang racket/unit
-(require racket "../dprint.rkt"
-         "../struct-sig.rkt"
-         "../syntax-sig.rkt"
-         "../menv-sig.rkt"
-         "../mstore-sig.rkt")
+(require racket
+         "../../../dprint.rkt"
+
+         "../../../struct-sig.rkt"
+         "../../../syntax-sig.rkt"
+         "../../../menv-sig.rkt"
+         "../../../mstore-sig.rkt")
 
 (import (only struct^ Σ mk-Σ Σ-tbl Stx Sym stobind StoBind-scps tvar)
         (only syntax^

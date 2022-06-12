@@ -1,7 +1,7 @@
 #lang racket/unit
 (require racket
-         "../struct-sig.rkt"
-         "../mcont-sig.rkt")
+         "../../../struct-sig.rkt"
+         "../../../mcont-sig.rkt")
 
 (import (only struct^ Θ mk-Θ Θ-tbl mk-𝓁))
 (export mcont^)

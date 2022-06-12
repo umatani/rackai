@@ -1,7 +1,9 @@
 #lang racket/unit
-(require racket/match "../dprint.rkt"
-         "../struct-sig.rkt"
-         "../store-sig.rkt")
+(require racket/match
+         "../../../dprint.rkt"
+
+         "../../../struct-sig.rkt"
+         "../../../store-sig.rkt")
 
 (import (only struct^
               store Store-tbl Store-size))

@@ -1,17 +1,19 @@
 #lang racket
 (require (except-in racket set do)
-         "../set.rkt" "../dprint.rkt" "../reduction.rkt"
+         "../../../set.rkt"
+         "../../../dprint.rkt"
+         "../../../reduction.rkt"
 
-         "../struct-sig.rkt"
-         "../syntax-sig.rkt"
-         "../parse-sig.rkt"
-         "../env-sig.rkt"
-         "../store-sig.rkt"
-         "../eval-sig.rkt"
-         "../menv-sig.rkt"
-         "../mstore-sig.rkt"
-         "../mcont-sig.rkt"
-         "../expand-sig.rkt")
+         "../../../struct-sig.rkt"
+         "../../../syntax-sig.rkt"
+         "../../../parse-sig.rkt"
+         "../../../env-sig.rkt"
+         "../../../store-sig.rkt"
+         "../../../eval-sig.rkt"
+         "../../../menv-sig.rkt"
+         "../../../mstore-sig.rkt"
+         "../../../mcont-sig.rkt"
+         "../../../expand-sig.rkt")
 (provide expand-red@ expand@)
 
 ;; ----------------------------------------

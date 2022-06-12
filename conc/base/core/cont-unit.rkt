@@ -1,6 +1,6 @@
 #lang racket/unit
-(require "../store-sig.rkt"
-         "../cont-sig.rkt")
+(require "../../../store-sig.rkt"
+         "../../../cont-sig.rkt")
 
 (import (only store^
               alloc-loc update-store))

@@ -1,5 +1,5 @@
 #lang racket/unit
-(require "../menv-sig.rkt")
+(require "../../../menv-sig.rkt")
 
 (import)
 (export menv^)

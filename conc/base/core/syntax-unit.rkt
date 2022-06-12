@@ -1,8 +1,10 @@
 #lang racket/unit
 (require (except-in racket set)
-         "../set.rkt" "../dprint.rkt"
-         "../struct-sig.rkt"
-         "../syntax-sig.rkt")
+         "../../../set.rkt"
+         "../../../dprint.rkt"
+
+         "../../../struct-sig.rkt"
+         "../../../syntax-sig.rkt")
 
 (import (only struct^
               Stx stx stx? Stxξ stx&ξ Sym sym atom? Hole

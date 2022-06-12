@@ -1,12 +1,14 @@
 #lang racket
-(require "../set.rkt" "../dprint.rkt" "../reduction.rkt"
+(require "../../../set.rkt"
+         "../../../dprint.rkt"
+         "../../../reduction.rkt"
 
-         "../struct-sig.rkt"
-         "../env-sig.rkt"
-         "../store-sig.rkt"
-         "../cont-sig.rkt"
-         "../delta-sig.rkt"
-         "../eval-sig.rkt")
+         "../../../struct-sig.rkt"
+         "../../../env-sig.rkt"
+         "../../../store-sig.rkt"
+         "../../../cont-sig.rkt"
+         "../../../delta-sig.rkt"
+         "../../../eval-sig.rkt")
 (provide eval-red@ eval@)
 
 ;; ----------------------------------------

@@ -1,5 +1,6 @@
 #lang racket/unit
-(require racket "../struct-sig.rkt")
+(require racket
+         "../../../struct-sig.rkt")
 
 (import)
 (export struct^)

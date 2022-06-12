@@ -1,8 +1,8 @@
 #lang racket/unit
 (require racket
-         "struct-sig.rkt"
-         "syntax-sig.rkt"
-         "io-sig.rkt")
+         "../../struct-sig.rkt"
+         "../../syntax-sig.rkt"
+         "../../io-sig.rkt")
 
 ;;;; reader & printer
 
