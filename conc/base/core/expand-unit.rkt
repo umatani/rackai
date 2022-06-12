@@ -1,105 +1,25 @@
-#lang racket/unit
+#lang racket
 (require (except-in racket set do)
          "../set.rkt" "../dprint.rkt" "../reduction.rkt"
 
          "../struct-sig.rkt"
          "../syntax-sig.rkt"
          "../parse-sig.rkt"
+         "../env-sig.rkt"
          "../store-sig.rkt"
          "../eval-sig.rkt"
+         "../menv-sig.rkt"
+         "../mstore-sig.rkt"
+         "../mcont-sig.rkt"
          "../expand-sig.rkt")
-
-(import (only struct^ Stx stx stx? proper-stl? Sym sym id? val? atom?
-              app ast&env
-              Stxξ stx&ξ ζ mk-ζ hole InEval in-eval
-              κ mk-κ Θ Θ-tbl mk-Θ Σ mk-Σ mk-𝓁 TVar TVar? tvar)
-        (only syntax^ empty-ctx snoc zip unzip in-hole add flip
-              bind resolve id=?)
-        (only parse^ parse)
-        (only store^ init-store)
-        (only eval^ init-env -->))
-(export expand^)
+(provide expand-red@ expand@)
 
 ;; ----------------------------------------
 ;; The expander:
 
-;; ----------------------------------------
-;; Expand-time environment operations:
-
-; (: init-ξ : -> ξ)
-(define (init-ξ) (make-immutable-hash))
-
-; (: lookup-ξ : ξ Nam -> AllTransform)
-(define (lookup-ξ ξ nam) (hash-ref ξ nam (λ () 'not-found)))
-
-; (: extend-ξ : ξ Nam AllTransform -> ξ)
-(define (extend-ξ ξ nam all-transform) (hash-set ξ nam all-transform))
-
-;; ----------------------------------------
-;; Expand-time stack operations:
-
-; (: init-Θ : -> Θ)
-(define (init-Θ) (mk-Θ 0 (make-immutable-hash)))
-
-; (: alloc-κ : Θ -> (Values 𝓁 Θ))
-(define (alloc-κ θ)
-  (match-let ([(Θ size tbl) θ])
-    (values (mk-𝓁 (string->symbol (format "k~a" size)))
-            (mk-Θ (add1 size) tbl))))
-
-; (: lookup-κ : Θ 𝓁 -> κ)
-(define (lookup-κ θ 𝓁) (hash-ref (Θ-tbl θ) 𝓁))
-
-; (: update-κ : Θ 𝓁 κ -> Θ)
-(define (update-κ θ 𝓁 κ)
-  (match-let ([(Θ size tbl) θ])
-    (mk-Θ size (hash-set tbl 𝓁 κ))))
-
-; (: push-κ : Θ κ -> (Values 𝓁 Θ))
-(define (push-κ θ κ)
-  (let-values ([(𝓁 θ_1) (alloc-κ θ)])
-    (values 𝓁 (update-κ θ_1 𝓁 κ))))
-
-;; ----------------------------------------
-;; Alloc name & scope helpers for expander:
-
-; (: init-Σ : -> Σ)
-(define (init-Σ) (mk-Σ 0 (make-immutable-hash)))
-
-; (: alloc-name : Id Σ -> (Values Nam Σ))
-(define (alloc-name id Σ0)
-  (dprint 'core 'alloc-name "")
-  (match-let ([(Stx (Sym nam) _) id]
-              [(Σ size tbl) Σ0])
-    (values (string->symbol (format "~a:~a" nam size))
-            (mk-Σ (add1 size) tbl))))
-
-; (: alloc-scope : Symbol Σ -> (Values Scp Σ))
-(define (alloc-scope s Σ0)
-  (dprint 'core 'alloc-scope "")
-  (match-let ([(Σ size tbl) Σ0])
-    (values (string->symbol (format "~a::~a" s size))
-            (mk-Σ (add1 size) tbl))))
-
-;(: regist-vars : Scp ProperStl ξ Σ -> (Values ProperStl ξ Σ))
-(define (regist-vars scp stl ξ Σ)
-  (match stl
-    ['() (values '() ξ Σ)]
-    [(cons (app (λ (stx) stx) id) stl)
-     (let*-values ([(stl_reg ξ_1 Σ_1) (regist-vars scp stl ξ Σ)]
-                   [(nam_new Σ_2) (alloc-name id Σ_1)]
-                   [(id_new) (add id scp)]
-                   [(Σ_3) (bind Σ_2 id_new nam_new)]
-                   [(ξ_2) (extend-ξ ξ_1 nam_new (tvar id_new))])
-       (values (cons id_new stl_reg) ξ_2 Σ_3))]))
-
-(define id-kont (stx (sym '#%kont) (empty-ctx)))
-(define id-seq (stx (sym '#%seq)  (empty-ctx)))
-(define id-snoc (stx (sym '#%snoc) (empty-ctx)))
-(define stx-nil (stx '() (empty-ctx)))
-
 ;; (: ==> : ζ -> (Setof ζ))
-(define-reduction (==>/Σ --> :=<1>)
+(define-reduction (==> --> :=<1>)
+  #:within-signatures [struct^ syntax^ env^ store^ menv^ mstore^ mcont^ parse^]
 
   ;; lambda
   [(ζ (Stxξ (Stx `(,(? id? id_lam)
@@ -377,17 +297,26 @@
    (in-eval s2 ζ0)
    ex-in-eval])
 
-(define ==> ((reducer-of ==>/Σ) --> :=))
+(define expand-red@ (reduction->unit ==>))
 
-;(: expand : Stx ξ Σ -> (Cons Stx Σ))
-(define ((expand/==> ==>) stx0 ξ Σ)
-  (let ([init-ζ (mk-ζ (stx&ξ stx0 ξ) '∘ '• (init-Θ) Σ)])
-    (match-let ([(set (ζ stx_new '• '• Θ_new Σ_new))
-                 (apply-reduction-relation* ==> init-ζ)])
-      (cons stx_new Σ_new))))
+(define-unit expand@
+  (import (only struct^ ζ mk-ζ stx&ξ)
+          (only eval^ -->)
+          (only menv^ init-ξ)
+          (only mstore^ init-Σ)
+          (only mcont^ init-Θ)
+          (only red^ reducer))
+  (export expand^)
 
-(define expand (expand/==> ==>))
+  (define ==> (reducer --> :=))
 
-;(: expander : Stx -> (Values Stx Σ))
-(define (expander stx)
-  (expand stx (init-ξ) (init-Σ)))
+  ;(: expand : Stx ξ Σ -> (Cons Stx Σ))
+  (define (expand stx0 ξ Σ)
+    (let ([init-ζ (mk-ζ (stx&ξ stx0 ξ) '∘ '• (init-Θ) Σ)])
+      (match-let ([(set (ζ stx_new '• '• Θ_new Σ_new))
+                   (apply-reduction-relation* ==> init-ζ)])
+        (cons stx_new Σ_new))))
+
+  ;(: expander : Stx -> (Values Stx Σ))
+  (define (expander stx)
+    (expand stx (init-ξ) (init-Σ))))

@@ -11,7 +11,9 @@
 
 ;;;; non-deterministic reduction engine
 
-(define-signature red^ (reducer))
+(define-signature red^
+  (reducer ;; Param ... -> State -> (Setof State)
+   ))
 
 (begin-for-syntax
   (define (make-clause-map clauses)
@@ -239,7 +241,7 @@
               ...))]))
 
 
-;; (reducer-of red) : state -> (Set state ...)
+;; (reducer-of red) : State -> (Setof State)
 (define-syntax (reducer-of stx)
   (syntax-parse stx
     [(_ red)

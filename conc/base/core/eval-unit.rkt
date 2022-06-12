@@ -2,18 +2,20 @@
 (require "../set.rkt" "../dprint.rkt" "../reduction.rkt"
 
          "../struct-sig.rkt"
-         (only-in "../delta.rkt" delta^)
          "../env-sig.rkt"
          "../store-sig.rkt"
          "../cont-sig.rkt"
+
+         (only-in "../delta.rkt" delta^)
          "../eval-sig.rkt")
+(provide eval-red@ eval@)
 
 ;; ----------------------------------------
 ;; Evaluating AST:
 
 
 ;; (: --> : State -> (Setof State))
-(define-reduction (-->/store delta :=<1>)
+(define-reduction (--> delta :=<1>)
   #:within-signatures [struct^ env^ store^ cont^]
 
   ;; propagate env into subterms
@@ -98,30 +100,21 @@
    `(,tm_then ,cont ,store)
    ev-if-#t])
 
-#; (define --> ((reducer-of -->/store #:within-units ...) delta :=))
+(define eval-red@ (reduction->unit -->))
 
-#;
 (define-unit eval@
-  (import (only struct^
-                store Store-tbl Store-size Var? Var-nam
-                Fun VFun? VFun-vars VFun-ast VFun-env vfun
-                App SApp sapp KApp kapp 
-                If SIf sif KIf kif val? prim? AstEnv ast&env)
-          (only store^
-                init-store lookup-store update-store* alloc-loc*)
-          (only cont^ push-cont)
-          (only delta^
-                delta))
+  (import (only struct^ ast&env val?)
+          (only env^ init-env)
+          (only store^ init-store)
+          (only delta^ delta)
+          (only red^ reducer))
   (export eval^)
 
+  (define --> (reducer delta :=))
 
-
-  ; (: eval : Ast -> Val)
-  (define ((eval/--> -->) ast)
+  ; (: evaluate : Ast -> Val)
+  (define (evaluate ast)
     (match-let ([(set `(,(? val? val) • ,_store))
                  (apply-reduction-relation*
                   --> `(,(ast&env ast (init-env)) • ,(init-store)))])
-      val))
-
-  (define eval (eval/--> -->))
-  (define evaluate eval))
+      val)))

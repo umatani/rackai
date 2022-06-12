@@ -37,12 +37,10 @@ add-stl ; Stl Scp -> Stl
 flip ; Stx Scp -> Stx
 flip-stl ; Stl Scp -> Stl
 
-;; Add a binding using the name and scopes of an identifier, mapping
-;; them in the store to a given name
-bind ; Σ Id Nam -> Σ
+;; ----------------------------------------
+;; Constants:
 
-lookup-Σ ; Σ Nam -> (U (Setof StoBind) Val ξ)
-
-resolve ; Id Σ -> Nam
-id=? ; Id Nam Σ -> Boolean
-
+id-kont ; id
+id-seq  ; id
+id-snoc ; id
+stx-nil ; Stx

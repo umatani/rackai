@@ -2,12 +2,15 @@
 (require racket
          "../struct-sig.rkt"
          "../syntax-sig.rkt"
+         "../mstore-sig.rkt"
          "../parse-sig.rkt")
 
 (import (only struct^
               Stx atom? id? var fun app iif proper-stl?)
-        (rename (only syntax^
-                      unzip strip resolve id=?)
+        (only syntax^
+              unzip strip)
+        (rename (only mstore^
+                      resolve id=?)
                 [stx:id=? id=?]))
 (export parse^)
 
