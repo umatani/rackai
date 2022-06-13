@@ -1,5 +1,5 @@
 #lang racket
-(require "../conc/base/reduction.rkt")
+(require "../reduction.rkt")
 
 (define-signature I^ (I I2))
 (define-signature J^ (J))

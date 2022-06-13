@@ -5,9 +5,7 @@
                      syntax/parse syntax/stx
                      racket/unit-exptime))
 (provide (all-defined-out)
-         (all-from-out "nondet.rkt")
-         (for-syntax reduction-sig-id reduction-within-signatures
-                     signature-variables prefix-id))
+         (all-from-out "nondet.rkt"))
 
 ;;;; non-deterministic reduction engine
 
@@ -41,7 +39,7 @@
        (with-syntax ([(b2 ...) (make-match-body #'(b ...))])
          #'(b1 b2 ...))]))
 
-  (struct reduction (sig-id within-signatures) #:transparent)
+  (struct reduction (sig-id meta-id within-signatures) #:transparent)
 
   (struct reduction-desc (params
                           super/meta super-args clause-map) #:transparent)
@@ -119,16 +117,18 @@
      #:with red/meta (format-id #'red-st "~a/meta" #'red-st)
      #:with super-red-st #'opts.name
      #:with super-red-sig (and (syntax->datum #'super-red-st)
-                               (format-id #'super-red-st
-                                          "~a^" #'super-red-st))
+                               (reduction-sig-id
+                                (syntax-local-value #'super-red-st)))
      #:with super-red/meta (and (syntax->datum #'super-red-st)
-                                (format-id #'super-red-st
-                                           "~a/meta" #'super-red-st))
+                               (reduction-meta-id
+                                (syntax-local-value #'super-red-st)))
      #:with (param ...) #'r.params
      #:with (arg ...)   #'opts.args
      #:with (within-sig-id ...) #'opts.sigs
      (let* ([clause-map (make-clause-map (syntax->list #'(clause ...)))]
-            [reduction-str (reduction #'red-sig #'(within-sig-id ...))])
+            [reduction-str (reduction #'red-sig
+                                      #'red/meta
+                                      #'(within-sig-id ...))])
        #`(begin
            (define-signature red-sig
              #,@(if (syntax->datum #'super-red-sig)
@@ -148,7 +148,9 @@
                                           #'red-st
                                           (syntax-local-value #'red/meta)
                                           #'s #f '()))))))))
-           (define-syntax red-st #,reduction-str)))]))
+           (define-syntax red-st (reduction #'red-sig
+                                            #'red/meta
+                                            #'(within-sig-id ...)))))]))
 
 (define-provide-syntax (reduction-out stx)
   (syntax-case stx ()

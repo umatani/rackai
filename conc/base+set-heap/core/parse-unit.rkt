@@ -1,16 +1,19 @@
 #lang racket/unit
 (require (except-in racket set do)
-         "../../base/set.rkt"
-         "../../base/nondet.rkt"
+         "../../../set.rkt"
+         "../../../nondet.rkt"
 
-         "../../base/struct-sig.rkt"
-         "../../base/syntax-sig.rkt"
-         "../../base/parse-sig.rkt")
+         "../../../struct-sig.rkt"
+         "../../../syntax-sig.rkt"
+         "../../../mstore-sig.rkt"
+         "../../../parse-sig.rkt")
 
 (import (only struct^
               Stx proper-stl? var fun app iif atom? id?)
-        (rename (only syntax^
-                      unzip strip resolve id=?)
+        (only syntax^
+              unzip strip)
+        (rename (only mstore^
+                      resolve id=?)
                 [stx:id=? id=?]))
 (export parse^)
 

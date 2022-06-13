@@ -3,5 +3,5 @@
 ;; ----------------------------------------
 ;; Evaluating AST:
 
---> ; State -> (Setof State)
+-->      ; State -> (Setof State)
 evaluate ; Ast -> Val

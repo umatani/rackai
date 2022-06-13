@@ -1,6 +1,6 @@
 #lang racket
-(require "../conc/base/reduction.rkt"
-         (reduction-in "tmp2.rkt" -->))
+(require "../reduction.rkt"
+         (only-in "tmp2.rkt" --> -->^))
 
 ;; tmp2.rktからは --> ではなく -->^ が必要
 (define-reduction ==> #:super (--> /)

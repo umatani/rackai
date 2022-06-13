@@ -9,7 +9,7 @@
          "../../../cont-sig.rkt"
          "../../../delta-sig.rkt"
          "../../../eval-sig.rkt")
-(provide eval-red@ eval@)
+(provide eval-red@ eval@ (reduction-out -->))
 
 ;; ----------------------------------------
 ;; Evaluating AST:

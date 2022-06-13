@@ -319,6 +319,6 @@
                    (apply-reduction-relation* ==> init-ζ)])
         (cons stx_new Σ_new))))
 
-  ;(: expander : Stx -> (Values Stx Σ))
+  ;(: expander : Stx -> (Cons Stx Σ))
   (define (expander stx)
     (expand stx (init-ξ) (init-Σ))))

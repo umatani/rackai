@@ -1,15 +1,17 @@
 #lang racket/unit
 (require (except-in racket set do)
-         "../../base/set.rkt" "../../base/nondet.rkt"
-         "../../base/struct-sig.rkt"
-         "../../base/store-sig.rkt")
+         "../../../set.rkt"
+         "../../../nondet.rkt"
+
+         "../../../struct-sig.rkt"
+         "../../../store-sig.rkt")
 
 (import (only struct^
               store Store-size Store-tbl)
         (prefix base: (only store^ init-store)))
 (export store^)
 
-(define init-store    base:init-store)
+(define init-store base:init-store)
 
 
 ;; Set-based heap
