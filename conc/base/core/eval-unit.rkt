@@ -9,7 +9,7 @@
          "../../../cont-sig.rkt"
          "../../../delta-sig.rkt"
          "../../../eval-sig.rkt")
-(provide eval-red@ eval@ (reduction-out -->))
+(provide eval-red@ eval@ -->)
 
 ;; ----------------------------------------
 ;; Evaluating AST:
@@ -113,7 +113,7 @@
 
   (define --> (reducer delta :=))
 
-  ; (: evaluate : Ast -> Val)
+  ; evaluate : Ast -> Val
   (define (evaluate ast)
     (match-let ([(set `(,(? val? val) • ,_store))
                  (apply-reduction-relation*

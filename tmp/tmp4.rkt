@@ -3,11 +3,12 @@
 
 (define-signature I^ (I I2))
 (define-signature J^ (J))
-(define-signature X^ (X))
+(define-signature X^ (X (struct Var (nam) #:constructor-name var)))
 (define-signature Y^ (Y Y2))
 
 (define-unit X@ (import) (export X^)
-  (define X 200))
+  (define X 200)
+  (struct Var (nam) #:transparent #:constructor-name var))
 
 (define-unit Y@ (import) (export Y^)
   (define Y -1000)
@@ -51,6 +52,7 @@
 
 (define-unit X/I@ (import I^) (export X^)
   (define X I)
+  (struct Var (nam) #:transparent #:constructor-name var)
   (printf "X: ~a\n" X))
 
 (define-unit Y/J@ (import J^) (export Y^)
@@ -68,3 +70,9 @@
 ;; reducer-of内部のinvoke-unitはcontextからII^, J^のbindingsを取得
 (define reducer5 (reducer-of --> #:within-units [X/I@ Y/J@]))
 ((reducer5 /) (cons 3 4))
+
+
+(define-reduction (==>) #:super (--> +)
+  #:within-signatures [X^ Y^])
+
+(reduction->unit ==>)

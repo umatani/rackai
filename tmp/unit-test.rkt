@@ -61,3 +61,43 @@
                           (list x)) c)
                     (() (unit (import) (export)
                           'EMPTY!)))))
+
+
+
+
+;;;; reduction-v1.2.rktのwithin-signaturesとのマージ方法は
+;;;; defineをしなおさないといけないので不自然かつスコープが複雑．
+;;;; より自然にスコープの内側に入れるように実装を以下のように変更．
+;;;; reduction-v1.3.rktとする．
+;;;; 「reduction は signature である」ではなく
+;;;; 「reduction は reducer を export する unit である」となる．
+
+;; pre-defined
+(define-signature red^ (reducer))
+
+;; before define-reduction
+(define-signature X^ (X))
+
+;; define-reduction
+(define-unit red@ (import X^) (export red^)
+  (define-signature -->^ ((define-syntaxes (m) (λ (stx) #'X))))
+  (define-unit -->@ (import) (export -->^))
+  (define reducer
+    (invoke-unit (compound-unit
+                  (import) (export)
+                  (link (([m : -->^]) -->@)
+                        (() (unit (import -->^) (export)
+                              (m)) m))))))
+
+;; before using defined reduction
+(define-unit X@ (import) (export X^)
+  (define X 100))
+
+;; using defined reduction
+(define-values/invoke-unit (compound-unit
+                            (import) (export r)
+                            (link (([x : X^]) X@)
+                                  (([r : red^]) red@ x)))
+  (import) (export red^))
+reducer
+
