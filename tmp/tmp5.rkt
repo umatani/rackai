@@ -37,3 +37,16 @@
 
 (define reducer4 (reducer-of ===> #:within-units [X@]))
 ((reducer4) (cons 3 4))
+
+;;;;;;;; 5 ;;;;;;;;;;
+;;;; #:do [...]
+
+(define-reduction (~~>/+ <+>) #:within-signatures [X^]
+  #:do [(define Y 300)
+        (println 'HOGEEEE-IN-DO)
+        (define-syntax (m stx) #'(dbgX 'M))
+        (define (dbgX msg) (println msg) (+ Y X))]
+  [(cons a b) (<+> a b (m) (dbgX 'HOGEE) Y) 'add])
+
+(define reducer5 (reducer-of ~~>/+ #:within-units [X@]))
+((reducer5 +) (cons 3 4))

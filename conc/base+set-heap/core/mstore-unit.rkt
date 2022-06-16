@@ -10,15 +10,11 @@
               Stx Sym Σ mk-Σ Σ-tbl StoBind-scps stobind)
         (only syntax^
               biggest-subset binding-lookup)
-        (prefix base: (except mstore^
-                              bind lookup-Σ resolve id=?)))
+        (prefix base: (only mstore^ init-Σ)))
 (export mstore^)
 
 
 (define init-Σ         base:init-Σ)
-(define alloc-name     base:alloc-name)
-(define alloc-scope     base:alloc-scope)
-(define regist-vars     base:regist-vars)
 
 ;; Set-based Σ
 
@@ -61,3 +57,23 @@
 
 ;(: id=? : Id Nam Σ -> Boolean)
 (define (id=? id nam Σ) (subset? (set nam) (car (do (resolve id Σ)))))
+
+;; Finite-domain allocation
+
+; (: alloc-name : Id Σ -> (Values Nam Σ))
+(define (alloc-name id Σ0)
+  (match-let ([(Stx (Sym nam) _) id]
+              [(Σ size tbl) Σ0])
+    (values (string->symbol (format "~a:~a" nam size))
+            (mk-Σ (add1 size) tbl))))
+
+; (: alloc-scope : Symbol Σ -> (Values Scp Σ))
+(define (alloc-scope s Σ0)
+  (match-let ([(Σ size tbl) Σ0])
+    (values (string->symbol (format "~a::~a" s size))
+            (mk-Σ (add1 size) tbl))))
+
+;;;; TODO! regist-varsを ==>のreduction定義の do-bodyに移す．
+
+;(: regist-vars : Scp ProperStl ξ Σ -> (Values ProperStl ξ Σ))
+(define regist-vars (regist-vars/bind/alloc-name bind alloc-name))

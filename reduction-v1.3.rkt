@@ -41,6 +41,7 @@
 
   (struct reduction-desc
     (unit-id
+     maybe-sig-id ;; #f or signature-id for exporting #:do bindings
      params
      super-desc super-args
      within-signatures
@@ -102,12 +103,67 @@
     (pattern (~seq (~alt (~optional (~seq #:super s:red-spec)
                                     #:name "#:super option")
                          (~optional (~seq #:within-signatures [sig-spec ...])
-                                    #:name "#:within-units option"))
+                                    #:name "#:within-units option")
+                         (~optional (~seq #:do [body ...])
+                                    #:name "#:do option"))
                    ...)
              #:with name #'(~? s.name #f)
              #:with args #'(~? s.params ())
-             #:with sigs #'(~? (sig-spec ...) ())))
-  )
+             #:with sigs #'(~? (sig-spec ...) ())
+             #:with do-bodies #'(~? (body ...) ())))
+
+  (define (find-defined-ids do-bodies)
+    (define def-cxt (syntax-local-make-definition-context))
+    (define-values (ids* do-bodies*)
+      (for/fold ([ids* '()] [bodies* '()] #:result (values ids* bodies*))
+                ([body (syntax->list do-bodies)])
+        (let ([body* (local-expand
+                      body '()
+                      (list #'define-values #'define-syntaxes) def-cxt)])
+          (syntax-parse body*
+            #:literal-sets (kernel-literals)
+            [(define-values (id:id ...) e:expr)
+             #:with (id* ...)
+             (stx-map
+              (λ (id)
+                (internal-definition-context-splice-binding-identifier
+                 def-cxt id))
+              #'(id ...))
+             #:do [(syntax-local-bind-syntaxes
+                    (syntax->list #'(id ...)) #f def-cxt)]
+             #:with e* (internal-definition-context-introduce
+                        def-cxt
+                        (local-expand #'e '()
+                                      (list #'define-values #'define-syntaxes)
+                                      def-cxt))
+             (values (append ids*
+                             (syntax->list #'(id* ...)))
+                     (cons #'(define-values (id* ...) e*) bodies*))]
+            [(define-syntaxes (id:id ...) e:expr)
+             #:with (id* ...)
+             (stx-map
+              (λ (id)
+                (internal-definition-context-splice-binding-identifier
+                 def-cxt id))
+              #'(id ...))
+             #:do [(syntax-local-bind-syntaxes
+                    (syntax->list #'(id ...)) #f def-cxt)]
+             #:with e* (internal-definition-context-introduce
+                        def-cxt
+                        (local-expand #'e '()
+                                      (list #'define-values)
+                                      def-cxt))
+             (values ids*
+                     (cons #'(define-syntaxes (id* ...) e*) bodies*))
+             ]
+            [else
+             (values ids* (cons body* bodies*))]))))
+    (define check (check-duplicates #:key syntax->datum ids*))
+    (if check
+        (raise-syntax-error 'find-defined-ids
+                            (format "duplicate definitions: ~a"
+                                    (syntax->datum check)))
+        #`(#,ids* #,do-bodies*))))
 
 
 (define-syntax (define-reduction stx)
@@ -115,23 +171,34 @@
     [(_ r:red-spec opts:options-spec
         (~and [pat body ...+ name] clause) ...)
      #:with red-id #'r.name
-     #:with red-unit-id (generate-temporary #'red-id)
-     #;(format-id #'red-id "~a@" #'red-id)
+     #:with red-unit-id (format-id #'red-id "~a@" #'red-id)
      #:with super-red-id #'opts.name
      #:with (param ...) #'r.params
      #:with (arg ...)   #'opts.args
      #:with (within-sig-id ...) #'opts.sigs
+     #:with (do-body ...) #'opts.do-bodies
+     #:with ((defed-id ...) (do-body* ...)) (find-defined-ids #'(do-body ...))
+     #:with red-sig-id (and (not (stx-null? #'(defed-id ...)))
+                            (format-id #'red-id "~a^" #'red-id))
      (let* ([clause-map (make-clause-map (syntax->list #'(clause ...)))])
        #`(begin
-           (define-syntax red-id (reduction-desc #'red-unit-id
-                                                 #'(param ...)
-                                                 #'super-red-id
-                                                 #'(arg ...)
-                                                 #'(within-sig-id ...)
-                                                 #,clause-map))
+           (define-syntax red-id (reduction-desc
+                                  #'red-unit-id
+                                  #,(and (syntax->datum #'red-sig-id)
+                                         #'#'red-sig-id)
+                                  #'(param ...)
+                                  #'super-red-id
+                                  #'(arg ...)
+                                  #'(within-sig-id ...)
+                                  #,clause-map))
+           #,@(if (syntax->datum #'red-sig-id)
+                  #'((define-signature red-sig-id (defed-id ...)))
+                  #'())
            (define-unit red-unit-id
              (import within-sig-id ...)
-             (export red^)
+             (export red^ #,@(if (syntax->datum #'red-sig-id)
+                                 #'(red-sig-id)
+                                 #'()))
 
              (define-signature M^
                ((define-values (-->) (#%reducer))
@@ -142,6 +209,8 @@
                                            (syntax-local-value #'red-id)
                                            #'s #f '())))))))
              (define-unit M@ (import) (export M^))
+
+             do-body* ...
 
              (define reducer (invoke-unit
                               (compound-unit

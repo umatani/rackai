@@ -20,23 +20,20 @@
 
 (define eval-red@ (reduction->unit -->))
 
-#;
 (define-unit eval@
-  (import struct^
+  (import (only struct^ ast&env val?)
+          (only env^ init-env)
+          (only store^ init-store)
+          (only delta^ delta)
           (only red^ reducer))
-  (export #;eval^
-          )
+  (export eval^)
 
   (define --> (reducer delta))
 
   ; evaluate : Ast -> (Setof Val)
   (define (evaluate ast)
-    (match-let ([(set `(,(? Val? val) • ,_store) ...)
+    (match-let ([(set `(,(? val? val) • ,_store) ...)
                  (apply-reduction-relation*
-                  --> `(,(AstEnv ast (init-env)) • ,(init-store)))])
-      (list->set val)))
-
-  )
-
-
+                  --> `(,(ast&env ast (init-env)) • ,(init-store)))])
+      (list->set val))))
 
