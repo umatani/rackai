@@ -14,13 +14,30 @@
          "../../../mstore-sig.rkt"
          "../../../mcont-sig.rkt"
          "../../../expand-sig.rkt")
-(provide expand-red@ expand@)
+(provide expand-red@ expand@ ==>)
 
 ;; ----------------------------------------
 ;; The expander:
 
 ;; (: ==> : ζ -> (Setof ζ))
 (define-reduction (==> --> :=<1>)
+  #:do [;; Constants:
+        (define id-kont (stx (sym '#%kont) (empty-ctx)))
+        (define id-seq (stx (sym '#%seq)  (empty-ctx)))
+        (define id-snoc (stx (sym '#%snoc) (empty-ctx)))
+        (define stx-nil (stx '() (empty-ctx)))
+        ; regist-vars : Scp ProperStl ξ Σ -> (Values ProperStl ξ Σ)
+        (define (regist-vars scp stl ξ Σ)
+          (match stl
+            ['() (values '() ξ Σ)]
+            [(cons (app (λ (stx) stx) id) stl)
+             (let*-values ([(stl_reg ξ_1 Σ_1) (regist-vars scp stl ξ Σ)]
+                           [(nam_new Σ_2) (alloc-name id Σ_1)]
+                           [(id_new) (add id scp)]
+                           [(Σ_3) (bind Σ_2 id_new nam_new)]
+                           [(ξ_2) (extend-ξ ξ_1 nam_new (tvar id_new))])
+               (values (cons id_new stl_reg) ξ_2 Σ_3))]))]
+
   #:within-signatures [struct^ syntax^ env^ store^ menv^ mstore^ mcont^ parse^]
 
   ;; lambda

@@ -155,25 +155,34 @@
 
 ;; (define-reduction (~~>/+ <+>) #:within-signatures [X^]
 ;;   #:do [(define Y 300)
-;;         (define (dbgX msg) (println msg) X)]
-;;   [(cons a b) (<+> a b (dbgX 'HOGEE) Y) 'add])
+;;         (println 'HOGEEEE-IN-DO)
+;;         (define-syntax (m stx) #'(dbgX 'M))
+;;         (define (dbgX msg) (println msg) (+ Y X))]
+;;   [(cons a b) (<+> a b (m) (dbgX 'HOGEE) Y) 'add])
 (define-syntax ~~>/+ (reduction-desc
                       #'~~>/+@ #'~~>/+^
                       #'(<+>)
-                      #f #'() #'(X^) '[(cons a b) (<+> a b X)]))
-(define-signature ~~>/+^ (Y dbgX))
+                      #f #'() #'(X^)
+                      '[(cons a b) (<+> a b (m) (dbgX 'HOGEE) Y)]))
+(define-signature ~~>/+^
+  (Y
+   dbgX
+   (define-syntaxes (m) (λ (stx) #'(dbgX 'M)))
+   ))
 (define-unit ~~>/+@ (import X^) (export red^ ~~>/+^)
   (define-signature M^
     ((define-values (#%-->) (#%reducer))
-     (define-syntaxes (#%reducer )
-       (λ (stx) #'(λ (<+>) (λ (s)
-                               (match s
-                                 [(cons a b) (<+> a b (dbgX 'HOGEE) Y)])))))))
+     (define-syntaxes (#%reducer)
+       (λ (stx) #'(λ (<+>)
+                     (λ (s)
+                       (match s
+                         [(cons a b) (<+> a b (m) (dbgX 'HOGEE) Y)])))))))
   (define-unit M@ (import) (export M^))
 
   (define Y 300)
+  (println 'HOGEEEE-IN-DO)
   (define (dbgX msg) (println msg) X)
-
+  (define-syntaxes (m) (λ (stx) #'(dbgX 'M)))
   (define reducer (invoke-unit
                    (compound-unit
                     (import) (export)
@@ -199,13 +208,17 @@
                      #'~~~>@ #f
                      #'()
                      #'~~>/+ #'(*) #'(X^) '[]))
-(define-unit ~~~>@ (import X^ ~~>/+^) (export red^)
+
+(define-unit ~~~>@
+  (import X^ ~~>/+^) ;; 先祖のmaybe-sig-id集合
+  (export red^)
   (define-signature M^
     ((define-values (#%-->) (#%reducer))
      (define-syntaxes (#%reducer)
-       (λ (stx) #'(λ () (λ (s)
-                            (match s ; (syntax-local-value #'~~>/+)
-                              [(cons a b) (* a b (dbgX 'HOGEE) Y)])))))))
+       (λ (stx) #'(λ ()
+                     (λ (s)
+                       (match s
+                         [(cons a b) (* a b (m) (dbgX 'HOGEE) Y)])))))))
   (define-unit M@ (import) (export M^))
   (define reducer (invoke-unit
                    (compound-unit
@@ -215,12 +228,20 @@
                                 #%-->) m)))))
   reducer)
 
+; 余計なユニットがcompoundに含まれてても良いかの確認 --> OK
+(define-signature Y^ (Y))
+(define-unit Y@ (import) (export Y^)
+  (define Y 12345))
+
 ;; (define reducer6 (reducer-of ~~~> #:within-units [X@]))
 (define reducer6 (invoke-unit
                   (compound-unit
                    (import) (export)
                    (link (([x : X^]) X@)
-                         (([s : ~~>/+^]) ~~>/+@ x)
+                         (([y : Y^]) Y@)
+                         ;; maybe-sig-idが#fでない先祖毎に以下の行．
+                         ;; importしてないものも含め全てimport側に渡して大丈夫
+                         (([s : ~~>/+^]) ~~>/+@ x y) 
                          (() ~~~>@    ;; (syntax-local-value #'~~~>)
-                             s x)))))
+                             s x y)))))
 ((reducer6) (cons 3 4))

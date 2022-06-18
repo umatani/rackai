@@ -19,5 +19,3 @@ id=? ; Id Nam Σ -> Boolean
 
 alloc-name ; Id Σ -> (Values Nam Σ)
 alloc-scope ; Symbol Σ -> (Values Scp Σ)
-
-regist-vars ; Scp ProperStl ξ Σ -> (Values ProperStl ξ Σ)

@@ -65,16 +65,3 @@
   (match-let ([(Σ size tbl) Σ0])
     (values (string->symbol (format "~a::~a" s size))
             (mk-Σ (add1 size) tbl))))
-
-;(: regist-vars : Scp ProperStl ξ Σ -> (Values ProperStl ξ Σ))
-(define (regist-vars scp stl ξ Σ)
-  (match stl
-    ['() (values '() ξ Σ)]
-    [(cons (app (λ (stx) stx) id) stl)
-     (let*-values ([(stl_reg ξ_1 Σ_1) (regist-vars scp stl ξ Σ)]
-                   [(nam_new Σ_2) (alloc-name id Σ_1)]
-                   [(id_new) (add id scp)]
-                   [(Σ_3) (bind Σ_2 id_new nam_new)]
-                   [(ξ_2) (extend-ξ ξ_1 nam_new (tvar id_new))])
-       (values (cons id_new stl_reg) ξ_2 Σ_3))]))
-

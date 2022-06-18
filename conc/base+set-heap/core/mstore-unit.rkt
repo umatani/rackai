@@ -72,8 +72,3 @@
   (match-let ([(Σ size tbl) Σ0])
     (values (string->symbol (format "~a::~a" s size))
             (mk-Σ (add1 size) tbl))))
-
-;;;; TODO! regist-varsを ==>のreduction定義の do-bodyに移す．
-
-;(: regist-vars : Scp ProperStl ξ Σ -> (Values ProperStl ξ Σ))
-(define regist-vars (regist-vars/bind/alloc-name bind alloc-name))

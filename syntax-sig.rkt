@@ -36,11 +36,3 @@ add-stl ; Stl Scp -> Stl
 ;; Pushes flipping a scope down through a syntax object
 flip ; Stx Scp -> Stx
 flip-stl ; Stl Scp -> Stl
-
-;; ----------------------------------------
-;; Constants:
-
-id-kont ; id
-id-seq  ; id
-id-snoc ; id
-stx-nil ; Stx

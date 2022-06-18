@@ -157,12 +157,3 @@
     [(Stx (? atom? atom) ctx)
      (stx atom (addremove scp ctx))]
     [(cons stx0 stl) (cons (flip stx0 scp) (flip-stl stl scp))]))
-
-;; ----------------------------------------
-;; Constants:
-
-(define id-kont (stx (sym '#%kont) (empty-ctx)))
-(define id-seq (stx (sym '#%seq)  (empty-ctx)))
-(define id-snoc (stx (sym '#%snoc) (empty-ctx)))
-(define stx-nil (stx '() (empty-ctx)))
-

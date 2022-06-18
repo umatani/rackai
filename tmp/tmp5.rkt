@@ -1,7 +1,5 @@
 #lang racket
-(require "../reduction-v1.3.rkt")
-
-; experiment-for-1.3.rktができるかのテスト
+(require "../reduction.rkt")
 
 ;;;;;;;; 1 ;;;;;;;;;;
 
@@ -44,9 +42,30 @@
 (define-reduction (~~>/+ <+>) #:within-signatures [X^]
   #:do [(define Y 300)
         (println 'HOGEEEE-IN-DO)
-        (define-syntax (m stx) #'(dbgX 'M))
+        ;(define-syntax (m stx) #'(dbgX 'M))
         (define (dbgX msg) (println msg) (+ Y X))]
-  [(cons a b) (<+> a b (m) (dbgX 'HOGEE) Y) 'add])
+  [(cons a b)
+   ;(+ Y 2)
+   (<+> a b #;(m) (dbgX 'HOGEE) Y)
+   'add])
 
 (define reducer5 (reducer-of ~~>/+ #:within-units [X@]))
 ((reducer5 +) (cons 3 4))
+
+;;;;;;;; 6 ;;;;;;;;;;
+;;;; #:do [...] を含む reducton を，その定義を含めて継承
+
+(define-reduction ~~~> #:super (~~>/+ *) #:within-signatures [X^])
+
+(define reducer6 (reducer-of ~~~> #:within-units [X@]))
+((reducer6) (cons 3 4))
+
+;;;;;;;; 7 ;;;;;;;;;;
+;;;; #:do [...] 定義のオーバーライド
+
+(define-reduction ~~~>2 #:super ~~~> #;(~~>/+ *) #:within-signatures [X^]
+  #:do [(define Y (+ Z Z))
+        (define Z 999)])
+
+(define reducer7 (reducer-of ~~~>2 #:within-units [X@]))
+((reducer7) (cons 3 4))
