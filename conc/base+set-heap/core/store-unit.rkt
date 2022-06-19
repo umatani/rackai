@@ -2,6 +2,7 @@
 (require (except-in racket set do)
          "../../../set.rkt"
          "../../../nondet.rkt"
+         "../../../dprint.rkt"
 
          "../../../struct-sig.rkt"
          "../../../store-sig.rkt")

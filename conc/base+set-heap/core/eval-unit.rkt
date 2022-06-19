@@ -10,7 +10,7 @@
          "../../../eval-sig.rkt"
 
          (only-in "../../base/core/eval-unit.rkt" [--> base:-->]))
-
+(provide eval@ eval-red@)
 
 ;; Revised reduction rules
 

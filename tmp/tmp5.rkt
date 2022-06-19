@@ -64,7 +64,8 @@
 ;;;; #:do [...] 定義のオーバーライド
 
 (define-reduction ~~~>2 #:super ~~~> #;(~~>/+ *) #:within-signatures [X^]
-  #:do [(define Y (+ Z Z))
+  #:do [(println 'SUBBBB)
+        (define Y (+ Z Z))
         (define Z 999)])
 
 (define reducer7 (reducer-of ~~~>2 #:within-units [X@]))

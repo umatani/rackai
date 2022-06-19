@@ -3,28 +3,47 @@
          "../../../reduction.rkt"
 
          "../../../struct-sig.rkt"
+         "../../../syntax-sig.rkt"
+         "../../../env-sig.rkt"
+         "../../../store-sig.rkt"
+         "../../../menv-sig.rkt"
          "../../../mstore-sig.rkt"
          "../../../mcont-sig.rkt"
+         "../../../eval-sig.rkt"
+         "../../../parse-sig.rkt"
+         "../../../expand-sig.rkt"
 
          (only-in "../../base/core/expand-unit.rkt" [==> base:==>]))
+(provide expand-red@ expand@)
 
 
 ;; Revised reduction rules
 
-;; (: ==> : ζ -> (Setof ζ))
-;; TODO: inherit #:do definitions by importing necessary units
+;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (base:==> --> <-)
-  #:within-signatures [struct^ mstore^ mcont^])
+  #:within-signatures [struct^ syntax^ env^ store^
+                       menv^ mstore^ mcont^ parse^])
 
-#;(define ==>c ((reducer-of ==>c/Σ) -->c))
+(define expand-red@ (reduction->unit ==>))
 
-;(: expand : Stx ξ Σ -> (Setof (Cons Stx Σ))
-#;
-(define ((expand/==> ==>) stx ξ Σ)
-  (let ([init-ζ (ζ (Stxξ stx ξ) '∘ '• (init-Θ) Σ)])
-    (match-let ([(set (ζ stx_new '• '• Θ_new Σ_new) ...)
-                 (apply-reduction-relation* ==> init-ζ)])
-      (list->set (map cons stx_new Σ_new)))))
+(define-unit expand@
+  (import (only struct^ ζ mk-ζ stx&ξ)
+          (only mcont^ init-Θ)
+          (only menv^ init-ξ)
+          (only mstore^ init-Σ)
+          (only eval^ -->)
+          (only red^ reducer))
+  (export expand^)
 
-#;(define expand (expand/==> ==>c))
+  (define ==> (reducer -->))
 
+  ; expand : Stx ξ Σ -> (Setof (Cons Stx Σ))
+  (define (expand stx0 ξ Σ)
+    (let ([init-ζ (mk-ζ (stx&ξ stx0 ξ) '∘ '• (init-Θ) Σ)])
+      (match-let ([(set (ζ stx_new '• '• Θ_new Σ_new) ...)
+                   (apply-reduction-relation* ==> init-ζ)])
+        (list->set (map cons stx_new Σ_new)))))
+
+  ; expander : Stx -> (Cons Stx Σ)
+  (define (expander stx)
+    (expand stx (init-ξ) (init-Σ))))

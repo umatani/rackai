@@ -329,13 +329,13 @@
 
   (define ==> (reducer --> :=))
 
-  ;(: expand : Stx ξ Σ -> (Cons Stx Σ))
+  ; expand : Stx ξ Σ -> (Cons Stx Σ)
   (define (expand stx0 ξ Σ)
     (let ([init-ζ (mk-ζ (stx&ξ stx0 ξ) '∘ '• (init-Θ) Σ)])
       (match-let ([(set (ζ stx_new '• '• Θ_new Σ_new))
                    (apply-reduction-relation* ==> init-ζ)])
         (cons stx_new Σ_new))))
 
-  ;(: expander : Stx -> (Cons Stx Σ))
+  ; expander : Stx -> (Cons Stx Σ)
   (define (expander stx)
     (expand stx (init-ξ) (init-Σ))))
