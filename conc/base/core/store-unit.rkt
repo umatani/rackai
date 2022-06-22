@@ -1,11 +1,12 @@
 #lang racket/unit
-(require racket/match
-         "../../../dprint.rkt"
+(require
+ racket/match
+ (only-in "../../../dprint.rkt" dprint)
 
-         "../../../struct-sig.rkt"
-         "../../../store-sig.rkt")
+ (only-in "../../../struct-common-sig.rkt" struct-common^)
+ (only-in "../../../store-sig.rkt"         store^))
 
-(import (only struct^
+(import (only struct-common^
               store Store-tbl Store-size))
 (export store^)
 

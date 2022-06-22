@@ -2,7 +2,8 @@
 (require "../../../set.rkt"
          "../../../reduction.rkt"
 
-         "../../../struct-sig.rkt"
+         "../../../struct-common-sig.rkt"
+         "../../base/core/struct-stxe-sig.rkt"
          "../../../syntax-sig.rkt"
          "../../../env-sig.rkt"
          "../../../store-sig.rkt"
@@ -21,13 +22,14 @@
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (base:==> --> <-)
-  #:within-signatures [struct^ syntax^ env^ store^
+  #:within-signatures [struct-common^ struct-stxe^ syntax^ env^ store^
                        menv^ mstore^ mcont^ parse^])
 
 (define expand-red@ (reduction->unit ==>))
 
 (define-unit expand@
-  (import (only struct^ ζ mk-ζ stx&ξ)
+  (import (only struct-common^ ζ mk-ζ)
+          (only struct-stxe^ stx&ξ)
           (only mcont^ init-Θ)
           (only menv^ init-ξ)
           (only mstore^ init-Σ)

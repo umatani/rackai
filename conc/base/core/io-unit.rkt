@@ -1,13 +1,16 @@
 #lang racket/unit
-(require racket
-         "../../struct-sig.rkt"
-         "../../syntax-sig.rkt"
-         "../../io-sig.rkt")
+(require
+ racket/match
+ (only-in "../../../struct-common-sig.rkt" struct-common^)
+ (only-in "../../../syntax-sig.rkt"        syntax^)
+ (only-in "../../../io-sig.rkt"            io^))
 
 ;;;; reader & printer
 
-(import (only struct^ Var VFun Sym Stx stx stx? sym atom? prim?)
-        (only syntax^ empty-ctx))
+(import (only struct-common^
+              Var VFun Sym Stx stx stx? sym atom? prim?)
+        (only syntax^
+              empty-ctx))
 (export io^)
 
 (define reader
@@ -43,4 +46,3 @@
     ;[(𝓁 nam) nam]
     ;[(Defs _ _) '(Defs)]
     ))
-

@@ -1,31 +1,34 @@
 #lang racket
-(require (except-in racket set do)
-         "../../../set.rkt"
-         "../../../dprint.rkt"
-         "../../../reduction.rkt"
-
-         "../../../struct-sig.rkt"
-         "../../../syntax-sig.rkt"
-         "../../../parse-sig.rkt"
-         "../../../env-sig.rkt"
-         "../../../store-sig.rkt"
-         "../../../eval-sig.rkt"
-         "../../../menv-sig.rkt"
-         "../../../mstore-sig.rkt"
-         "../../../mcont-sig.rkt"
-         "../../../expand-sig.rkt")
+(require
+ racket/match
+ "../../../set.rkt"
+ "../../../reduction.rkt"
+ 
+ (only-in "../../../struct-common-sig.rkt" struct-common^)
+ (only-in "struct-stxe-sig.rkt"            struct-stxe^)
+ (only-in "../../../syntax-sig.rkt"        syntax^)
+ (only-in "../../../env-sig.rkt"           env^)
+ (only-in "../../../store-sig.rkt"         store^)
+ (only-in "../../../eval-sig.rkt"          eval^)
+ (only-in "../../../menv-sig.rkt"          menv^)
+ (only-in "../../../mstore-sig.rkt"        mstore^)
+ (only-in "../../../mcont-sig.rkt"         mcont^)
+ (only-in "../../../parse-sig.rkt"         parse^)
+ (only-in "../../../expand-sig.rkt"        expand^))
 (provide expand-red@ expand@ ==>)
 
 ;; ----------------------------------------
 ;; The expander:
 
-;; (: ==> : ζ -> (Setof ζ))
+;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> --> :=<1>)
+  #:within-signatures [struct-common^ struct-stxe^ syntax^ env^ store^
+                       menv^ mstore^ mcont^ parse^]
   #:do [;; Constants:
         (define id-kont (stx (sym '#%kont) (empty-ctx)))
-        (define id-seq (stx (sym '#%seq)  (empty-ctx)))
+        (define id-seq  (stx (sym '#%seq)  (empty-ctx)))
         (define id-snoc (stx (sym '#%snoc) (empty-ctx)))
-        (define stx-nil (stx '() (empty-ctx)))
+        (define stx-nil (stx '()           (empty-ctx)))
         ; regist-vars : Scp ProperStl ξ Σ -> (Values ProperStl ξ Σ)
         (define (regist-vars scp stl ξ Σ)
           (match stl
@@ -37,8 +40,6 @@
                            [(Σ_3) (bind Σ_2 id_new nam_new)]
                            [(ξ_2) (extend-ξ ξ_1 nam_new (tvar id_new))])
                (values (cons id_new stl_reg) ξ_2 Σ_3))]))]
-
-  #:within-signatures [struct^ syntax^ env^ store^ menv^ mstore^ mcont^ parse^]
 
   ;; lambda
   [(ζ (Stxξ (Stx `(,(? id? id_lam)
@@ -319,12 +320,20 @@
 (define expand-red@ (reduction->unit ==>))
 
 (define-unit expand@
-  (import (only struct^ ζ mk-ζ stx&ξ)
-          (only eval^ -->)
-          (only menv^ init-ξ)
-          (only mstore^ init-Σ)
-          (only mcont^ init-Θ)
-          (only red^ reducer))
+  (import (only struct-common^
+                ζ mk-ζ)
+          (only struct-stxe^
+                stx&ξ)
+          (only eval^
+                -->)
+          (only menv^
+                init-ξ)
+          (only mstore^
+                init-Σ)
+          (only mcont^
+                init-Θ)
+          (only red^
+                reducer))
   (export expand^)
 
   (define ==> (reducer --> :=))

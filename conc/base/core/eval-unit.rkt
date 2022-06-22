@@ -1,23 +1,22 @@
 #lang racket
-(require "../../../set.rkt"
-         "../../../dprint.rkt"
-         "../../../reduction.rkt"
+(require
+ "../../../set.rkt"
+ "../../../reduction.rkt"
 
-         "../../../struct-sig.rkt"
-         "../../../env-sig.rkt"
-         "../../../store-sig.rkt"
-         "../../../cont-sig.rkt"
-         "../../../delta-sig.rkt"
-         "../../../eval-sig.rkt")
+ (only-in "../../../struct-common-sig.rkt" struct-common^)
+ (only-in "../../../env-sig.rkt"           env^)
+ (only-in "../../../store-sig.rkt"         store^)
+ (only-in "../../../cont-sig.rkt"          cont^)
+ (only-in "../../../delta-sig.rkt"         delta^)
+ (only-in "../../../eval-sig.rkt"          eval^))
 (provide eval-red@ eval@ -->)
 
 ;; ----------------------------------------
 ;; Evaluating AST:
 
-
-;; (: --> : State -> (Setof State))
+;; --> : State -> (Setof State)
 (define-reduction (--> delta :=<1>)
-  #:within-signatures [struct^ env^ store^ cont^]
+  #:within-signatures [struct-common^ env^ store^ cont^]
 
   ;; propagate env into subterms
   [`(,(AstEnv (If ast_test ast_then ast_else) env) ,cont ,store)
@@ -104,11 +103,16 @@
 (define eval-red@ (reduction->unit -->))
 
 (define-unit eval@
-  (import (only struct^ ast&env val?)
-          (only env^ init-env)
-          (only store^ init-store)
-          (only delta^ delta)
-          (only red^ reducer))
+  (import (only struct-common^
+                ast&env val?)
+          (only env^
+                init-env)
+          (only store^
+                init-store)
+          (only delta^
+                delta)
+          (only red^
+                reducer))
   (export eval^)
 
   (define --> (reducer delta :=))

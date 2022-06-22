@@ -3,55 +3,55 @@
          "../../../example.rkt"
          "../../../dprint.rkt"
          
-         "../../../struct-sig.rkt"
-         "../../../syntax-sig.rkt"
-         "../../../env-sig.rkt"
-         "../../../store-sig.rkt"
-         "../../../cont-sig.rkt"
-         "../../../delta-sig.rkt"
-         "../../../eval-sig.rkt"
-         "../../../menv-sig.rkt"
-         "../../../mstore-sig.rkt"
-         "../../../mcont-sig.rkt"
-         "../../../parse-sig.rkt"
-         "../../../expand-sig.rkt"
-         "../../../io-sig.rkt"
-         "../../../run-sig.rkt"
-
-         ;; inherited
-         (only-in "../../base/core/struct-unit.rkt" struct@)
-         (only-in "../../base/core/syntax-unit.rkt" syntax@)
-         (only-in "../../base/core/env-unit.rkt"    env@)
-         (rename-in "../../base/core/store-unit.rkt" [store@ base:store@])
-         (only-in "../../base/core/cont-unit.rkt"   cont@)
-         (only-in "../../base/delta-unit.rkt"       delta@)
-         (only-in "../../base/core/menv-unit.rkt"   menv@)
-         (rename-in "../../base/core/mstore-unit.rkt" [mstore@ base:mstore@])
-         (only-in "../../base/core/mcont-unit.rkt"  mcont@)
-         (only-in "../../base/io-unit.rkt"          io@)
-
-         ;; extended
-         (only-in "store-unit.rkt"  store@)
-         (only-in "eval-unit.rkt"   eval-red@ eval@)
-         (only-in "mstore-unit.rkt" mstore@)
-         (only-in "parse-unit.rkt"  parse@)
-         (only-in "expand-unit.rkt" expand-red@ expand@)
-         (only-in "../run-unit.rkt" run@)
-
-
-         ;; (only-in "../../base/core/eval.rkt" init-env init-store)
-         ;; (only-in "../../base/core/expand.rkt" init-ξ init-Θ init-Σ)
-         ;; (only-in "../../base/core/main.rkt" expander/expand)
+         ;;;; signatures
+         (only-in "../../../struct-common-sig.rkt"      struct-common^)
+         (only-in "../../../struct-common-stxe-sig.rkt" struct-common-stxe^)
+         (only-in "../../base/core/struct-stxe-sig.rkt" struct-stxe^)
+         (only-in "../../../syntax-sig.rkt"             syntax^)
+         (only-in "../../../env-sig.rkt"                env^)
+         (only-in "../../../store-sig.rkt"              store^)
+         (only-in "../../../cont-sig.rkt"               cont^)
+         (only-in "../../../delta-sig.rkt"              delta^)
+         (only-in "../../../eval-sig.rkt"               eval^)
+         (only-in "../../../menv-sig.rkt"               menv^)
+         (only-in "../../../mstore-sig.rkt"             mstore^)
+         (only-in "../../../mcont-sig.rkt"              mcont^)
+         (only-in "../../../parse-sig.rkt"              parse^)
+         (only-in "../../../expand-sig.rkt"             expand^)
+         (only-in "../../../io-sig.rkt"                 io^)
+         (only-in "../../../run-sig.rkt"                run^)
          
-         ;; Set-based version
-         ;; (only-in "eval.rkt" -->c eval)
-         ;; (only-in "parse.rkt" parse)
-         ;; (only-in "expand.rkt" ==>c expand)
+         ;;;; units
+
+         ;; common
+         (only-in "../../../struct-common-unit.rkt"   struct-common@)
+         ;; common in conc/base+set-heap
+         (only-in "../run-unit.rkt"                   run@)
+
+         ;; reused from conc/base/core
+         (only-in "../../base/core/struct-stxe-unit.rkt" struct-stxe@)
+         (only-in "../../base/core/syntax-unit.rkt"      syntax@)
+         (only-in "../../base/core/env-unit.rkt"         env@)
+         (only-in "../../base/core/cont-unit.rkt"        cont@)
+         (only-in "../../base/core/menv-unit.rkt"        menv@)
+         (only-in "../../base/core/mcont-unit.rkt"       mcont@)
+         (only-in "../../base/core/delta-unit.rkt"       delta@)
+         (only-in "../../base/core/io-unit.rkt"          io@)
+         ;; partialy reused from conc/base/core
+         (rename-in "../../base/core/store-unit.rkt"  [store@ base:store@])
+         (rename-in "../../base/core/mstore-unit.rkt" [mstore@ base:mstore@])
+         ;; overridden (with set-based version)
+         (only-in "store-unit.rkt"                    store@)
+         (only-in "eval-unit.rkt"                     eval-red@ eval@)
+         (only-in "mstore-unit.rkt"                   mstore@)
+         (only-in "parse-unit.rkt"                    parse@)
+         (only-in "expand-unit.rkt"                   expand-red@ expand@)
          
          (for-syntax racket/list))
 
 (define-signature main^
-  (ast&env mk-ζ stx&ξ ;; struct^
+  (ast&env mk-ζ       ;; struct-common^
+   stx&ξ              ;; struct-stxe^
    init-env           ;; env^
    init-store         ;; store^
    -->                ;; eval^
@@ -67,32 +67,34 @@
   (unit/new-import-export
    (import)
    (export main^)
-   ((struct^ env^ store^ eval^ menv^ mstore^ mcont^ expand^ io^ run^)
+   ((struct-common^ struct-stxe^ env^ store^ eval^
+     menv^ mstore^ mcont^ expand^ io^ run^)
     (compound-unit
      (import)
-     (export str e sto ev me msto mc ex io r)
-     (link (([str  : struct^]) struct@)
-           (([stx  : syntax^]) syntax@     str)
+     (export se sc e sto ev me msto mc ex io r)
+     (link (([se   : struct-stxe^] [scse : struct-common-stxe^])
+            struct-stxe@)
+           (([sc   : struct-common^]) struct-common@ scse)
+           (([stx  : syntax^]) syntax@     sc se)
            (([e    : env^])    env@)
 
-           (([bsto : store^])  base:store@ str)
-           (([sto  : store^])  store@      str bsto)
+           (([bsto : store^])  base:store@ sc)
+           (([sto  : store^])  store@      sc bsto)
 
            (([c    : cont^])   cont@                 sto)
-           (([d    : delta^])  delta@      str)
-           (([evr  : red^])    eval-red@   str     e sto c)
-           (([ev   : eval^])   eval@       str     e sto d evr)
+           (([d    : delta^])  delta@      sc)
+           (([evr  : red^])    eval-red@   sc     e sto c)
+           (([ev   : eval^])   eval@       sc     e sto d evr)
            (([me   : menv^])   menv@)
 
-           (([bmsto : mstore^]) base:mstore@ str stx          me)
-           (([msto  : mstore^]) mstore@      str stx          me bmsto)
+           (([bmsto : mstore^]) base:mstore@ sc stx          me)
+           (([msto  : mstore^]) mstore@      sc stx          me bmsto)
 
-
-           (([mc   : mcont^])  mcont@      str       sto)
-           (([p    : parse^])  parse@      str stx               msto)
-           (([exr  : red^])    expand-red@ str stx e sto      me msto mc p)
-           (([ex   : expand^]) expand@     str stx   sto   ev me msto mc p exr)
-           (([io   : io^])     io@         str stx)
+           (([mc   : mcont^])  mcont@      sc       sto)
+           (([p    : parse^])  parse@      sc stx               msto)
+           (([exr  : red^])    expand-red@ sc se stx e sto  me msto mc p)
+           (([ex   : expand^]) expand@     sc se stx sto ev me msto mc p exr)
+           (([io   : io^])     io@         sc stx)
            (([r    : run^])    run@                        ev p ex io)))))
   (import)
   (export main^))

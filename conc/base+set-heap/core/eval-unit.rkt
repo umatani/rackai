@@ -2,7 +2,7 @@
 (require "../../../set.rkt"
          "../../../reduction.rkt"
 
-         "../../../struct-sig.rkt"
+         "../../../struct-common-sig.rkt"
          "../../../env-sig.rkt"
          "../../../store-sig.rkt"
          "../../../cont-sig.rkt"
@@ -16,12 +16,12 @@
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta) #:super (base:--> delta <-)
-  #:within-signatures [struct^ env^ store^ cont^])
+  #:within-signatures [struct-common^ env^ store^ cont^])
 
 (define eval-red@ (reduction->unit -->))
 
 (define-unit eval@
-  (import (only struct^ ast&env val?)
+  (import (only struct-common^ ast&env val?)
           (only env^ init-env)
           (only store^ init-store)
           (only delta^ delta)

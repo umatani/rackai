@@ -1,9 +1,11 @@
 #lang racket/unit
-(require racket
-         "../../struct-sig.rkt"
-         "../../delta-sig.rkt")
+(require
+ racket/match
+ (only-in "../../../struct-common-sig.rkt" struct-common^)
+ (only-in "../../../delta-sig.rkt"         delta^))
 
-(import (only struct^ Sym Stx stx stx? Sym? atom?))
+(import (only struct-common^
+              Sym Stx stx stx? Sym? atom?))
 (export delta^)
 
 ;; ----------------------------------------
@@ -19,7 +21,7 @@
   (match* (sym1 sym2)
     [((Sym nam1) (Sym nam2)) (eq? nam1 nam2)]))
 
-;(: delta : Prim (Listof Val) -> Val)
+; delta : Prim (Listof Val) -> Val
 (define (delta p vs)
   (match (cons p vs)
     [`(+ ,(? real? ns) ...)
@@ -50,7 +52,6 @@
     ;; for debug
     [`(printe ,v1 ,v2) (println v1) v2]
 
-
     [`(syntax-e ,(Stx e _)) e]
     [`(datum->syntax ,_ ,(? stx? stx)) stx]
     [`(datum->syntax ,(and stx0 (Stx _ ctx_0)) (,v1 ,vs ...))
@@ -59,5 +60,3 @@
           ctx_0)]
     [`(datum->syntax ,(Stx _ ctx) ,(? atom? atom))
      (stx atom ctx)]))
-
-

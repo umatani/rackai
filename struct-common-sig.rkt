@@ -41,10 +41,10 @@ id
 (struct Σ (size tbl)       #:constructor-name mk-Σ)
 (struct StoBind (scps nam) #:constructor-name stobind)
 (struct Θ (size tbl)       #:constructor-name mk-Θ)
-(struct 𝓁 (nam)           #:constructor-name mk-𝓁)
+(struct 𝓁 (nam)            #:constructor-name mk-𝓁)
 
 ;; Expand-time continuation
-(struct Stxξ (stx ξ)  #:constructor-name stx&ξ)
+;;(struct Stxξ (stx ξ)  #:constructor-name stx&ξ)
 (struct Hole ()       #:constructor-name hole)
 (struct κ (stx ex? 𝓁) #:constructor-name mk-κ)
 

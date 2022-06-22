@@ -2,11 +2,11 @@
 (require (except-in racket do)
          "../../../nondet.rkt"
          
-         "../../../struct-sig.rkt"
+         "../../../struct-common-sig.rkt"
          "../../../syntax-sig.rkt"
          "../../../mstore-sig.rkt")
 
-(import (only struct^
+(import (only struct-common^
               Stx Sym Σ mk-Σ Σ-tbl StoBind-scps stobind)
         (only syntax^
               biggest-subset binding-lookup)

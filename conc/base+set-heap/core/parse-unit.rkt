@@ -2,13 +2,14 @@
 (require (except-in racket set do)
          "../../../set.rkt"
          "../../../nondet.rkt"
+         (only-in "../parse-util.rkt" build-alt-lists)
 
-         "../../../struct-sig.rkt"
+         "../../../struct-common-sig.rkt"
          "../../../syntax-sig.rkt"
          "../../../mstore-sig.rkt"
          "../../../parse-sig.rkt")
 
-(import (only struct^
+(import (only struct-common^
               Stx proper-stl? var fun app iif atom? id?)
         (only syntax^
               unzip strip)
@@ -19,16 +20,6 @@
 
 
 ;; Non-deterministic parsing
-
-;(: build-alt-lists : (Listof (Setof A)) -> (Setof (Listof A)))
-(define (build-alt-lists alts-list)
-  (if (null? alts-list)
-      (set '())
-      (let ([lsts (build-alt-lists (cdr alts-list))])
-        (for*/set ([alt (in-set (car alts-list))]
-                   [lst (in-set lsts)])
-          (cons alt lst)))))
-
 
 ;(: parse : Stx Σ -> (SetM Ast))
 (define (parse stx Σ)

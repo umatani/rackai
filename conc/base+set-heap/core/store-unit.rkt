@@ -2,12 +2,11 @@
 (require (except-in racket set do)
          "../../../set.rkt"
          "../../../nondet.rkt"
-         "../../../dprint.rkt"
 
-         "../../../struct-sig.rkt"
+         "../../../struct-common-sig.rkt"
          "../../../store-sig.rkt")
 
-(import (only struct^
+(import (only struct-common^
               store Store-size Store-tbl)
         (prefix base: (only store^ init-store)))
 (export store^)
