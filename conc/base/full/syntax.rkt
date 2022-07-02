@@ -1,27 +1,60 @@
 #lang racket
-(require (only-in "../core/syntax.rkt" in-hole-stl)
-         (only-in "../phases/syntax.rkt" resolve)
-         (only-in "../core/expand.rkt" lookup-ξ)
-         "struct.rkt")
-(provide (all-defined-out))
+(require
+ racket/match
+ (only-in "../../../term.rkt"        use-terms)
 
-;(: in-hole : Stx Stx -> Stx)
-(define (in-hole stx v)
-  (match stx
-    [(Stxξ ph stx ξ) (Stxξ ph (in-hole stx v) ξ)] ; remove scps
-    [(GenStx (? Atom? atom) ctx) (GenStx atom ctx)]
-    [(GenStx (cons stx stl) ctx)
-     (GenStx (cons (in-hole stx v) (in-hole-stl in-hole stl v)) ctx)]
-    [(Hole) v]
-    [_ stx]))
+ (only-in "../../../terms-extra.rkt" terms-extra^)
+ (only-in "terms.rkt"                terms^ #%term-forms)
+ (only-in "../../../syntax-sig.rkt"  syntax^)
+ (only-in "../../../phase-sig.rkt"   phase^)
 
-;(: resolve* : Ph (Listof Id) Σ -> (Listof Nam))
-(define ((resolve*/resolve resolve) ph val Σ)
-  (match val
-    ['() '()]
-    [(cons id val2) (cons (resolve ph id Σ)
-                          ((resolve*/resolve resolve) ph val2 Σ))]))
+ ;; partially reused from conc/base/phases
+ (only-in "../phases/syntax.rkt"     [syntax@ phases:syntax@]))
+(provide syntax@)
 
-(define (id=? ph id nam ξ Σ)
-  (let ([nam0 (resolve ph id Σ)])
-    (and (eq? nam nam0) (not (TStop? (lookup-ξ ξ nam))))))
+(define-unit syntax/super@
+  (import
+   (only terms^
+         Stx% Stxξ% Hole%)
+   (only terms-extra^
+         atom?)
+   (prefix phases: (except syntax^
+                           in-hole)))
+  (export syntax^)
+
+  (use-terms Stx Stxξ Hole)
+
+  (define empty-ctx      phases:empty-ctx)
+  (define stl->seq       phases:stl->seq)
+  (define zip            phases:zip)
+  (define unzip          phases:unzip)
+  (define snoc           phases:snoc)
+  (define in-hole-stl    phases:in-hole-stl)
+  (define add            phases:add)
+  (define add-stl        phases:add-stl)
+  (define addremove      phases:addremove)
+  (define flip           phases:flip)
+  (define flip-stl       phases:flip-stl)
+  (define strip          phases:strip)
+  [define subtract       phases:subtract]
+  (define union          phases:union)
+  (define binding-lookup phases:binding-lookup)
+  (define biggest-subset phases:biggest-subset)
+
+  ; in-hole : Stx Stx -> Stx
+  (define (in-hole stx v)
+    (match stx
+      [(Stxξ ph stx ξ) (Stxξ ph (in-hole stx v) ξ)] ; remove scps
+      [(Stx (? atom? atom) ctx) (Stx atom ctx)]
+      [(Stx (cons stx stl) ctx)
+       (Stx (cons (in-hole stx v) (in-hole-stl in-hole stl v)) ctx)]
+      [(Hole) v]
+      [_ stx])))
+
+;; inheritance
+(define-compound-unit syntax@
+  (import [t : terms^] [te : terms-extra^])
+  (export stx ph)
+  (link (([pstx : syntax^]
+          [ph : phase^])    phases:syntax@ t te)
+        (([stx  : syntax^]) syntax/super@  t te pstx)))

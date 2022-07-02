@@ -465,6 +465,23 @@ superとして親定義を参照するためには，reduction構造体そのも
 ((reducer6) (cons 3 4))
 ```
 
+## define-language
+
+ASTの定義として
+
+1. 述語
+2. match
+3. extends可能
+4. ==first classである==
+
+が重要．1〜3 は標準のstructでなんとかなるが，4はclassじゃないと無理．
+4はunit(モジュール機能)を駆使してAST定義を置き換えるのに必須．
+(unitにおいてstructはsignatureメンバ，つまり，staticに固定．)
+逆に，classは1〜2ができない(1はis/aのthin wrapperで十分)．
+
+そこで，手書きのstructではなく，class定義を生成する
+オリジナルのdefine-languageを準備．
+
 
 ## 評価
 

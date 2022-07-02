@@ -1,21 +1,24 @@
 #lang racket/unit
 (require
  racket/match
- (only-in "../../../dprint.rkt" dprint)
+ (only-in "../../../term.rkt"      use-terms)
+ (only-in "../../../dprint.rkt"    dprint)
 
- (only-in "../../../struct-common-sig.rkt" struct-common^)
- (only-in "../../../store-sig.rkt"         store^))
+ (only-in "terms.rkt"              terms^ #%term-forms)
+ (only-in "../../../store-sig.rkt" store^))
 
-(import (only struct-common^
-              store Store-tbl Store-size))
+(import (only terms^
+              Store%))
 (export store^)
+
+(use-terms Store)
 
 
 ;; ----------------------------------------
 ;; Store
 
 ; (: init-store : -> Store)
-(define (init-store) (store 0 (make-immutable-hash)))
+(define (init-store) (Store 0 (make-immutable-hash)))
 
 ;(: lookup-store : Store Loc -> (U Val Cont))
 (define (lookup-store st loc)
@@ -25,13 +28,13 @@
 ;(: update-store : Store Loc (U Val Cont) -> Store)
 (define (update-store st loc u)
   (dprint 'core 'update-store "")
-  (store (Store-size st)
+  (Store (Store-size st)
          (hash-set (Store-tbl st) loc u)))
 
 ;(: update-store* : Store (Listof Loc) (Listof (U Val Cont)) -> Store)
 (define (update-store* st locs us)
   (dprint 'core 'update-store* "")
-  (store (Store-size st)
+  (Store (Store-size st)
          (foldl (λ (l u t) (hash-set t l u))
                 (Store-tbl st) locs us)))
 
@@ -40,7 +43,7 @@
   (dprint 'core 'alloc-loc "")
   (let ([size (Store-size st)])
     (values (string->symbol (format "l~a" size))
-            (store (add1 size) (Store-tbl st)))))
+            (Store (add1 size) (Store-tbl st)))))
 
 ;; for eval-time value binding
 ;(: alloc-loc* : (Listof Nam) Store -> (Values (Listof Loc) Store))
@@ -51,6 +54,7 @@
     [(list nam1 nams ...)
      (let* ([size (Store-size st)]
             [loc_0 (string->symbol (format "~a:~a" nam1 size))])
-       (let-values ([(locs_new store_new)
-                     (alloc-loc* nams (store (add1 size) (Store-tbl st)))])
+       (let-values
+           ([(locs_new store_new)
+             (alloc-loc* nams (Store (add1 size) (Store-tbl st)))])
          (values (cons loc_0 locs_new) store_new)))]))

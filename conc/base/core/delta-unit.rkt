@@ -1,12 +1,19 @@
 #lang racket/unit
 (require
  racket/match
- (only-in "../../../struct-common-sig.rkt" struct-common^)
- (only-in "../../../delta-sig.rkt"         delta^))
+ (only-in "../../../term.rkt" use-terms)
+ 
+ (only-in "terms.rkt"                terms^ #%term-forms)
+ (only-in "../../../terms-extra.rkt" terms-extra^)
+ (only-in "../../../delta-sig.rkt"   delta^))
 
-(import (only struct-common^
-              Sym Stx stx stx? Sym? atom?))
+(import (only terms^
+              Sym% Stx%)
+        (only terms-extra^
+              stx? atom?))
 (export delta^)
+
+(use-terms Sym Stx)
 
 ;; ----------------------------------------
 ;; Implementation of primitives:
@@ -54,9 +61,9 @@
 
     [`(syntax-e ,(Stx e _)) e]
     [`(datum->syntax ,_ ,(? stx? stx)) stx]
-    [`(datum->syntax ,(and stx0 (Stx _ ctx_0)) (,v1 ,vs ...))
-     (stx `(,(delta 'datum->syntax `(,stx0 ,v1))
-            ,@(delta 'syntax-e `(,(delta 'datum->syntax `(,stx0 ,vs)))))
+    [`(datum->syntax ,(and stx (Stx _ ctx_0)) (,v1 ,vs ...))
+     (Stx `(,(delta 'datum->syntax `(,stx ,v1))
+            ,@(delta 'syntax-e `(,(delta 'datum->syntax `(,stx ,vs)))))
           ctx_0)]
     [`(datum->syntax ,(Stx _ ctx) ,(? atom? atom))
-     (stx atom ctx)]))
+     (Stx atom ctx)]))

@@ -1,18 +1,23 @@
 #lang racket/unit
-(require ;(rename-in (except-in racket do))
-         "../../nondet.rkt"
-         "../../io-sig.rkt"
-         "../../parse-sig.rkt"
-         "../../eval-sig.rkt"
-         "../../expand-sig.rkt"
-         "../../run-sig.rkt")
+(require
+ "../../nondet.rkt"
+
+ (only-in "../../eval-sig.rkt"   eval^)
+ (only-in "../../parser-sig.rkt" parser^)
+ (only-in "../../expand-sig.rkt" expand^)
+ (only-in "../../io-sig.rkt"     io^)
+ (only-in "../../run-sig.rkt"    run^))
 
 ;;;; runner
 
-(import (only io^ reader printer)
-        (only expand^ expander)
-        (only parse^ parser)
-        (only eval^ evaluate))
+(import (only io^
+              reader printer)
+        (only expand^
+              expander)
+        (only parser^
+              parser)
+        (only eval^
+              evaluate))
 (export run^)
 
 (define (run form mode)

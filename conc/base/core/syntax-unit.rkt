@@ -3,16 +3,22 @@
  racket/match
  (only-in racket/list first second rest empty?)
  "../../../set.rkt"
+ (only-in "../../../term.rkt"        use-terms)
+ 
+ (only-in "../../../terms-extra.rkt" terms-extra^)
+ (only-in "terms.rkt"                terms^ #%term-forms)
+ (only-in "../../../syntax-sig.rkt"  syntax^))
 
- (only-in "../../../struct-common-sig.rkt" struct-common^)
- (only-in "../../../syntax-sig.rkt"        syntax^))
-
-(import (only struct-common^
-              Stx stx stx? Sym sym atom? Hole
-              Σ mk-Σ Σ-tbl StoBind-nam StoBind-scps stobind))
+(import (only terms^
+              Stx% StoBind% Hole%)
+        (only terms-extra^
+              stx? atom?))
 (export syntax^)
 
 (define (empty-ctx) (set))
+
+(use-terms Stx StoBind Hole)
+
 
 ;; ----------------------------------------
 ;; stx utils
@@ -21,14 +27,14 @@
 (define (stl->seq stl)
   (match stl
     ['() '()]
-    [(cons stx0 stl) (cons stx0 (stl->seq stl))]))
+    [(cons stx stl) (cons stx (stl->seq stl))]))
 
 ; zip : ProperStl ProperStl Ctx -> ProperStl
 (define (zip stl_1 stl_2 ctx)
   (match* (stl_1 stl_2)
     [('() '()) '()]
     [((cons stx_left stl_lefts) (cons stx_right stl_rights))
-     (cons (stx `(,stx_left ,stx_right) ctx)
+     (cons (Stx `(,stx_left ,stx_right) ctx)
            (zip stl_lefts stl_rights ctx))]))
 
 ; unzip : ∀ [A] ProperStl -> (Values ProperStl ProperStl)
@@ -41,27 +47,27 @@
                (cons stx_right stl_rights)))]))
 
 ; snoc : ProperStl Stx -> ProperStl
-(define (snoc stl stx0)
+(define (snoc stl stx)
   (cond
-    [(null? stl) (list stx0)]
-    [(list? stl) (cons (car stl) (snoc (cdr stl) stx0))]
+    [(null? stl) (list stx)]
+    [(list? stl) (cons (car stl) (snoc (cdr stl) stx))]
     [else (error "no such case")]))
 
 ; in-hole : Stx Stx -> Stl
-(define (in-hole stx0 v)
-  (match stx0
-    [(Stx (? atom? atom) ctx) (stx atom ctx)]
-    [(Stx (cons stx0 stl) ctx)
-     (stx (cons (in-hole stx0 v) (in-hole-stl in-hole stl v)) ctx)]
+(define (in-hole stx v)
+  (match stx
+    [(Stx (? atom? atom) ctx) (Stx atom ctx)]
+    [(Stx (cons stx stl) ctx)
+     (Stx (cons (in-hole stx v) (in-hole-stl in-hole stl v)) ctx)]
     [(Hole) v]
-    [_ stx0]))
+    [_ stx]))
 
 ; in-hole-stl : Stl Stx -> Stl
 (define (in-hole-stl in-hole stl v)
   (match stl
     ['() '()]
-    [(? stx? stx0) (in-hole stx0 v)]
-    [(cons stx0 stl) (cons (in-hole stx0 v) (in-hole-stl in-hole stl v))]
+    [(? stx? stx) (in-hole stx v)]
+    [(cons stx stl) (cons (in-hole stx v) (in-hole-stl in-hole stl v))]
     [(Hole) v]
     [_ stl]))
 
@@ -78,9 +84,9 @@
 (define (strip stl)
   (match stl
     ['() '()]
-    [(Stx (cons stx0 stl) _) (cons (strip stx0) (strip stl))]
+    [(Stx (cons stx stl) _) (cons (strip stx) (strip stl))]
     [(Stx (? atom? atom) _) atom]
-    [(cons stx0 stl) (cons (strip stx0) (strip stl))]))
+    [(cons stx stl) (cons (strip stx) (strip stl))]))
 
 ; subtract : Scps Scps -> Scps
 (define (subtract scps1 scps2) (set-subtract scps1 scps2))
@@ -119,41 +125,41 @@
 
 ;; Simply pushes scopes down through a syntax object
 ; add : Stx Scp -> Stx
-(define (add stx0 scp)
-  (match stx0
-    [(Stx (cons stx0 stl) ctx)
-     (stx (cons (add stx0 scp) (add-stl stl scp))
+(define (add stx scp)
+  (match stx
+    [(Stx (cons stx stl) ctx)
+     (Stx (cons (add stx scp) (add-stl stl scp))
           (set-add ctx scp))]
     [(Stx (? atom? atom) ctx)
-     (stx atom (set-add ctx scp))]))
+     (Stx atom (set-add ctx scp))]))
 
 ; add-stl : Stl Scp -> Stl
 (define (add-stl stl scp)
   (match stl
     ['() '()]
-    [(Stx (cons stx0 stl) ctx)
-     (stx (cons (add stx0 scp) (add-stl stl scp))
+    [(Stx (cons stx stl) ctx)
+     (Stx (cons (add stx scp) (add-stl stl scp))
           (set-add ctx scp))]
-    [(Stx (? atom? atom) ctx) (stx atom (set-add ctx scp))]
-    [(cons stx0 stl) (cons (add stx0 scp) (add-stl stl scp))]))
+    [(Stx (? atom? atom) ctx) (Stx atom (set-add ctx scp))]
+    [(cons stx stl) (cons (add stx scp) (add-stl stl scp))]))
 
 ;; Pushes flipping a scope down through a syntax object
 ; flip : Stx Scp -> Stx
-(define (flip stx0 scp)
-  (match stx0
-    [(Stx (cons stx0 stl) ctx)
-     (stx (cons (flip stx0 scp) (flip-stl stl scp))
+(define (flip stx scp)
+  (match stx
+    [(Stx (cons stx stl) ctx)
+     (Stx (cons (flip stx scp) (flip-stl stl scp))
           (addremove scp ctx))]
     [(Stx (? atom? atom) ctx)
-     (stx atom (addremove scp ctx))]))
+     (Stx atom (addremove scp ctx))]))
 
 ; flip-stl : Stl Scp -> Stl
 (define (flip-stl stl scp)
   (match stl
     ['() '()]
-    [(Stx (cons stx0 stl) ctx)
-     (stx (cons (flip stx0 scp) (flip-stl stl scp))
+    [(Stx (cons stx stl) ctx)
+     (Stx (cons (flip stx scp) (flip-stl stl scp))
           (addremove scp ctx))]
     [(Stx (? atom? atom) ctx)
-     (stx atom (addremove scp ctx))]
-    [(cons stx0 stl) (cons (flip stx0 scp) (flip-stl stl scp))]))
+     (Stx atom (addremove scp ctx))]
+    [(cons stx stl) (cons (flip stx scp) (flip-stl stl scp))]))

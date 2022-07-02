@@ -19,7 +19,7 @@
     (unit-id
      params
      super-id super-args
-     within-signatures
+     within-sig-ids
      do-bodies
      clause-map) #:transparent)
 
@@ -133,6 +133,74 @@
     (define (splice-binding-identifier id)
       (internal-definition-context-splice-binding-identifier def-cxt id))
     (define-values (ids* def-vals* def-stxes* exprs*)
+      (let loop ([ids*       '()]
+                 [def-vals*  '()]
+                 [def-stxes* '()]
+                 [exprs*     '()]
+                 [bodies (syntax->list do-bodies)])
+        (if (null? bodies)
+            (values ids* def-vals* def-stxes* exprs*)
+            (let* ([body (car bodies)]
+                   [body* (local-expand body '()
+                                        (list #'define-values #'define-syntaxes)
+                                        def-cxt)])
+              ;(printf "do: ~a\n" (syntax->datum body*))
+              (syntax-parse body*
+                #:literal-sets (kernel-literals)
+                [(begin body ...)
+                 (loop ids* def-vals* def-stxes* exprs*
+                       (append (syntax->list #'(body ...)) (cdr bodies)))]
+                [(define-values (id:id ...) e:expr)
+                 #:with (id* ...) (stx-map splice-binding-identifier #'(id ...))
+                 (if (check-duplicate/sub #'(id* ...))
+                     (loop ids* def-vals* def-stxes* exprs* (cdr bodies))
+                     (begin
+                       (syntax-local-bind-syntaxes
+                        (syntax->list #'(id* ...)) #f def-cxt)
+                       (with-syntax
+                         ([e* (internal-definition-context-introduce
+                               def-cxt
+                               (local-expand #'e '()
+                                             (list #'define-values
+                                                   #'define-syntaxes
+                                                   #'define-match-expander)
+                                             def-cxt))])
+                         (loop (append ids* (syntax->list #'(id* ...)))
+                               (cons body #;#'(define-values (id* ...) e*)
+                                     def-vals*)
+                               def-stxes*
+                               exprs*
+                               (cdr bodies)))))]
+                [(define-syntaxes (id:id ...) e:expr)
+                 #:with (id* ...) (stx-map splice-binding-identifier #'(id ...))
+                 (if (check-duplicate/sub #'(id* ...))
+                     (loop ids* def-vals* def-stxes* exprs* (cdr bodies))
+                     (begin
+                       (with-syntax
+                         ([e* (internal-definition-context-introduce
+                               def-cxt
+                               (local-expand #'e '()
+                                             (list #'define-values
+                                                   #'define-syntaxes
+                                                   #'define-match-expander)
+                                             def-cxt))])
+                         (syntax-local-bind-syntaxes
+                          (syntax->list #'(id* ...)) #'e* def-cxt)
+                         (loop (append ids* (syntax->list #'(id* ...)))
+                               def-vals*
+                               (cons body #;#'(define-syntaxes (id* ...) e*)
+                                     def-stxes*)
+                               exprs*
+                               (cdr bodies)))))]
+                [else (loop ids*
+                            def-vals*
+                            def-stxes*
+                            (cons body #;body*
+                                  exprs*)
+                            (cdr bodies))]))))
+
+
+      #;
       (for/fold ([ids* '()]
                  [def-vals* '()]
                  [def-stxes* '()]
@@ -142,6 +210,7 @@
         (let ([body* (local-expand body '()
                                    (list #'define-values #'define-syntaxes)
                                    def-cxt)])
+          (printf "do: ~a\n" (syntax->datum body*))
           (syntax-parse body*
             #:literal-sets (kernel-literals)
             [(define-values (id:id ...) e:expr)
@@ -217,7 +286,13 @@
      #:with super-red-id #'opts.name
      #:with (param ...) #'r.params
      #:with (arg ...)   #'opts.args
-     #:with (within-sig-id ...) #'opts.sigs
+     #:with (within-signature ...) #'opts.sigs
+     #:with (within-sig-id ...) (stx-map
+                                 (λ (sig)
+                                   (syntax-parse sig
+                                     [sig-id:id #'sig-id]
+                                     [(only sig-id:id :id ...) #'sig-id]))
+                                 #'(within-signature ...))
      #:with (do-body ...) #'opts.do-bodies
      #:with ((def-val* ...) (def-stx* ...) (expr* ...))
      (expand-all-do-bodies #'(do-body ...) #'super-red-id
@@ -234,7 +309,7 @@
               #'(do-body ...)
               (make-clause-map (list #'((... ...) clause) ...))))
            (define-unit red-unit-id
-             (import within-sig-id ...)
+             (import within-signature ...)
              (export red^)
 
              #,@(datum->syntax #'red-unit-id (syntax->datum #'(def-val* ...)))
@@ -309,7 +384,7 @@
      #'(reducer-of red-id #:within-units [])]
     [(_ red-id:id #:within-units [unit-id:id ...])
      #:with red-unit-id (reduction-desc-unit-id (syntax-local-value #'red-id))
-     #:with (within-sig-id ...) (reduction-desc-within-signatures
+     #:with (within-sig-id ...) (reduction-desc-within-sig-ids
                                  (syntax-local-value #'red-id))
      #:with (link-id ...) (stx-map (λ (sig-id)
                                      (generate-temporary sig-id))

@@ -1,4 +1,6 @@
 #lang racket/signature
+(require
+ (only-in "resolve-sig.rkt" resolve^))
 
 ;; ----------------------------------------
 ;; Expand-time store operations:
@@ -11,8 +13,8 @@ bind ; Σ Id Nam -> Σ
 
 lookup-Σ ; Σ Nam -> (U (Setof StoBind) Val ξ)
 
-resolve ; Id Σ -> Nam
-id=? ; Id Nam Σ -> Boolean
+(open resolve^)
+
 
 ;; ----------------------------------------
 ;; Alloc name & scope helpers for expander:

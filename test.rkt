@@ -1,7 +1,8 @@
 #lang racket
-(require (only-in "conc/base/example.rkt"
-                  core:examples phases:examples local:examples defs:examples)
-         (only-in "conc/base/core/misc.rkt" run-all-examples)
+(require (only-in "example.rkt"
+                  core:examples phases:examples local:examples defs:examples
+                  run-all-examples)
+         ;(only-in "conc/base/core/misc.rkt" )
 
          (only-in "conc/base/core/main.rkt" [run base:core:run])
          (only-in "conc/base/phases/main.rkt" [run base:phases:run])

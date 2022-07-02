@@ -1,31 +1,39 @@
 #lang racket/unit
 (require
  racket/match
- (only-in "../../../struct-common-sig.rkt" struct-common^)
- (only-in "../../../syntax-sig.rkt"        syntax^)
- (only-in "../../../io-sig.rkt"            io^))
+ (only-in "../../../term.rkt"        use-terms)
+ 
+ (only-in "../../../terms-extra.rkt" terms-extra^)
+ (only-in "terms.rkt"                terms^ #%term-forms)
+ (only-in "../../../syntax-sig.rkt"  syntax^)
+ (only-in "../../../io-sig.rkt"      io^))
 
 ;;;; reader & printer
 
-(import (only struct-common^
-              Var VFun Sym Stx stx stx? sym atom? prim?)
+(import (only terms^
+              Var% VFun% Stx% Sym%)
+        (only terms-extra^
+              stx? atom? prim?)
         (only syntax^
               empty-ctx))
 (export io^)
+
+(use-terms Var VFun Stx Sym)
+
 
 (define reader
   (letrec ([read-stx
             (λ (x)
               (match x
-                [(? prim?) (stx x (empty-ctx))]
-                [(? symbol?) (stx (sym x) (empty-ctx))]
-                [(? atom?) (stx x (empty-ctx))]
+                [(? prim?) (Stx x (empty-ctx))]
+                [(? symbol?) (Stx (Sym x) (empty-ctx))]
+                [(? atom?) (Stx x (empty-ctx))]
                 [(? pair?)
                  (let ([stl (read-stl x)])
                    (match stl
-                     ['() (stx '() (empty-ctx))]
+                     ['() (Stx '() (empty-ctx))]
                      [(? stx? stx) stx]
-                     [(? pair? stl) (stx stl (empty-ctx))]))]
+                     [(? pair? stl) (Stx stl (empty-ctx))]))]
                 [_ (error 'reader "not supported: ~a" x)]))]
            [read-stl
             (λ (xs)
