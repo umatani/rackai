@@ -7,7 +7,7 @@
  (only-in "../../../signatures.rkt"
           terms-extra^ env^ store^ cont^ delta^ eval^)
  (only-in "terms.rkt" terms^ #%term-forms))
-(provide eval-red@ eval@ -->)
+(provide --> eval@)
 
 ;; ----------------------------------------
 ;; Evaluating AST:
@@ -109,9 +109,9 @@
    `(,tm_then ,cont ,store)
    ev-if-#t])
 
-(define-unit-from-reduction eval-red@ -->)
+(define-unit-from-reduction red@ -->)
 
-(define-unit eval@
+(define-unit eval/red@
   (import (only terms^
                 AstEnv%)
           (only terms-extra^
@@ -136,3 +136,8 @@
                  (apply-reduction-relation*
                   --> `(,(AstEnv ast (init-env)) • ,(init-store)))])
       val)))
+
+(define-compound-unit/infer eval@
+  (import terms^ terms-extra^ env^ cont^ store^ delta^)
+  (export eval^)
+  (link   red@ eval/red@))

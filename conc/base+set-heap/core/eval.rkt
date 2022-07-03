@@ -9,7 +9,7 @@
  (only-in "../../base/core/terms.rkt" terms^ #%term-forms)
 
  (only-in "../../base/core/eval.rkt" [--> base:-->]))
-(provide eval@ eval-red@)
+(provide --> eval@)
 
 ;; Revised reduction rules
 
@@ -27,9 +27,9 @@
                        (only cont^
                              push-cont)])
 
-(define-unit-from-reduction eval-red@ -->)
+(define-unit-from-reduction red@ -->)
 
-(define-unit eval@
+(define-unit eval/red@
   (import (only terms^
                 AstEnv%)
           (only terms-extra^
@@ -55,3 +55,7 @@
                   --> `(,(AstEnv ast (init-env)) • ,(init-store)))])
       (list->set val))))
 
+(define-compound-unit/infer eval@
+  (import terms^ terms-extra^ env^ store^ cont^ delta^)
+  (export eval^)
+  (link   red@ eval/red@))

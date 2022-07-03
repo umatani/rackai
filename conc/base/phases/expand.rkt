@@ -8,7 +8,7 @@
           terms-extra^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^
           parser^ expand^)
  (only-in "terms.rkt" terms^ #%term-forms))
-(provide expand-red@ expand@ ==>)
+(provide ==> expand@)
 
 ;; ----------------------------------------
 ;; The expander:
@@ -341,9 +341,9 @@
    (InEval s2 ζ0)
    ex-in-eval])
 
-(define-unit-from-reduction expand-red@ ==>)
+(define-unit-from-reduction red@ ==>)
 
-(define-unit expand@
+(define-unit expand/red@
   (import (only terms^
                 Stxξ% ζ%)
           (only eval^
@@ -372,3 +372,9 @@
   ; expander : Stx -> (Values Stx Σ)
   (define (expander stx)
     (expand 0 stx (init-ξ) (set) (init-Σ))))
+
+(define-compound-unit/infer expand@
+  (import terms^ terms-extra^ syntax^ env^ store^ eval^
+          menv^ mstore^ mcont^ parser^)
+  (export expand^)
+  (link   red@ expand/red@))

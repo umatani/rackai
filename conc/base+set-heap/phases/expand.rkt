@@ -11,7 +11,7 @@
  (only-in "../../base/phases/terms.rkt"  terms^ #%term-forms)
 
  (only-in "../../base/phases/expand.rkt" [==> base:==>]))
-(provide (all-defined-out))
+(provide ==> expand@)
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (base:==> <- -->)
@@ -36,9 +36,9 @@
                        (only parser^
                              parse)])
 
-(define-unit-from-reduction expand-red@ ==>)
+(define-unit-from-reduction red@ ==>)
 
-(define-unit expand@
+(define-unit expand/red@
   (import (only terms^
                 Stxξ% ζ%)
           (only eval^
@@ -67,3 +67,9 @@
   ; expander : Stx -> (Values Stx Σ)
   (define (expander stx)
     (expand 0 stx (init-ξ) (set) (init-Σ))))
+
+(define-compound-unit/infer expand@
+  (import terms^ terms-extra^ syntax^ env^ store^ eval^
+          menv^ mstore^ mcont^ parser^)
+  (export expand^)
+  (link   red@ expand/red@))

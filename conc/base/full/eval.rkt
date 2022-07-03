@@ -9,8 +9,7 @@
           terms-extra^ syntax^ env^ store^ cont^ delta^ eval^
           menv^ mstore^ mcont^ parser^ expand^)
  (only-in "terms.rkt" terms^ #%term-forms))
-(provide (all-defined-out))
-
+(provide --> eval@)
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta ==> :=<1>)
@@ -369,9 +368,9 @@
    (InExpand ζ2 s0)
    ex-in-expand])
 
-(define-unit-from-reduction eval-red@ -->)
+(define-unit-from-reduction red@ -->)
 
-(define-unit eval@
+(define-unit eval/red@
   (import (only terms^
                 AstEnv% Σ*%)
           (only terms-extra^
@@ -409,3 +408,9 @@
     (call-with-values
      (λ () (eval 0 ast 'no-scope (init-ξ) (Σ* (init-Σ) (set) (set))))
      (λ (val Σ*) val))))
+
+(define-compound-unit/infer eval@
+  (import terms^ terms-extra^ syntax^ env^ store^ cont^ delta^
+          menv^ mstore^ mcont^ parser^ expand^)
+  (export eval^)
+  (link   red@ eval/red@))

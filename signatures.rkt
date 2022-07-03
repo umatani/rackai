@@ -2,6 +2,7 @@
 (require
  (only-in "sig/bind-sig.rkt"   bind^)
  (only-in "sig/cont-sig.rkt"   cont^)
+ (only-in "sig/debug-sig.rkt"  debug^)
  (only-in "sig/delta-sig.rkt"  delta^)
  (only-in "sig/env-sig.rkt"    env^)
  (only-in "sig/eval-sig.rkt"   eval^)
@@ -20,6 +21,7 @@
 
 (provide bind^
          cont^
+         debug^
          delta^
          env^
          eval^

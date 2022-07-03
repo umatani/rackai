@@ -10,8 +10,7 @@
  (only-in "../../base/full/terms.rkt" terms^ #%term-forms)
 
  (only-in "../../base/full/expand.rkt" [==> base:==>]))
-(provide (all-defined-out))
-
+(provide ==> expand@)
 
 (define-reduction (==> -->) #:super (base:==> --> <-)
   #:within-signatures [(only terms^
@@ -35,9 +34,9 @@
                        (only parser^
                              parse)])
 
-(define-unit-from-reduction expand-red@ ==>)
+(define-unit-from-reduction red@ ==>)
 
-(define-unit expand@
+(define-unit expand/red@
   (import (only terms^
                 Stxξ% Σ*% ζ%)
           (only eval^
@@ -66,3 +65,9 @@
   ; expander : Stx -> (Setof (Cons Stx Σ*))
   (define (expander stx)
     (expand 0 stx (init-ξ) (Σ* (init-Σ) (set) (set)))))
+
+(define-compound-unit/infer expand@
+  (import terms^ terms-extra^ syntax^ env^ store^ eval^
+          menv^ mstore^ mcont^ parser^)
+  (export expand^)
+  (link   red@ expand/red@))
