@@ -4,7 +4,7 @@
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt"
-          terms-extra^ syntax^ phase^)
+          terms-extra^ syntax^)
  (only-in "terms.rkt" terms^ #%term-forms)
 
  ;; partially reused from conc/base/phases
@@ -39,6 +39,9 @@
   (define union          phases:union)
   (define binding-lookup phases:binding-lookup)
   (define biggest-subset phases:biggest-subset)
+  (define at-phase       phases:at-phase)
+  (define update-ctx     phases:update-ctx)
+  (define prune          phases:prune)
 
   ; in-hole : Stx Stx -> Stx
   (define (in-hole stx v)
@@ -52,6 +55,6 @@
 
 (define-compound-unit/infer syntax@
   (import terms^ terms-extra^)
-  (export stx phase^)
+  (export stx)
   (link (([pstx : syntax^]) phases:syntax@)
         (([stx  : syntax^]) syntax/super@ pstx)))

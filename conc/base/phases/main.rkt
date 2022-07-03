@@ -7,7 +7,7 @@
  ;;;; Signatures
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ env^ store^ cont^ delta^ eval^
-          menv^ mstore^ mcont^ parser^ expand^ phase^ io^ run^)
+          menv^ mstore^ mcont^ parser^ expand^ io^ run^)
  (only-in "terms.rkt" terms^)
 
  ;;;; Units
@@ -31,7 +31,6 @@
  (only-in "parser.rkt"               parser@)
  (only-in "expand.rkt"               expand-red@ expand@))
 (provide run)
-
 
 (define-signature main^
   (AstEnv% ζ% Stxξ% ;; struct^
@@ -57,30 +56,7 @@
      (link terms@ terms-extra@ syntax@ env@ store@ cont@ delta@
            menv@ mstore@ mcont@ parser@ io@ run@
            (([evr : red^]) eval-red@)   (() eval@ evr)
-           (([exr : red^]) expand-red@) (() expand@ exr)))
-    #;
-    (compound-unit
-     (import)
-     (export t e sto ev me msto mc ex io r)
-     (link
-      (([t    : terms^]) terms@)
-      (([te   : terms-extra^]) terms-extra@ t)
-      (([stx  : syntax^]
-        [ph   : phase^])  syntax@     t te)
-      (([e    : env^])    env@)
-      (([sto  : store^])  store@      t)
-      (([c    : cont^])   cont@       sto)
-      (([d    : delta^])  delta@      t te)
-      (([evr  : red^])    eval-red@   t te e sto c)
-      (([ev   : eval^])   eval@       t te e sto d evr)
-      (([me   : menv^])   menv@)
-      (([msto : mstore^]) mstore@     t stx ph me)
-      (([mc   : mcont^])  mcont@      t sto)
-      (([p    : parser^]) parser@     t te stx me msto)
-      (([exr  : red^])    expand-red@ t te stx ph e sto me msto mc p)
-      (([ex   : expand^]) expand@     t stx sto ev me msto mc p exr)
-      (([io   : io^])     io@         t te stx)
-      (([r    : run^])    run@        ev p ex io)))))
+           (([exr : red^]) expand-red@) (() expand@ exr)))))
   (import) (export main^))
 
 (define (main [mode 'check])

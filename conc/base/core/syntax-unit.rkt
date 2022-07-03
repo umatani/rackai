@@ -163,3 +163,8 @@
     [(Stx (? atom? atom) ctx)
      (Stx atom (addremove scp ctx))]
     [(cons stx stl) (cons (flip stx scp) (flip-stl stl scp))]))
+
+;; not used in core
+(define (at-phase . args)   (error "must not be used"))
+(define (prune . args)      (error "must not be used"))
+(define (update-ctx . args) (error "must not be used"))

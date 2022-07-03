@@ -7,7 +7,7 @@
 
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ env^ store^ cont^ delta^ eval^
-          menv^ mstore^ mcont^ parser^ expand^ phase^)
+          menv^ mstore^ mcont^ parser^ expand^)
  (only-in "terms.rkt" terms^ #%term-forms))
 (provide (all-defined-out))
 
@@ -21,7 +21,7 @@
                        (only terms-extra^
                              val? id? prim? stx-prim?)
                        (only syntax^
-                             add flip union)
+                             add flip union prune)
                        (only env^
                              init-env lookup-env update-env)
                        (only store^
@@ -35,9 +35,7 @@
                        (only mcont^
                              init-Θ)
                        (only parser^
-                             parse)
-                       (only phase^
-                             prune)]
+                             parse)]
   #:do [(use-terms Var Fun App If VFun Sym Stx KApp KIf SApp SIf AstEnv
                    TVar TStop Defs Stxξ Σ Σ* 𝓁 ζ InExpand)
         ;; resolve* : Ph (Listof Id) Σ -> (Listof Nam))

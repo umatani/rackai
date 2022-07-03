@@ -36,3 +36,11 @@ add-stl ; Stl Scp -> Stl
 ;; Pushes flipping a scope down through a syntax object
 flip ; Stx Scp -> Stx
 flip-stl ; Stl Scp -> Stl
+
+at-phase ; Ctx Ph -> Scps
+
+;; Updates the mapping of a `ctx` at a particular phase
+update-ctx ; Ctx Ph Scps -> Ctx
+
+;; Recursively removes a set of scopes from a syntax object at a given phase
+prune ; Ph Stx Scps -> Stx

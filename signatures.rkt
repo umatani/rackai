@@ -11,7 +11,6 @@
  (only-in "sig/mstore-sig.rkt"  mstore^)
  (only-in "sig/parse-sig.rkt"   parse^)
  (only-in "sig/parser-sig.rkt"  parser^)
- (only-in "sig/phase-sig.rkt"   phase^)
  (only-in "sig/resolve-sig.rkt" resolve^)
  (only-in "sig/run-sig.rkt"     run^)
  (only-in "sig/store-sig.rkt"   store^)
@@ -21,5 +20,5 @@
  (only-in "terms-extra.rkt"     terms-extra^))
 
 (provide cont^ delta^ env^ eval^ expand^ io^ mcont^ menv^ mstore^
-         parse^ parser^ phase^ resolve^ run^ store^ syntax^
+         parse^ parser^ resolve^ run^ store^ syntax^
          terms^ terms-extra^)

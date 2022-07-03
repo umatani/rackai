@@ -7,17 +7,15 @@
  (only-in "../../term.rkt" use-terms)
 
  (only-in "../../signatures.rkt"
-          syntax^ resolve^ mstore^ phase^)
+          syntax^ resolve^ mstore^)
  (only-in "../../terms.rkt" terms^ #%term-forms))
 
 (import (only terms^
               Sym% Stx% StoBind%)
         (only syntax^
-              binding-lookup biggest-subset)
+              binding-lookup biggest-subset at-phase)
         (only mstore^
-              lookup-Σ)
-        (only phase^
-              at-phase))
+              lookup-Σ))
 (export resolve^)
 
 (use-terms Sym Stx StoBind)

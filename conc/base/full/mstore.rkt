@@ -4,7 +4,7 @@
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt"
-          syntax^ menv^ resolve^ mstore^ phase^)
+          syntax^ menv^ resolve^ mstore^)
  (only-in "terms.rkt" terms^ #%term-forms)
 
  (only-in "../resolve-unit.rkt" resolve@)
@@ -39,7 +39,7 @@
       (and (eq? nam nam0) (not (TStop? (lookup-ξ ξ nam)))))))
 
 (define-compound-unit/infer mstore@
-  (import terms^ syntax^ menv^ phase^)
+  (import terms^ syntax^ menv^)
   (export msto)
   (link (([pmsto : mstore^]) phases:mstore@)
         (()                  resolve@        msto)

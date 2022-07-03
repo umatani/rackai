@@ -7,7 +7,7 @@
 
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ env^ store^ eval^ 
-          menv^ mstore^ mcont^ parser^ expand^ phase^)
+          menv^ mstore^ mcont^ parser^ expand^)
  (only-in "../../base/phases/terms.rkt"  terms^ #%term-forms)
 
  (only-in "../../base/phases/expand.rkt" [==> base:==>]))
@@ -21,13 +21,12 @@
                        (only terms-extra^
                              id? val? atom? proper-stl?)
                        (only syntax^
-                             empty-ctx zip unzip snoc add flip union in-hole)
+                             empty-ctx zip unzip snoc add flip union in-hole
+                             prune at-phase)
                        (only env^
                              init-env)
                        (only store^
                              init-store)
-                       (only phase^
-                             prune at-phase)
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^

@@ -5,7 +5,7 @@
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt"
-          terms-extra^ syntax^ phase^)
+          terms-extra^ syntax^)
  (only-in "terms.rkt" terms^ #%term-forms)
 
  ;; partially reused from conc/base/core
@@ -22,7 +22,7 @@
                        addremove strip subtract union in-hole-stl
                        binding-lookup biggest-subset
                        stl->seq snoc zip unzip)))
-  (export syntax^ phase^)
+  (export syntax^)
 
   (use-terms Stx Stxξ Hole)
 
@@ -134,7 +134,7 @@
 
 (define-compound-unit/infer syntax@
   (import terms^ terms-extra^)
-  (export stx phase^)
+  (export stx)
   (link (([cstx : syntax^]) core:syntax@)
         (([stx  : syntax^]) syntax/super@ cstx)))
 #;

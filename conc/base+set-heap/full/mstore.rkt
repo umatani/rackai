@@ -5,7 +5,7 @@
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt"
-          syntax^ menv^ resolve^ mstore^ phase^)
+          syntax^ menv^ resolve^ mstore^)
  (only-in "../../base/full/terms.rkt" terms^ #%term-forms)
 
  ;; partially reused from conc/base+set-heap/phases
@@ -43,15 +43,8 @@
       (and (subset? (set nam) nam0) (not (TStop? (lookup-ξ ξ nam)))))))
 
 (define-compound-unit/infer mstore@
-  (import terms^ syntax^ menv^ phase^)
+  (import terms^ syntax^ menv^)
   (export msto)
   (link (([pmsto : mstore^]) phases:mstore@)
         (() resolve@ msto)
         (([msto  : mstore^]) mstore/resolve@ pmsto)))
-#;
-(define-compound-unit mstore@
-  (import [t : terms^] [stx : syntax^] [me : menv^] [ph : phase^])
-  (export msto)
-  (link (([pmsto : mstore^]) phases:mstore@  t stx me ph)
-        (([r    : resolve^]) resolve@        t stx msto ph)
-        (([msto : mstore^])  mstore/resolve@ t me r ph pmsto)))

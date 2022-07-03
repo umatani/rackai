@@ -6,7 +6,7 @@
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt"
-          syntax^ menv^ resolve^ mstore^ phase^)
+          syntax^ menv^ resolve^ mstore^)
  (only-in "terms.rkt" terms^ #%term-forms)
 
  (only-in "../resolve-unit.rkt" resolve@)
@@ -19,11 +19,9 @@
    (only terms^
          Sym% Stx% Σ% StoBind%)
    (only syntax^
-         binding-lookup biggest-subset)
+         binding-lookup biggest-subset at-phase)
    (prefix r: (only resolve^
                     resolve id=?))
-   (only phase^
-         at-phase)
    (prefix core: (only mstore^
                        init-Σ lookup-Σ alloc-name alloc-scope)))
   (export mstore^)
@@ -55,15 +53,15 @@
   (define id=? r:id=?))
 
 (define-compound-unit/infer mstore@
-  (import terms^ syntax^ menv^ phase^)
+  (import terms^ syntax^ menv^)
   (export msto)
   (link (([cmsto : mstore^]) core:mstore@)
         (() resolve@ msto)
         (([msto  : mstore^]) mstore/resolve@ cmsto)))
 #;
 (define-compound-unit mstore@
-  (import [t : terms^] [stx : syntax^] [me : menv^] [ph : phase^])
+  (import [t : terms^] [stx : syntax^] [me : menv^])
   (export msto)
-  (link (([cmsto : mstore^]) core:mstore@     t stx me ph)
-        (([r     : resolve^]) resolve@        t stx msto ph)
-        (([msto  : mstore^])  mstore/resolve@ t stx r ph cmsto)))
+  (link (([cmsto : mstore^]) core:mstore@     t stx me)
+        (([r     : resolve^]) resolve@        t stx msto)
+        (([msto  : mstore^])  mstore/resolve@ t stx r cmsto)))

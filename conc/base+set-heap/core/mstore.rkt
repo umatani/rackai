@@ -5,7 +5,7 @@
  (only-in "../../../term.rkt" use-terms)
  
  (only-in "../../../signatures.rkt"
-          syntax^ menv^ resolve^ mstore^ phase^)
+          syntax^ menv^ resolve^ mstore^)
  (only-in "../../base/core/terms.rkt" terms^ #%term-forms)
 
  ;; common in conc/base+set-heap
@@ -66,15 +66,8 @@
               (Σ (add1 size) tbl)))))
 
 (define-compound-unit/infer mstore@
-  (import terms^ syntax^ menv^ phase^)
+  (import terms^ syntax^ menv^)
   (export msto)
   (link (([cmsto : mstore^]) base:mstore@)
         (() resolve@ msto)
         (([msto  : mstore^]) mstore/resolve@ cmsto)))
-#;
-(define-compound-unit mstore@
-  (import [t : terms^] [stx : syntax^] [me : menv^] [ph : phase^])
-  (export msto)
-  (link (([cmsto : mstore^])  base:mstore@    t stx me ph)
-        (([r     : resolve^]) resolve@        t stx msto ph)
-        (([msto  : mstore^])  mstore/resolve@ t stx r cmsto)))

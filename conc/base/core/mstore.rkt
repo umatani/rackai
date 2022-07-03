@@ -6,7 +6,7 @@
  (only-in "../../../dprint.rkt" dprint)
 
  (only-in "../../../signatures.rkt"
-          syntax^ menv^ resolve^ mstore^ phase^)
+          syntax^ menv^ resolve^ mstore^)
  (only-in "terms.rkt" terms^ #%term-forms)
 
  (only-in "../resolve-unit.rkt" resolve@))
@@ -73,13 +73,13 @@
               (Σ (add1 size) tbl)))))
 
 (define-compound-unit/infer mstore@
-  (import terms^ syntax^ menv^ phase^)
+  (import terms^ syntax^ menv^)
   (export mstore^)
   (link   resolve@ mstore/resolve@))
 
 #;
 (define-compound-unit mstore@
-  (import [t : terms^] [stx : syntax^] [me : menv^] [ph : phase^])
+  (import [t : terms^] [stx : syntax^] [me : menv^])
   (export msto)
-  (link (([r : resolve^]) resolve@ t stx msto ph)
+  (link (([r : resolve^]) resolve@ t stx msto)
         (([msto : mstore^]) mstore/resolve@ t stx me r)))
