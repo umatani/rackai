@@ -6,24 +6,24 @@
  (only-in "../../../dprint.rkt" dprint)
 
  (only-in "../../../signatures.rkt"
-          syntax^ menv^ resolve^ mstore^)
+          syntax^ menv^ bind^ mstore^)
  (only-in "terms.rkt" terms^ #%term-forms)
 
- (only-in "../resolve-unit.rkt" resolve@))
+ (only-in "../bind-unit.rkt" bind@))
 (provide mstore@)
 
-(define-unit mstore/resolve@
+(define-unit mstore/bind@
   (import (only terms^
-                Sym% Stx% Σ% StoBind%)
+                Sym% Stx% Σ%)
           (only syntax^
                 add biggest-subset binding-lookup)
           (only menv^
                 extend-ξ)
-          (prefix r: (only resolve^
-                           resolve id=?)))
+          (prefix b: (only bind^
+                           bind resolve id=?)))
   (export mstore^)
 
-  (use-terms Sym Stx Σ StoBind)
+  (use-terms Sym Stx Σ)
 
 
   ;; ----------------------------------------
@@ -32,27 +32,13 @@
   ; init-Σ : -> Σ
   (define (init-Σ) (Σ 0 (make-immutable-hash)))
 
-  ;; Add a binding using the name and scopes of an identifier, mapping
-  ;; them in the store to a given name
-  ; bind : Σ Id Nam -> Σ
-  (define (bind Σ0 id nam)
-    (dprint 'core 'bind "")
-    (match-let ([(Σ size tbl) Σ0]
-                [(Stx (Sym nam_1) ctx_1) id])
-      (Σ size (hash-update tbl nam_1
-                            (λ (sbs) (set-add sbs (StoBind ctx_1 nam)))
-                            (λ () (set))))))
-
   ;; lookup-Σ : Σ Nam -> (U (Setof StoBind) Val ξ)
   (define (lookup-Σ Σ0 nam)
     (hash-ref (Σ-tbl Σ0) nam (λ () (set))))
 
-  ; resolve : Id Σ -> Nam
-  (define resolve r:resolve)
-
-  ;; id=? : Id Nam Σ -> Boolean
-  (define id=? r:id=?)
-
+  (define bind    b:bind)
+  (define resolve b:resolve)
+  (define id=?    b:id=?)
 
   ;; ----------------------------------------
   ;; Alloc name & scope helpers for expander:
@@ -75,11 +61,4 @@
 (define-compound-unit/infer mstore@
   (import terms^ syntax^ menv^)
   (export mstore^)
-  (link   resolve@ mstore/resolve@))
-
-#;
-(define-compound-unit mstore@
-  (import [t : terms^] [stx : syntax^] [me : menv^])
-  (export msto)
-  (link (([r : resolve^]) resolve@ t stx msto)
-        (([msto : mstore^]) mstore/resolve@ t stx me r)))
+  (link   bind@ mstore/bind@))

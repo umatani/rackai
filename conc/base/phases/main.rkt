@@ -8,28 +8,15 @@
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ env^ store^ cont^ delta^ eval^
           menv^ mstore^ mcont^ parser^ expand^ io^ run^)
- (only-in "terms.rkt" terms^)
+ (only-in "terms.rkt" terms^ #%term-forms)
 
  ;;;; Units
- ;; common
- (only-in "../../../terms-extra.rkt" terms-extra@)
- ;; common in conc/base
- (only-in "../run-unit.rkt"          run@)
- ;; reused from conc/base/core
- (only-in "../core/env-unit.rkt"     env@)
- (only-in "../core/store-unit.rkt"   store@)
- (only-in "../core/cont-unit.rkt"    cont@)
- (only-in "../core/delta-unit.rkt"   delta@)
- (only-in "../core/eval.rkt"         eval-red@ eval@)
- (only-in "../core/menv-unit.rkt"    menv@)
- (only-in "../core/mcont-unit.rkt"   mcont@)
- (only-in "../core/io-unit.rkt"      io@)
- ;; new
- (only-in "terms.rkt"                terms@ #%term-forms)
- (only-in "syntax.rkt"               syntax@)
- (only-in "mstore.rkt"               mstore@)
- (only-in "parser.rkt"               parser@)
- (only-in "expand.rkt"               expand-red@ expand@))
+ (only-in "../../../units.rkt" terms-extra@)
+ (only-in "../units.rkt" run@)
+ (only-in "../core/units.rkt"
+          env@ store@ cont@ delta@ eval-red@ eval@ menv@ mcont@ io@)
+ (only-in "units.rkt"
+          terms@ syntax@ mstore@ parser@ expand-red@ expand@))
 (provide run)
 
 (define-signature main^

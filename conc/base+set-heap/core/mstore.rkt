@@ -5,50 +5,37 @@
  (only-in "../../../term.rkt" use-terms)
  
  (only-in "../../../signatures.rkt"
-          syntax^ menv^ resolve^ mstore^)
+          syntax^ menv^ bind^ mstore^)
  (only-in "../../base/core/terms.rkt" terms^ #%term-forms)
 
  ;; common in conc/base+set-heap
- (only-in "../resolve-unit.rkt" resolve@)
+ (only-in "../bind-unit.rkt" bind@)
  ;; partially reused from conc/base/core
  (rename-in "../../base/core/mstore.rkt" [mstore@ base:mstore@]))
 (provide mstore@)
 
-(define-unit mstore/resolve@
+(define-unit mstore/bind@
   (import (only terms^
-                Sym% Stx% Σ% StoBind%)
-          (prefix r: (only resolve^
-                           resolve id=?))
+                Sym% Stx% Σ%)
+          (prefix b: (only bind^
+                           bind resolve id=?))
           (prefix base: (only mstore^
                               init-Σ)))
   (export mstore^)
 
-  (use-terms Sym Stx Σ StoBind)
+  (use-terms Sym Stx Σ)
 
   (define init-Σ base:init-Σ)
 
   ;; Set-based Σ
 
-  ;; Add a binding using the name and scopes of an identifier, mapping
-  ;; them in the store to a given name
-  ; bind : Σ Id Nam -> Σ
-  (define (bind Σ0 id nam)
-    (match-let ([(Σ size tbl) Σ0]
-                [(Stx (Sym nam_1) ctx_1) id])
-      (Σ size
-        (hash-update tbl nam_1
-                     (λ (sbss)
-                       (for/set ([sbs (in-set sbss)]
-                                 #:when (set? sbs))
-                         (set-add sbs (StoBind ctx_1 nam))))
-                     (λ () (set (set)))))))
-
   ; lookup-Σ : Σ Nam -> (SetM (U (Setof StoBind) Val ξ))
   (define (lookup-Σ Σ0 nam)
     (lift (hash-ref (Σ-tbl Σ0) nam (λ () (set)))))
 
-  (define resolve r:resolve)
-  (define id=?    r:id=?)
+  (define bind    b:bind)
+  (define resolve b:resolve)
+  (define id=?    b:id=?)
 
   ;; Finite-domain allocation
 
@@ -68,6 +55,6 @@
 (define-compound-unit/infer mstore@
   (import terms^ syntax^ menv^)
   (export msto)
-  (link (([cmsto : mstore^]) base:mstore@)
-        (() resolve@ msto)
-        (([msto  : mstore^]) mstore/resolve@ cmsto)))
+  (link (() bind@ msto)
+        (([cmsto : mstore^]) base:mstore@)
+        (([msto  : mstore^]) mstore/bind@ cmsto)))

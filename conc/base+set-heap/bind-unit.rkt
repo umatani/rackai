@@ -7,18 +7,35 @@
  (only-in "../../term.rkt" use-terms)
 
  (only-in "../../signatures.rkt"
-          syntax^ resolve^ mstore^)
+          syntax^ mstore^ bind^)
  (only-in "../../terms.rkt" terms^ #%term-forms))
 
 (import (only terms^
-              Sym% Stx% StoBind%)
+              Sym% Stx% Σ% StoBind%)
         (only syntax^
               binding-lookup biggest-subset at-phase)
         (only mstore^
               lookup-Σ))
-(export resolve^)
+(export bind^)
 
-(use-terms Sym Stx StoBind)
+(use-terms Sym Stx Σ StoBind)
+
+
+;; Like one-phase `bind`, but extracts scopes at a given phase of
+;; the identifier
+; bind : Ph Σ Id Nam -> Σ
+(define (bind #:phase [ph #f] Σ0 id nam)
+  (match-let ([(Σ size tbl) Σ0]
+              [(Stx (Sym nam_1) ctx_1) id])
+    (Σ size
+      (hash-update tbl nam_1
+                   (λ (sbss)
+                     (for/set ([sbs (in-set sbss)]
+                               #:when (set? sbs))
+                       (set-add sbs (StoBind
+                                     (if ph (at-phase ctx_1 ph) ctx_1)
+                                     nam))))
+                   (λ () (set (set)))))))
 
 ; resolve : Ph Id Σ -> (SetM Nam)
 ;   ph is #f means called from core

@@ -1,60 +1,35 @@
 #lang racket
 (require
- (except-in racket set do)
- "../../../set.rkt"
- (only-in "../../../term.rkt" use-terms)
-
  (only-in "../../../signatures.rkt"
-          syntax^ menv^ resolve^ mstore^)
-
- (only-in "../../base/phases/terms.rkt" terms^ #%term-forms)
+          syntax^ menv^ bind^ mstore^)
+ (only-in "../../base/phases/terms.rkt" terms^)
 
  ;; common in conc/base+set-heap
- (only-in "../resolve-unit.rkt" resolve@)
+ (only-in "../bind-unit.rkt" bind@)
  ;; partially reused from conc/base+set-heap/core
  (rename-in "../core/mstore.rkt" [mstore@ core:mstore@]))
 (provide mstore@)
 
-(define-unit mstore/resolve@
+(define-unit mstore/bind@
   (import
-   (only terms^
-         Sym% Stx% Σ% StoBind%)
-   (only syntax^
-         at-phase)
-   (prefix r: (only resolve^
-                    resolve id=?))
-   ; set-based version from conc/base+set-heap/core
+   (prefix b: (only bind^
+                    bind resolve id=?))
    (prefix core: (only mstore^
                        init-Σ lookup-Σ alloc-name alloc-scope)))
   (export mstore^)
-
-  (use-terms Sym Stx Σ StoBind)
 
   (define init-Σ      core:init-Σ)
   (define lookup-Σ    core:lookup-Σ)
   (define alloc-name  core:alloc-name)
   (define alloc-scope core:alloc-scope)
 
-  ;; Like one-phase `bind`, but extracts scopes at a given phase of
-  ;; the identifier
-  ; bind : Ph Σ Id Nam -> Σ
-  (define (bind ph Σ0 id nam)
-    (match-let ([(Σ size tbl) Σ0]
-                [(Stx (Sym nam_1) ctx_1) id])
-      (Σ size
-        (hash-update tbl nam_1
-                     (λ (sbss)
-                       (for/set ([sbs (in-set sbss)]
-                                 #:when (set? sbs))
-                         (set-add sbs (StoBind (at-phase ctx_1 ph) nam))))
-                     (λ () (set (set)))))))
-
-  (define resolve r:resolve)
-  (define id=?    r:id=?))
+  (define bind    b:bind)
+  (define resolve b:resolve)
+  (define id=?    b:id=?))
 
 (define-compound-unit/infer mstore@
   (import terms^ syntax^ menv^)
   (export msto)
-  (link (([cmsto : mstore^]) core:mstore@)
-        (() resolve@ msto)
-        (([msto  : mstore^]) mstore/resolve@ cmsto)))
+  (link (() bind@ msto)
+        (([cmsto : mstore^]) core:mstore@)
+        (([msto  : mstore^]) mstore/bind@ cmsto)))

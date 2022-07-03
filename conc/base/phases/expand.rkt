@@ -52,7 +52,7 @@
                             (regist-vars ph scp stl ξ Σ)]
                            [(nam_new Σ_2) (alloc-name id Σ_1)]
                            [(id_new) (add ph id scp)]
-                           [(Σ_3) (bind ph Σ_2 id_new nam_new)]
+                           [(Σ_3) (bind #:phase ph Σ_2 id_new nam_new)]
                            [(ξ_2) (extend-ξ ξ_1 nam_new (TVar id_new))])
                (values (cons id_new stl_reg) ξ_2 Σ_3))]))]
 
@@ -153,7 +153,7 @@
    #:with (values nam_new Σ_1) := (alloc-name id Σ) 
    #:with (values scp_new Σ_2) := (alloc-scope 'ls Σ_1)
    #:with               id_new := (add ph id scp_new)
-   #:with                  Σ_3 := (bind ph Σ_2 id_new nam_new)
+   #:with                  Σ_3 := (bind #:phase ph Σ_2 id_new nam_new)
    #:with   (values 𝓁_new Θ_1) := (push-κ Θ κ0)
    #:with            stx_body2 := (add ph stx_body scp_new)
    #:with              scps_p2 := (union (set scp_new) scps_p)

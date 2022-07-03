@@ -21,10 +21,3 @@
   (import terms^ terms-extra^ syntax^ menv^ mstore^)
   (export parser^) 
   (link   parse@ parser/parse@))
-#;
-(define-compound-unit parser@
-  (import [t : terms^] [te : terms-extra^] [stx : syntax^]
-          [me : menv^] [msto : mstore^])
-  (export pr)
-  (link (([p  : parse^])  parse@ t te stx me msto)
-        (([pr : parser^]) parser/parse@ p)))

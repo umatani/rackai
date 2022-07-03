@@ -196,7 +196,7 @@
                                               scps_u)
                                        scp_defs)
    #:with (values nam_new Σ_1) := (alloc-name id_defs Σ)
-   #:with                  Σ_2 := (bind ph Σ_1 id_defs nam_new)
+   #:with                  Σ_2 := (bind #:phase ph Σ_1 id_defs nam_new)
    #:with               ξ_defs := (def-ξ-lookup Σ_2 𝓁)
    #:with                  Σ_3 := (def-ξ-update Σ_2 𝓁
                                      (extend-ξ ξ_defs nam_new (TVar id_defs)))
@@ -244,7 +244,7 @@
                                                  scps_u)
                                        scp_defs)
    #:with (values nam_new Σ_2) := (alloc-name id_defs Σ)
-   #:with                  Σ_3 := (bind ph Σ_2 id_defs nam_new)
+   #:with                  Σ_3 := (bind #:phase ph Σ_2 id_defs nam_new)
    #:with                 Σ*_4 := (Σ* (def-ξ-update Σ_3 𝓁
                                           (extend-ξ ξ_defs nam_new val_exp))
                                         scps_p scps_u)

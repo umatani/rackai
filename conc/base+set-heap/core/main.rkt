@@ -2,7 +2,7 @@
 (require
  "../../../reduction.rkt"
  "../../../example.rkt"
- (only-in "../../../term.rkt"               use-terms)
+ (only-in "../../../term.rkt" use-terms)
  
  ;;;; Signatures
  (only-in "../../../signatures.rkt"
@@ -11,25 +11,12 @@
  (only-in "../../base/core/terms.rkt" terms^ #%term-forms)
  
  ;;;; Units
- ;; common
- (only-in "../../../terms-extra.rkt"        terms-extra@)
- ;; common in conc/base+set-heap
- (only-in "../run-unit.rkt"                 run@)
- ;; reused from conc/base/core
- (only-in "../../base/core/terms.rkt"       terms@)
- (only-in "../../base/core/syntax-unit.rkt" syntax@)
- (only-in "../../base/core/env-unit.rkt"    env@)
- (only-in "../../base/core/cont-unit.rkt"   cont@)
- (only-in "../../base/core/menv-unit.rkt"   menv@)
- (only-in "../../base/core/mcont-unit.rkt"  mcont@)
- (only-in "../../base/core/delta-unit.rkt"  delta@)
- (only-in "../../base/core/io-unit.rkt"     io@)
- ;; new (with set-based version)
- (only-in "store.rkt"                       store@)
- (only-in "eval.rkt"                        eval-red@ eval@)
- (only-in "mstore.rkt"                      mstore@)
- (only-in "parser.rkt"                      parser@)
- (only-in "expand.rkt"                      expand-red@ expand@))
+ (only-in "../../../units.rkt" terms-extra@)
+ (only-in "../units.rkt" run@)
+ (only-in "../../base/core/units.rkt"
+          terms@ syntax@ env@ cont@ menv@ mcont@ delta@ io@)
+ (only-in "units.rkt"
+          store@ eval-red@ eval@ mstore@ parser@ expand-red@ expand@))
 (provide run)
 
 (define-signature main^
