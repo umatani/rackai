@@ -339,8 +339,15 @@
 
 (define-syntax (reduction->unit stx)
   (syntax-parse stx
-    [(_ red-id:id) (reduction-desc-unit-id (syntax-local-value #'red-id))]))
+    [(_ red-id:id)
+     (reduction-desc-unit-id (syntax-local-value #'red-id))]))
 
+(define-syntax (define-unit-from-reduction stx)
+  (syntax-parse stx
+    [(_ uid:id red-id:id)
+     #`(define-syntax uid (make-rename-transformer
+                           #'#,(reduction-desc-unit-id
+                                (syntax-local-value #'red-id))))]))
 
 (begin-for-syntax
   (define (pair->tagged-sig-id p)

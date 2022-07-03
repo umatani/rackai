@@ -2,15 +2,11 @@
 (require
  "../../../set.rkt"
  "../../../reduction.rkt"
- (only-in "../../../term.rkt"        use-terms)
+ (only-in "../../../term.rkt" use-terms)
 
+ (only-in "../../../signatures.rkt"
+          terms-extra^ env^ store^ cont^ delta^ eval^)
  (only-in "../../base/core/terms.rkt" terms^ #%term-forms)
- (only-in "../../../terms-extra.rkt"  terms-extra^)
- (only-in "../../../env-sig.rkt"      env^)
- (only-in "../../../store-sig.rkt"    store^)
- (only-in "../../../cont-sig.rkt"     cont^)
- (only-in "../../../delta-sig.rkt"    delta^)
- (only-in "../../../eval-sig.rkt"     eval^)
 
  (only-in "../../base/core/eval.rkt" [--> base:-->]))
 (provide eval@ eval-red@)
@@ -31,7 +27,7 @@
                        (only cont^
                              push-cont)])
 
-(define eval-red@ (reduction->unit -->))
+(define-unit-from-reduction eval-red@ -->)
 
 (define-unit eval@
   (import (only terms^

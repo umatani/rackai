@@ -1,8 +1,8 @@
 #lang racket
 (require [only-in racket [eval r:eval]]
          (for-syntax racket/list))
-(provide ex-runner run-ex run-examples run-all-examples
-         core:examples phases:examples local:examples defs:examples)
+(provide (all-defined-out)
+         (for-syntax (all-from-out racket/list)))
 
 
 ;;;; Example runner

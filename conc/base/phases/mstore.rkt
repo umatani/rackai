@@ -2,19 +2,16 @@
 (require
  racket/match
  "../../../set.rkt"
- (only-in "../../../dprint.rkt"      dprint)
- (only-in "../../../term.rkt"        use-terms)
+ (only-in "../../../dprint.rkt" dprint)
+ (only-in "../../../term.rkt" use-terms)
 
- (only-in "terms.rkt"                terms^ #%term-forms)
- (only-in "../../../syntax-sig.rkt"  syntax^)
- (only-in "../../../resolve-sig.rkt" resolve^)
- (only-in "../../../menv-sig.rkt"    menv^)
- (only-in "../../../mstore-sig.rkt"  mstore^)
- (only-in "../../../phase-sig.rkt"   phase^)
+ (only-in "../../../signatures.rkt"
+          syntax^ menv^ resolve^ mstore^ phase^)
+ (only-in "terms.rkt" terms^ #%term-forms)
 
- (only-in "../resolve-unit.rkt"      resolve@)
+ (only-in "../resolve-unit.rkt" resolve@)
  ;; partially reused from conc/base/core
- (only-in "../core/mstore.rkt"       [mstore@ core:mstore@]))
+ (only-in "../core/mstore.rkt" [mstore@ core:mstore@]))
 (provide mstore@)
 
 (define-unit mstore/resolve@
@@ -57,6 +54,13 @@
   ; id=? : ph Id Nam Σ -> Boolean
   (define id=? r:id=?))
 
+(define-compound-unit/infer mstore@
+  (import terms^ syntax^ menv^ phase^)
+  (export msto)
+  (link (([cmsto : mstore^]) core:mstore@)
+        (() resolve@ msto)
+        (([msto  : mstore^]) mstore/resolve@ cmsto)))
+#;
 (define-compound-unit mstore@
   (import [t : terms^] [stx : syntax^] [me : menv^] [ph : phase^])
   (export msto)

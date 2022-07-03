@@ -5,28 +5,18 @@
  "../../../example.rkt"
 
  ;;;; Signatures
- (only-in "../../../terms-extra.rkt" terms-extra^)
- (only-in "terms.rkt"                terms^)
- (only-in "../../../syntax-sig.rkt"  syntax^)
- (only-in "../../../env-sig.rkt"     env^)
- (only-in "../../../store-sig.rkt"   store^)
- (only-in "../../../cont-sig.rkt"    cont^)
- (only-in "../../../delta-sig.rkt"   delta^)
- (only-in "../../../eval-sig.rkt"    eval^)
- (only-in "../../../menv-sig.rkt"    menv^)
- (only-in "../../../mstore-sig.rkt"  mstore^)
- (only-in "../../../mcont-sig.rkt"   mcont^)
- (only-in "../../../parser-sig.rkt"  parser^)
- (only-in "../../../expand-sig.rkt"  expand^)
- (only-in "../../../phase-sig.rkt"   phase^)  ;; not used
- (only-in "../../../io-sig.rkt"      io^)
- (only-in "../../../run-sig.rkt"     run^)
+ (only-in "../../../signatures.rkt"
+          terms-extra^ syntax^ env^ store^ cont^ delta^ eval^
+          menv^ mstore^ mcont^ parser^ expand^ phase^ io^ run^)
+ (only-in "terms.rkt" terms^)
 
  ;;;; Units
+ ;; common
+ (only-in "../../../dummy-phase.rkt" phase@)
  ;; common in conc/base
  (only-in "../../../terms-extra.rkt" terms-extra@)
  (only-in "../run-unit.rkt"          run@)
-
+ ;; new
  (only-in "terms.rkt"                terms@ #%term-forms)
  (only-in "syntax-unit.rkt"          syntax@)
  (only-in "env-unit.rkt"             env@)
@@ -39,19 +29,8 @@
  (only-in "mcont-unit.rkt"           mcont@)
  (only-in "parser.rkt"               parser@)
  (only-in "expand.rkt"               expand-red@ expand@)
- (only-in "io-unit.rkt"              io@)
-
- (for-syntax racket/list))
+ (only-in "io-unit.rkt"              io@))
 (provide run)
-
-(define-unit dummy-phase@
-  (import)
-  (export phase^)
-
-  (define (at-phase . args)   (error "must not be used"))
-  (define (prune . args)      (error "must not be used"))
-  (define (update-ctx . args) (error "must not be used")))
-
 
 (define-signature main^
   (;ast&env mk-ζ stx&ξ ;; struct^
@@ -71,6 +50,15 @@
   (unit/new-import-export
    (import) (export main^)
    ((terms^ env^ store^ eval^ menv^ mstore^ mcont^ expand^ io^ run^)
+
+    (compound-unit/infer
+     (import)
+     (export terms^ env^ store^ eval^ menv^ mstore^ mcont^ expand^ io^ run^)
+     (link   terms@ terms-extra@ syntax@ env@ store@ cont@ delta@
+             menv@ mstore@ mcont@ parser@ phase@ io@ run@
+             (([evr : red^]) eval-red@)   (() eval@ evr)
+             (([exr : red^]) expand-red@) (() expand@ exr)))
+    #;
     (compound-unit
      (import)
      (export t e sto ev me msto mc ex io r)
@@ -93,6 +81,7 @@
       (([ph   : phase^])  dummy-phase@)
       (([io   : io^])     io@         t te stx)
       (([r    : run^])    run@        ev p ex io)))))
+
   (import) (export main^))
 
 

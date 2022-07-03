@@ -4,13 +4,9 @@
  "../../../reduction.rkt"
  (only-in "../../../term.rkt" use-terms)
 
- (only-in "../../../terms-extra.rkt" terms-extra^)
- (only-in "terms.rkt"                terms^ #%term-forms)
- (only-in "../../../env-sig.rkt"     env^)
- (only-in "../../../store-sig.rkt"   store^)
- (only-in "../../../cont-sig.rkt"    cont^)
- (only-in "../../../delta-sig.rkt"   delta^)
- (only-in "../../../eval-sig.rkt"    eval^))
+ (only-in "../../../signatures.rkt"
+          terms-extra^ env^ store^ cont^ delta^ eval^)
+ (only-in "terms.rkt" terms^ #%term-forms))
 (provide eval-red@ eval@ -->)
 
 ;; ----------------------------------------
@@ -113,7 +109,7 @@
    `(,tm_then ,cont ,store)
    ev-if-#t])
 
-(define eval-red@ (reduction->unit -->))
+(define-unit-from-reduction eval-red@ -->)
 
 (define-unit eval@
   (import (only terms^

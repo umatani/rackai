@@ -34,10 +34,11 @@
 
 ;; reducer->unitで生成したunitが返すreducerを直接使用
 ;; within-unitsとはcompound-unitで事前に組み合わせ
+(define-unit-from-reduction -->-unit -->)
 (define reducer2 (invoke-unit (compound-unit
                                (import) (export)
                                (link (([x : X^] [y : Y^]) XY@)
-                                     (() (reduction->unit -->) x y)))))
+                                     (() -->-unit x y)))))
 ((reducer2 +) (cons 3 4))
 
 
@@ -75,4 +76,4 @@
 (define-reduction (==>) #:super (--> +)
   #:within-signatures [X^ Y^])
 
-(reduction->unit ==>)
+(define-unit-from-reduction ==>-unit ==>)

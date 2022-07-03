@@ -2,19 +2,12 @@
 (require
  "../../../set.rkt"
  "../../../reduction.rkt"
- (only-in "../../../term.rkt"        use-terms)
+ (only-in "../../../term.rkt" use-terms)
 
+ (only-in "../../../signatures.rkt"
+          terms-extra^ syntax^ env^ store^ eval^
+          menv^ mstore^ mcont^ parser^ expand^)
  (only-in "../../base/core/terms.rkt" terms^ #%term-forms)
- (only-in "../../../terms-extra.rkt"  terms-extra^)
- (only-in "../../../syntax-sig.rkt"   syntax^)
- (only-in "../../../env-sig.rkt"      env^)
- (only-in "../../../store-sig.rkt"    store^)
- (only-in "../../../menv-sig.rkt"     menv^)
- (only-in "../../../mstore-sig.rkt"   mstore^)
- (only-in "../../../mcont-sig.rkt"    mcont^)
- (only-in "../../../eval-sig.rkt"     eval^)
- (only-in "../../../parser-sig.rkt"   parser^)
- (only-in "../../../expand-sig.rkt"   expand^)
 
  (only-in "../../base/core/expand.rkt" [==> base:==>]))
 (provide expand-red@ expand@)
@@ -44,7 +37,7 @@
                        (only parser^
                              parse)])
 
-(define expand-red@ (reduction->unit ==>))
+(define-unit-from-reduction expand-red@ ==>)
 
 (define-unit expand@
   (import (only terms^

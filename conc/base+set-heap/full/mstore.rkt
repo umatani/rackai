@@ -2,19 +2,16 @@
 (require
  "../../../set.rkt"
  "../../../nondet.rkt"
- (only-in "../../../term.rkt"         use-terms)
+ (only-in "../../../term.rkt" use-terms)
 
+ (only-in "../../../signatures.rkt"
+          syntax^ menv^ resolve^ mstore^ phase^)
  (only-in "../../base/full/terms.rkt" terms^ #%term-forms)
- (only-in "../../../syntax-sig.rkt"   syntax^)
- (only-in "../../../menv-sig.rkt"     menv^)
- (only-in "../../../resolve-sig.rkt"  resolve^)
- (only-in "../../../mstore-sig.rkt"   mstore^)
- (only-in "../../../phase-sig.rkt"    phase^)
 
  ;; partially reused from conc/base+set-heap/phases
- (only-in "../phases/mstore.rkt"      [mstore@ phases:mstore@])
+ (only-in "../phases/mstore.rkt" [mstore@ phases:mstore@])
 
- (only-in "../resolve-unit.rkt"       resolve@))
+ (only-in "../resolve-unit.rkt"  resolve@))
 (provide mstore@)
 
 (define-unit mstore/resolve@
@@ -45,6 +42,13 @@
     (let ([nam0 (car (do (resolve #:phase ph id Σ)))])
       (and (subset? (set nam) nam0) (not (TStop? (lookup-ξ ξ nam)))))))
 
+(define-compound-unit/infer mstore@
+  (import terms^ syntax^ menv^ phase^)
+  (export msto)
+  (link (([pmsto : mstore^]) phases:mstore@)
+        (() resolve@ msto)
+        (([msto  : mstore^]) mstore/resolve@ pmsto)))
+#;
 (define-compound-unit mstore@
   (import [t : terms^] [stx : syntax^] [me : menv^] [ph : phase^])
   (export msto)

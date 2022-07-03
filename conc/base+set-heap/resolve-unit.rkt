@@ -1,16 +1,14 @@
 #lang racket/unit
 (require
- (only-in racket                  identity)
+ (only-in racket identity)
  racket/match
  "../../set.rkt"
  "../../nondet.rkt"
- (only-in "../../term.rkt"        use-terms)
+ (only-in "../../term.rkt" use-terms)
 
- (only-in "../../terms.rkt"       terms^ #%term-forms)
- (only-in "../../syntax-sig.rkt"  syntax^)
- (only-in "../../resolve-sig.rkt" resolve^)
- (only-in "../../mstore-sig.rkt"  mstore^)
- (only-in "../../phase-sig.rkt"   phase^))
+ (only-in "../../signatures.rkt"
+          syntax^ resolve^ mstore^ phase^)
+ (only-in "../../terms.rkt" terms^ #%term-forms))
 
 (import (only terms^
               Sym% Stx% StoBind%)

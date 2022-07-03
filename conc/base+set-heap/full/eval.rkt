@@ -2,25 +2,15 @@
 (require
  "../../../set.rkt"
  "../../../reduction.rkt"
- (only-in "../../../term.rkt"         use-terms)
- (only-in "../../../dprint.rkt"       dprint)
+ (only-in "../../../term.rkt" use-terms)
+ (only-in "../../../dprint.rkt" dprint)
  
+ (only-in "../../../signatures.rkt"
+          terms-extra^ syntax^ env^ store^ cont^ delta^ eval^
+          menv^ mstore^ mcont^ parser^ expand^ phase^)
  (only-in "../../base/full/terms.rkt" terms^ #%term-forms)
- (only-in "../../../terms-extra.rkt"  terms-extra^)
- (only-in "../../../syntax-sig.rkt"   syntax^)
- (only-in "../../../env-sig.rkt"      env^)
- (only-in "../../../store-sig.rkt"    store^)
- (only-in "../../../cont-sig.rkt"     cont^)
- (only-in "../../../delta-sig.rkt"    delta^)
- (only-in "../../../eval-sig.rkt"     eval^)
- (only-in "../../../menv-sig.rkt"     menv^)
- (only-in "../../../mstore-sig.rkt"   mstore^)
- (only-in "../../../mcont-sig.rkt"    mcont^)
- (only-in "../../../parser-sig.rkt"   parser^)
- (only-in "../../../expand-sig.rkt"   expand^)
- (only-in "../../../phase-sig.rkt"    phase^)
 
- (only-in "../../base/full/eval.rkt"  [--> base:-->]))
+ (only-in "../../base/full/eval.rkt" [--> base:-->]))
 (provide (all-defined-out))
 
 ;; --> : State -> (Setof State)
@@ -59,7 +49,7 @@
                  (pure (cons nam nams)))]))
         ])
 
-(define eval-red@ (reduction->unit -->))
+(define-unit-from-reduction eval-red@ -->)
 
 (define-unit eval@
   (import (only terms^

@@ -1,14 +1,11 @@
 #lang racket/unit
 (require
  racket/match
- (only-in "../../term.rkt"        use-terms)
+ (only-in "../../term.rkt" use-terms)
  
- (only-in "../../terms-extra.rkt" terms-extra^)
- (only-in "../../terms.rkt"       terms^ #%term-forms)
- (only-in "../../syntax-sig.rkt"  syntax^)
- (only-in "../../menv-sig.rkt"    menv^)
- (only-in "../../mstore-sig.rkt"  mstore^)
- (only-in "../../parse-sig.rkt"   parse^))
+ (only-in "../../signatures.rkt"
+          terms-extra^ syntax^ menv^ mstore^ parse^)
+ (only-in "../../terms.rkt" terms^ #%term-forms))
 
 (import
  (only terms^

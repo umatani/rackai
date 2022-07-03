@@ -1,6 +1,7 @@
 #lang racket/unit
 (require
- (only-in "../../../env-sig.rkt" env^))
+ (only-in "../../../signatures.rkt"
+          env^))
 
 (import)
 (export env^)

@@ -1,26 +1,14 @@
 #lang racket
 (require
  "../../../reduction.rkt"
- (only-in "../../../term.rkt"              use-terms)
+ (only-in "../../../term.rkt" use-terms)
  "../../../example.rkt"
  
  ;;;; Signatures
- (only-in "../../base/phases/terms.rkt"    terms^)
- (only-in "../../../terms-extra.rkt"       terms-extra^)
- (only-in "../../../syntax-sig.rkt"        syntax^)
- (only-in "../../../phase-sig.rkt"         phase^)
- (only-in "../../../env-sig.rkt"           env^)
- (only-in "../../../store-sig.rkt"         store^)
- (only-in "../../../cont-sig.rkt"          cont^)
- (only-in "../../../delta-sig.rkt"         delta^)
- (only-in "../../../eval-sig.rkt"          eval^)
- (only-in "../../../menv-sig.rkt"          menv^)
- (only-in "../../../mstore-sig.rkt"        mstore^)
- (only-in "../../../mcont-sig.rkt"         mcont^)
- (only-in "../../../parser-sig.rkt"        parser^)
- (only-in "../../../expand-sig.rkt"        expand^)
- (only-in "../../../io-sig.rkt"            io^)
- (only-in "../../../run-sig.rkt"           run^)
+ (only-in "../../../signatures.rkt"
+          terms-extra^ syntax^ env^ store^ cont^ delta^ eval^
+          menv^ mstore^ mcont^ parser^ expand^ phase^ io^ run^)
+ (only-in "../../base/phases/terms.rkt" terms^)
 
  ;; Units
  ;; common
@@ -42,11 +30,8 @@
  ;; overridden
  (only-in "mstore.rkt"                     mstore@)
  (only-in "parser.rkt"                     parser@)
- (only-in "expand.rkt"                     expand-red@ expand@)
-
- (for-syntax racket/list))
+ (only-in "expand.rkt"                     expand-red@ expand@))
 (provide run)
-
 
 (define-signature main^
   (AstEnv% Stxξ% ζ% ;; terms^
@@ -65,6 +50,14 @@
   (unit/new-import-export
    (import) (export main^)
    ((terms^ env^ store^ eval^ menv^ mstore^ mcont^ expand^ io^ run^)
+    (compound-unit/infer
+     (import)
+     (export terms^ env^ store^ eval^ menv^ mstore^ mcont^ expand^ io^ run^)
+     (link terms@ terms-extra@ syntax@ env@ store@ cont@ delta@
+           menv@ mstore@ mcont@ parser@ io@ run@
+           (([evr : red^]) eval-red@)   (() eval@ evr)
+           (([exr : red^]) expand-red@) (() expand@ exr)))
+    #;
     (compound-unit
      (import)
      (export t e sto ev me msto mc ex io r)

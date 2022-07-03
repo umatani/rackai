@@ -1,12 +1,11 @@
 #lang racket/unit
 (require
  racket/match
- (only-in "../../../term.rkt"        use-terms)
+ (only-in "../../../term.rkt" use-terms)
  
- (only-in "../../../terms-extra.rkt" terms-extra^)
- (only-in "terms.rkt"                terms^ #%term-forms)
- (only-in "../../../syntax-sig.rkt"  syntax^)
- (only-in "../../../io-sig.rkt"      io^))
+ (only-in "../../../signatures.rkt"
+          terms-extra^ syntax^ io^)
+ (only-in "terms.rkt" terms^ #%term-forms))
 
 ;;;; reader & printer
 
@@ -19,7 +18,6 @@
 (export io^)
 
 (use-terms Var VFun Stx Sym)
-
 
 (define reader
   (letrec ([read-stx

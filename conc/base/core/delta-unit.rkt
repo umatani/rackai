@@ -3,9 +3,9 @@
  racket/match
  (only-in "../../../term.rkt" use-terms)
  
- (only-in "terms.rkt"                terms^ #%term-forms)
- (only-in "../../../terms-extra.rkt" terms-extra^)
- (only-in "../../../delta-sig.rkt"   delta^))
+ (only-in "../../../signatures.rkt"
+          terms-extra^ delta^)
+ (only-in "terms.rkt" terms^ #%term-forms))
 
 (import (only terms^
               Sym% Stx%)

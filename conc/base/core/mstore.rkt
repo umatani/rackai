@@ -2,17 +2,14 @@
 (require
  racket/match
  "../../../set.rkt"
- (only-in "../../../term.rkt"        use-terms)
- (only-in "../../../dprint.rkt"      dprint)
+ (only-in "../../../term.rkt" use-terms)
+ (only-in "../../../dprint.rkt" dprint)
 
- (only-in "terms.rkt"                terms^ #%term-forms)
- (only-in "../../../syntax-sig.rkt"  syntax^)
- (only-in "../../../menv-sig.rkt"    menv^)
- (only-in "../../../resolve-sig.rkt" resolve^)
- (only-in "../../../mstore-sig.rkt"  mstore^)
- (only-in "../../../phase-sig.rkt"   phase^)
+ (only-in "../../../signatures.rkt"
+          syntax^ menv^ resolve^ mstore^ phase^)
+ (only-in "terms.rkt" terms^ #%term-forms)
 
- (only-in "../resolve-unit.rkt"      resolve@))
+ (only-in "../resolve-unit.rkt" resolve@))
 (provide mstore@)
 
 (define-unit mstore/resolve@
@@ -75,6 +72,12 @@
       (values (string->symbol (format "~a::~a" s size))
               (Σ (add1 size) tbl)))))
 
+(define-compound-unit/infer mstore@
+  (import terms^ syntax^ menv^ phase^)
+  (export mstore^)
+  (link   resolve@ mstore/resolve@))
+
+#;
 (define-compound-unit mstore@
   (import [t : terms^] [stx : syntax^] [me : menv^] [ph : phase^])
   (export msto)

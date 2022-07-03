@@ -2,15 +2,14 @@
 (require
  racket/match racket/dict
  "../../../set.rkt"
- (only-in "../../../term.rkt"        use-terms)
+ (only-in "../../../term.rkt" use-terms)
 
- (only-in "../../../terms-extra.rkt" terms-extra^)
- (only-in "terms.rkt"                terms^ #%term-forms)
- (only-in "../../../syntax-sig.rkt"  syntax^)
- (only-in "../../../phase-sig.rkt"   phase^)
+ (only-in "../../../signatures.rkt"
+          terms-extra^ syntax^ phase^)
+ (only-in "terms.rkt" terms^ #%term-forms)
 
  ;; partially reused from conc/base/core
- (only-in "../core/syntax-unit.rkt"  [syntax@ core:syntax@]))
+ (only-in "../core/syntax-unit.rkt" [syntax@ core:syntax@]))
 (provide syntax@)
 
 (define-unit syntax/super@
@@ -133,6 +132,12 @@
        (Stx atom (update-ctx ctx ph (core:subtract (at-phase ctx ph) scps_p)))]
       [(cons stx stl) (cons (prune ph stx scps_p) (prune-stl ph stl scps_p))])))
 
+(define-compound-unit/infer syntax@
+  (import terms^ terms-extra^)
+  (export stx phase^)
+  (link (([cstx : syntax^]) core:syntax@)
+        (([stx  : syntax^]) syntax/super@ cstx)))
+#;
 (define-compound-unit syntax@
   (import [t : terms^] [te : terms-extra^])
   (export stx ph)

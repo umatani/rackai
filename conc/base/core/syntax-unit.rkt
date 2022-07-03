@@ -3,11 +3,11 @@
  racket/match
  (only-in racket/list first second rest empty?)
  "../../../set.rkt"
- (only-in "../../../term.rkt"        use-terms)
+ (only-in "../../../term.rkt" use-terms)
  
- (only-in "../../../terms-extra.rkt" terms-extra^)
- (only-in "terms.rkt"                terms^ #%term-forms)
- (only-in "../../../syntax-sig.rkt"  syntax^))
+ (only-in "../../../signatures.rkt"
+          terms-extra^ syntax^)
+ (only-in "terms.rkt" terms^ #%term-forms))
 
 (import (only terms^
               Stx% StoBind% Hole%)

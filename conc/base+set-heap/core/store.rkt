@@ -3,10 +3,11 @@
  (except-in racket set do)
  "../../../set.rkt"
  "../../../nondet.rkt"
- (only-in "../../../term.rkt"         use-terms)
+ (only-in "../../../term.rkt" use-terms)
 
+ (only-in "../../../signatures.rkt"
+          store^)
  (only-in "../../base/core/terms.rkt" terms^ #%term-forms)
- (only-in "../../../store-sig.rkt"    store^)
 
  ;; partially reused from conc/base/core
  (rename-in "../../base/core/store-unit.rkt" [store@ base:store@]))
@@ -64,6 +65,12 @@
                                    (Store (add1 size) (Store-tbl store0)))])
            (values (cons loc_0 locs_new) store_new)))])))
 
+(define-compound-unit/infer store@
+  (import terms^)
+  (export sto)
+  (link (([bsto : store^]) base:store@)
+        (([sto  : store^]) store/super@ bsto)))
+#;
 (define-compound-unit store@
   (import [t : terms^])
   (export sto)

@@ -1,11 +1,11 @@
 #lang racket/unit
 (require
  racket/match
- (only-in "../../../term.rkt"      use-terms)
- (only-in "../../../dprint.rkt"    dprint)
+ (only-in "../../../term.rkt" use-terms)
+ (only-in "../../../dprint.rkt" dprint)
 
- (only-in "terms.rkt"              terms^ #%term-forms)
- (only-in "../../../store-sig.rkt" store^))
+ (only-in "../../../signatures.rkt" store^)
+ (only-in "terms.rkt" terms^ #%term-forms))
 
 (import (only terms^
               Store%))

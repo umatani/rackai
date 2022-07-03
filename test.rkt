@@ -1,28 +1,24 @@
 #lang racket
-(require (only-in "example.rkt"
-                  core:examples phases:examples local:examples defs:examples
-                  run-all-examples)
-         ;(only-in "conc/base/core/misc.rkt" )
+(require
+ "example.rkt"
 
-         (only-in "conc/base/core/main.rkt" [run base:core:run])
-         (only-in "conc/base/phases/main.rkt" [run base:phases:run])
-         (only-in "conc/base/full/main.rkt" [run base:full:run])
+ (only-in "conc/base/core/main.rkt" [run base:core:run])
+ (only-in "conc/base/phases/main.rkt" [run base:phases:run])
+ (only-in "conc/base/full/main.rkt" [run base:full:run])
 
-         (only-in "conc/base+set-heap/core/main.rkt"
-                  [run base+set-heap:core:run])
-         (only-in "conc/base+set-heap/phases/main.rkt"
-                  [run base+set-heap:phases:run])
-         (only-in "conc/base+set-heap/full/main.rkt"
-                  [run base+set-heap:full:run])
+ (only-in "conc/base+set-heap/core/main.rkt"
+          [run base+set-heap:core:run])
+ (only-in "conc/base+set-heap/phases/main.rkt"
+          [run base+set-heap:phases:run])
+ (only-in "conc/base+set-heap/full/main.rkt"
+          [run base+set-heap:full:run])
 
-         ;; (only-in "abs/naive/core.rkt" [run naive:core:run])
-         ;; (only-in "abs/naive/phases.rkt" [run naive:phases:run])
-         ;; (only-in "abs/naive/full.rkt" [run naive:full:run])
+ ;; (only-in "abs/naive/core.rkt" [run naive:core:run])
+ ;; (only-in "abs/naive/phases.rkt" [run naive:phases:run])
+ ;; (only-in "abs/naive/full.rkt" [run naive:full:run])
+ )
 
-         (for-syntax racket/list))
-
-
-(define run-all
+(define main
   (let ([all-runs `([base:core            1 ,base:core:run]
                     [base:phases          2 ,base:phases:run]
                     [base:full            3 ,base:full:run]

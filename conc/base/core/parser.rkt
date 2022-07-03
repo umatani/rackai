@@ -1,12 +1,8 @@
 #lang racket
 (require
- (only-in "../../../terms-extra.rkt" terms-extra^)
- (only-in "../../../terms.rkt"       terms^ #%term-forms)
- (only-in "../../../syntax-sig.rkt"  syntax^)
- (only-in "../../../menv-sig.rkt"    menv^)
- (only-in "../../../mstore-sig.rkt"  mstore^)
- (only-in "../../../parse-sig.rkt"   parse^)
- (only-in "../../../parser-sig.rkt"  parser^)
+ (only-in "../../../signatures.rkt"
+          terms-extra^ syntax^ menv^ mstore^ parse^ parser^)
+ (only-in "../../../terms.rkt" terms^ #%term-forms)
 
  (only-in "../parse-unit.rkt" parse@))
 (provide parser@)
@@ -18,6 +14,13 @@
   (define parse p:parse)
   (define parser parse))
 
+
+(define-compound-unit/infer parser@
+  (import terms^ terms-extra^ syntax^ menv^ mstore^)
+  (export parser^)
+  (link   parse@ parser/parse@))
+
+#;
 (define-compound-unit parser@
   (import [t : terms^] [te : terms-extra^] [stx : syntax^]
           [me : menv^] [msto : mstore^])

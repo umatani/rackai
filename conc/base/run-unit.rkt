@@ -3,11 +3,8 @@
  (rename-in (except-in racket do))
  "../../nondet.rkt"
 
- (only-in "../../eval-sig.rkt"   eval^)
- (only-in "../../parser-sig.rkt" parser^)
- (only-in "../../expand-sig.rkt" expand^)
- (only-in "../../io-sig.rkt"     io^)
- (only-in "../../run-sig.rkt"    run^))
+ (only-in "../../signatures.rkt"
+          eval^ parser^ expand^ io^ run^))
 
 ;;;; runner
 

@@ -1,15 +1,14 @@
 #lang racket
 (require
  racket/match
- (only-in "../../../term.rkt"        use-terms)
+ (only-in "../../../term.rkt" use-terms)
 
- (only-in "../../../terms-extra.rkt" terms-extra^)
- (only-in "terms.rkt"                terms^ #%term-forms)
- (only-in "../../../syntax-sig.rkt"  syntax^)
- (only-in "../../../phase-sig.rkt"   phase^)
+ (only-in "../../../signatures.rkt"
+          terms-extra^ syntax^ phase^)
+ (only-in "terms.rkt" terms^ #%term-forms)
 
  ;; partially reused from conc/base/phases
- (only-in "../phases/syntax.rkt"     [syntax@ phases:syntax@]))
+ (only-in "../phases/syntax.rkt" [syntax@ phases:syntax@]))
 (provide syntax@)
 
 (define-unit syntax/super@
@@ -51,10 +50,8 @@
       [(Hole) v]
       [_ stx])))
 
-;; inheritance
-(define-compound-unit syntax@
-  (import [t : terms^] [te : terms-extra^])
-  (export stx ph)
-  (link (([pstx : syntax^]
-          [ph : phase^])    phases:syntax@ t te)
-        (([stx  : syntax^]) syntax/super@  t te pstx)))
+(define-compound-unit/infer syntax@
+  (import terms^ terms-extra^)
+  (export stx phase^)
+  (link (([pstx : syntax^]) phases:syntax@)
+        (([stx  : syntax^]) syntax/super@ pstx)))

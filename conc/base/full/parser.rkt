@@ -1,17 +1,12 @@
 #lang racket
 (require
- racket/match
- (only-in "../../../term.rkt"        use-terms)
+ (only-in "../../../term.rkt" use-terms)
 
- (only-in "terms.rkt"                terms^ #%term-forms)
- (only-in "../../../terms-extra.rkt" terms-extra^)
- (only-in "../../../syntax-sig.rkt"  syntax^)
- (only-in "../../../menv-sig.rkt"    menv^)
- (only-in "../../../mstore-sig.rkt"  mstore^)
- (only-in "../../../parse-sig.rkt"   parse^)
- (only-in "../../../parser-sig.rkt"  parser^)
+ (only-in "../../../signatures.rkt"
+          terms-extra^ syntax^ menv^ mstore^ parse^ parser^)
+ (only-in "terms.rkt" terms^ #%term-forms)
 
- (only-in "../parse-unit.rkt"        parse@))
+ (only-in "../parse-unit.rkt" parse@))
 (provide parser@)
 
 ;; ----------------------------------------
@@ -32,9 +27,7 @@
   ; parser : Stx Σ* -> Ast
   (define (parser stx Σ*) (parse #:phase 0 stx (Σ*-Σ Σ*))))
 
-(define-compound-unit parser@
-  (import [t : terms^] [te : terms-extra^] [stx : syntax^]
-          [me : menv^] [msto : mstore^])
-  (export pr)
-  (link (([p : parse^]) parse@ t te stx me msto)
-        (([pr : parser^]) parser/parse@ t p)))
+(define-compound-unit/infer parser@
+  (import terms^ terms-extra^ syntax^ menv^ mstore^)
+  (export parser^)
+  (link parse@ parser/parse@))

@@ -2,19 +2,17 @@
 (require
  (except-in racket set do)
  "../../../set.rkt"
- (only-in "../../../term.rkt"           use-terms)
+ (only-in "../../../term.rkt" use-terms)
+
+ (only-in "../../../signatures.rkt"
+          syntax^ menv^ resolve^ mstore^ phase^)
 
  (only-in "../../base/phases/terms.rkt" terms^ #%term-forms)
- (only-in "../../../syntax-sig.rkt"     syntax^)
- (only-in "../../../resolve-sig.rkt"    resolve^)
- (only-in "../../../menv-sig.rkt"       menv^)
- (only-in "../../../mstore-sig.rkt"     mstore^)
- (only-in "../../../phase-sig.rkt"      phase^)
 
  ;; common in conc/base+set-heap
- (only-in "../resolve-unit.rkt"         resolve@)
+ (only-in "../resolve-unit.rkt" resolve@)
  ;; partially reused from conc/base+set-heap/core
- (rename-in "../core/mstore.rkt"        [mstore@ core:mstore@]))
+ (rename-in "../core/mstore.rkt" [mstore@ core:mstore@]))
 (provide mstore@)
 
 (define-unit mstore/resolve@
@@ -54,7 +52,13 @@
   (define resolve r:resolve)
   (define id=?    r:id=?))
 
-;; inheritance
+(define-compound-unit/infer mstore@
+  (import terms^ syntax^ menv^ phase^)
+  (export msto)
+  (link (([cmsto : mstore^]) core:mstore@)
+        (() resolve@ msto)
+        (([msto  : mstore^]) mstore/resolve@ cmsto)))
+#;
 (define-compound-unit mstore@
   (import [t : terms^] [stx : syntax^] [me : menv^] [ph : phase^])
   (export msto)
