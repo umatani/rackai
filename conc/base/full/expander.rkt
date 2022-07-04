@@ -6,9 +6,9 @@
 
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ env^ store^ eval^
-          menv^ mstore^ mcont^ parser^ expand^)
+          menv^ mstore^ bind^ mcont^ parser^ expand^ expander^)
  (only-in "terms.rkt" terms^ #%term-forms))
-(provide ==> expand@)
+(provide ==> expander@ expander/expand@)
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> --> :=<1>)
@@ -27,7 +27,9 @@
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
-                             alloc-name alloc-scope bind resolve id=?)
+                             alloc-name alloc-scope)
+                       (only bind^
+                             bind resolve id=?)
                        (only mcont^
                              lookup-κ push-κ)
                        (only parser^
@@ -379,20 +381,16 @@
 
 (define-unit expand/red@
   (import (only terms^
-                ζ% Stxξ% Σ*%)
+                ζ% Stxξ%)
           (only eval^
                 -->)
-          (only menv^
-                init-ξ)
-          (only mstore^
-                init-Σ)
           (only mcont^
                 init-Θ)
           (only red^
                 reducer))
   (export expand^)
 
-  (use-terms ζ Stxξ Σ*)
+  (use-terms ζ Stxξ)
   
   (define ==> (λ () (reducer --> :=)))
 
@@ -401,14 +399,25 @@
     (let ([init-ζ (ζ (Stxξ ph stx ξ) '∘ '• (init-Θ) Σ*)])
       (match-let ([(set (ζ stx_new '• '• Θ_new Σ*_new))
                    (apply-reduction-relation* (==>) init-ζ)])
-        (cons stx_new Σ*_new))))
+        (cons stx_new Σ*_new)))))
 
-  ; expander : Stx -> (Cons Stx Σ*)
+(define-unit expander/expand@
+  (import (only terms^
+                Σ*%)
+          (only menv^
+                init-ξ)
+          (only mstore^
+                init-Σ)
+          expand^)
+  (export expander^)
+
+  (use-terms Σ*)
+
   (define (expander stx)
     (expand 0 stx (init-ξ) (Σ* (init-Σ) (set) (set)))))
 
-(define-compound-unit/infer expand@
+(define-compound-unit/infer expander@
   (import terms^ terms-extra^ syntax^ env^ store^ eval^
-          menv^ mstore^ mcont^ parser^)
-  (export expand^)
-  (link   red@ expand/red@))
+          menv^ mstore^ bind^ mcont^ parser^)
+  (export expand^ expander^)
+  (link   red@ expand/red@ expander/expand@))

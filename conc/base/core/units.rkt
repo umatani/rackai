@@ -5,7 +5,7 @@
  (only-in "delta-unit.rkt"  delta@)
  (only-in "env-unit.rkt"    env@)
  (only-in "eval.rkt"        eval@)
- (only-in "expand.rkt"      expand@)
+ (only-in "expander.rkt"    expander@)
  (only-in "io-unit.rkt"     io@)
  (only-in "mcont-unit.rkt"  mcont@)
  (only-in "menv-unit.rkt"   menv@)
@@ -20,7 +20,7 @@
          delta@
          env@
          eval@
-         expand@
+         expander@
          io@
          mcont@
          menv@

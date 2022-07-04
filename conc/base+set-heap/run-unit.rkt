@@ -3,18 +3,14 @@
  "../../nondet.rkt"
 
  (only-in "../../signatures.rkt"
-          eval^ parser^ expand^ io^ run^))
+          eval^ parser^ expander^ io^ run^))
 
 ;;;; runner
 
-(import (only io^
-              reader printer)
-        (only expand^
-              expander)
-        (only parser^
-              parser)
-        (only eval^
-              evaluate))
+(import (only io^       reader printer)
+        (only expander^ expander)
+        (only parser^   parser)
+        (only eval^     evaluate))
 (export run^)
 
 (define (run form mode)

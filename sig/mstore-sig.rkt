@@ -8,8 +8,6 @@
 init-Σ ; -> Σ
 lookup-Σ ; Σ Nam -> (U (Setof StoBind) Val ξ)
 
-(open bind^)
-
 ;; ----------------------------------------
 ;; Alloc name & scope helpers for expander:
 

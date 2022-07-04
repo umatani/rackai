@@ -7,17 +7,17 @@
 
  ;;;; Units
  (only-in "../../../units.rkt" terms-extra@)
- (only-in "../units.rkt" run@)
+ (only-in "../units.rkt" bind@ run@)
  (only-in "units.rkt"
           terms@ syntax@ env@ store@ cont@ delta@ eval@
-          menv@ mstore@ mcont@ parser@ expand@ io@ debug@))
+          menv@ mstore@ mcont@ parser@ expander@ io@ debug@))
 (provide run)
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
    (link terms@ terms-extra@ syntax@ env@ store@ cont@ delta@ eval@
-         menv@ mstore@ mcont@ parser@ expand@ io@ run@ debug@))
+         menv@ mstore@ bind@ mcont@ parser@ expander@ io@ run@ debug@))
   (import) (export run^ debug^))
 
 ;; run example

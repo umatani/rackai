@@ -6,11 +6,11 @@
 
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ env^ store^ eval^
-          menv^ mstore^ mcont^ parser^ expand^)
+          menv^ mstore^ bind^ mcont^ parser^ expand^ expander^)
  (only-in "../../base/core/terms.rkt" terms^ #%term-forms)
 
- (only-in "../../base/core/expand.rkt" [==> base:==>]))
-(provide ==> expand@)
+ (only-in "../../base/core/expander.rkt" [==> base:==>] expander/expand@))
+(provide ==> expander@)
 
 ;; Revised reduction rules
 
@@ -30,7 +30,9 @@
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
-                             alloc-name alloc-scope bind resolve id=?)
+                             alloc-name alloc-scope)
+                       (only bind^
+                             bind resolve id=?)
                        (only mcont^
                              lookup-κ push-κ)
                        (only parser^
@@ -62,14 +64,10 @@
     (let ([init-ζ (ζ (Stxξ stx0 ξ) '∘ '• (init-Θ) Σ)])
       (match-let ([(set (ζ stx_new '• '• Θ_new Σ_new) ...)
                    (apply-reduction-relation* ==> init-ζ)])
-        (list->set (map cons stx_new Σ_new)))))
+        (list->set (map cons stx_new Σ_new))))))
 
-  ; expander : Stx -> (Cons Stx Σ)
-  (define (expander stx)
-    (expand stx (init-ξ) (init-Σ))))
-
-(define-compound-unit/infer expand@
+(define-compound-unit/infer expander@
   (import terms^ terms-extra^ syntax^ env^ store^ eval^
-          menv^ mstore^ mcont^ parser^)
-  (export expand^)
-  (link   red@ expand/red@))
+          menv^ mstore^ bind^ mcont^ parser^)
+  (export expand^ expander^)
+  (link   red@ expand/red@ expander/expand@))

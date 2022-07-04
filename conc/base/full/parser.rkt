@@ -3,7 +3,7 @@
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt"
-          terms-extra^ syntax^ menv^ mstore^ parse^ parser^)
+          terms-extra^ syntax^ menv^ bind^ parse^ parser^)
  (only-in "terms.rkt" terms^ #%term-forms)
 
  (only-in "../parse-unit.rkt" parse@))
@@ -28,6 +28,6 @@
   (define (parser stx Σ*) (parse #:phase 0 stx (Σ*-Σ Σ*))))
 
 (define-compound-unit/infer parser@
-  (import terms^ terms-extra^ syntax^ menv^ mstore^)
+  (import terms^ terms-extra^ syntax^ menv^ bind^)
   (export parser^)
   (link parse@ parser/parse@))

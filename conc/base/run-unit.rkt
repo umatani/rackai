@@ -4,13 +4,13 @@
  "../../nondet.rkt"
 
  (only-in "../../signatures.rkt"
-          eval^ parser^ expand^ io^ run^))
+          eval^ parser^ expander^ io^ run^))
 
 ;;;; runner
 
-(import (only eval^ evaluate)
-        (only parser^ parser)
-        (only expand^ expander)
+(import (only eval^      evaluate)
+        (only parser^    parser)
+        (only expander^  expander)
         (only io^ reader printer))
 (export run^)
 

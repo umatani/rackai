@@ -7,7 +7,7 @@
  
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ env^ store^ cont^ delta^ eval^
-          menv^ mstore^ mcont^ parser^ expand^)
+          menv^ mstore^ bind^ mcont^ parser^ expand^)
  (only-in "../../base/full/terms.rkt" terms^ #%term-forms)
 
  (only-in "../../base/full/eval.rkt" [--> base:-->]))
@@ -32,7 +32,9 @@
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
-                             bind resolve alloc-name alloc-scope)
+                             alloc-name alloc-scope)
+                       (only bind^
+                             bind resolve)
                        (only mcont^
                              init-Θ)
                        (only parser^
@@ -91,6 +93,6 @@
 
 (define-compound-unit/infer eval@
   (import terms^ terms-extra^ syntax^ env^ store^ cont^ delta^
-          menv^ mstore^ mcont^ parser^ expand^)
+          menv^ mstore^ bind^ mcont^ parser^ expand^)
   (export eval^)
   (link   red@ eval/red@))

@@ -6,7 +6,7 @@
  (only-in "../../term.rkt" use-terms)
 
  (only-in "../../signatures.rkt"
-          terms-extra^ syntax^ menv^ mstore^ parse^)
+          terms-extra^ syntax^ menv^ bind^ parse^)
  (only-in "../../terms.rkt" terms^ #%term-forms))
 
 (import (only terms^
@@ -17,9 +17,9 @@
               unzip strip)
         (only menv^
               init-ξ)
-        (rename (only mstore^
+        (rename (only bind^
                       resolve id=?)
-                [msto:id=? id=?]))
+                [b:id=? id=?]))
 (export parse^)
 
 (use-terms Var Fun App If Stx)
@@ -39,7 +39,7 @@
 
 ; parse : Ph Stx Σ -> (SetM Ast)
 (define (parse #:phase [ph #f] stx Σ)
-  (define (id=? nam) (λ (id) (msto:id=? #:phase ph id nam #:ξ (init-ξ) Σ)))
+  (define (id=? nam) (λ (id) (b:id=? #:phase ph id nam #:ξ (init-ξ) Σ)))
   (lift
    (match stx
      ; (lambda (id ...) stx_body)

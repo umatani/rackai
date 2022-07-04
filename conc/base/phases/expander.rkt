@@ -5,10 +5,10 @@
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt"
-          terms-extra^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^
-          parser^ expand^)
+          terms-extra^ syntax^ env^ store^ eval^ menv^ mstore^ bind^ mcont^
+          parser^ expand^ expander^)
  (only-in "terms.rkt" terms^ #%term-forms))
-(provide ==> expand@)
+(provide ==> expander@ expander/expand@)
 
 ;; ----------------------------------------
 ;; The expander:
@@ -30,7 +30,9 @@
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
-                             alloc-name alloc-scope bind resolve id=?)
+                             alloc-name alloc-scope)
+                       (only bind^
+                             bind resolve id=?)
                        (only mcont^
                              lookup-κ push-κ)
                        (only parser^
@@ -348,10 +350,6 @@
                 Stxξ% ζ%)
           (only eval^
                 -->)
-          (only menv^
-                init-ξ)
-          (only mstore^
-                init-Σ)
           (only mcont^
                 init-Θ)
           (only red^
@@ -367,14 +365,21 @@
     (let ([init-ζ (ζ (Stxξ ph stx ξ scps_p) '∘ '• (init-Θ) Σ)])
       (match-let ([(set (ζ stx_new '• '• Θ_new Σ_new))
                    (apply-reduction-relation* ==> init-ζ)])
-        (cons stx_new Σ_new))))
+        (cons stx_new Σ_new)))))
 
-  ; expander : Stx -> (Values Stx Σ)
+(define-unit expander/expand@
+  (import (only menv^
+                init-ξ)
+          (only mstore^
+                init-Σ)
+          expand^)
+  (export expander^)
+
   (define (expander stx)
     (expand 0 stx (init-ξ) (set) (init-Σ))))
 
-(define-compound-unit/infer expand@
+(define-compound-unit/infer expander@
   (import terms^ terms-extra^ syntax^ env^ store^ eval^
-          menv^ mstore^ mcont^ parser^)
-  (export expand^)
-  (link   red@ expand/red@))
+          menv^ mstore^ bind^ mcont^ parser^)
+  (export expand^ expander^)
+  (link   red@ expand/red@ expander/expand@))

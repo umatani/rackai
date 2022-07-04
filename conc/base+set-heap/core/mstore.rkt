@@ -5,20 +5,16 @@
  (only-in "../../../term.rkt" use-terms)
  
  (only-in "../../../signatures.rkt"
-          syntax^ menv^ bind^ mstore^)
+          syntax^ menv^ mstore^)
  (only-in "../../base/core/terms.rkt" terms^ #%term-forms)
 
- ;; common in conc/base+set-heap
- (only-in "../bind-unit.rkt" bind@)
  ;; partially reused from conc/base/core
  (rename-in "../../base/core/mstore.rkt" [mstore@ base:mstore@]))
 (provide mstore@)
 
-(define-unit mstore/bind@
+(define-unit mstore/super@
   (import (only terms^
                 Sym% Stx% Σ%)
-          (prefix b: (only bind^
-                           bind resolve id=?))
           (prefix base: (only mstore^
                               init-Σ)))
   (export mstore^)
@@ -32,10 +28,6 @@
   ; lookup-Σ : Σ Nam -> (SetM (U (Setof StoBind) Val ξ))
   (define (lookup-Σ Σ0 nam)
     (lift (hash-ref (Σ-tbl Σ0) nam (λ () (set)))))
-
-  (define bind    b:bind)
-  (define resolve b:resolve)
-  (define id=?    b:id=?)
 
   ;; Finite-domain allocation
 
@@ -55,6 +47,5 @@
 (define-compound-unit/infer mstore@
   (import terms^ syntax^ menv^)
   (export msto)
-  (link (() bind@ msto)
-        (([cmsto : mstore^]) base:mstore@)
-        (([msto  : mstore^]) mstore/bind@ cmsto)))
+  (link (([smsto : mstore^]) base:mstore@)
+        (([msto  : mstore^]) mstore/super@ smsto)))

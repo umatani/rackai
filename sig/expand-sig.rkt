@@ -1,7 +1,7 @@
 #lang racket/signature
 
 ;; ----------------------------------------
-;; The expander:
+;; The expand:
 
-==>      ; ζ -> (Setof ζ)
-expander ; Stx -> (Cons Stx Σ)
+==>    ; ζ -> (Setof ζ)
+expand ; Stx -> (Cons Stx Σ)
