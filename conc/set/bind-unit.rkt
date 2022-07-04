@@ -20,9 +20,8 @@
 
 (use-terms Sym Stx Σ StoBind)
 
+;; ph is #f means called from core
 
-;; Like one-phase `bind`, but extracts scopes at a given phase of
-;; the identifier
 ; bind : Ph Σ Id Nam -> Σ
 (define (bind #:phase [ph #f] Σ0 id nam)
   (match-let ([(Σ size tbl) Σ0]
@@ -38,7 +37,6 @@
                    (λ () (set (set)))))))
 
 ; resolve : Ph Id Σ -> (SetM Nam)
-;   ph is #f means called from core
 (define (resolve #:phase [ph #f] id Σ0)
   (match-let ([(Stx (Sym nam) ctx) id])
     (let* ([sbss (filter set? (set->list (car (do (lookup-Σ Σ0 nam)))))]
@@ -60,7 +58,6 @@
                 (list->set nam_biggests))))))
 
 ; id=? : Ph Id Nam ξ Σ -> Boolean
-;   ph is #f means called from core
-;   ξ  is always #f (used only from full)
+;   ξ is non-#f only in full
 (define (id=? #:phase [ph #f] id nam #:ξ [ξ #f] Σ)
   (subset? (set nam) (car (do (resolve #:phase ph id Σ)))))

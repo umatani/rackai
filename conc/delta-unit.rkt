@@ -1,11 +1,11 @@
 #lang racket/unit
 (require
  racket/match
- (only-in "../../../term.rkt" use-terms)
+ (only-in "../term.rkt" use-terms)
  
- (only-in "../../../signatures.rkt"
+ (only-in "../signatures.rkt"
           terms-extra^ delta^)
- (only-in "terms.rkt" terms^ #%term-forms))
+ (only-in "../terms.rkt" terms^ #%term-forms))
 
 (import (only terms^
               Sym% Stx%)

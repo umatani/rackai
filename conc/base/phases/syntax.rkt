@@ -137,9 +137,3 @@
   (export stx)
   (link (([cstx : syntax^]) core:syntax@)
         (([stx  : syntax^]) syntax/super@ cstx)))
-#;
-(define-compound-unit syntax@
-  (import [t : terms^] [te : terms-extra^])
-  (export stx ph)
-  (link (([cstx : syntax^]) core:syntax@ t te)
-        (([stx : syntax^] [ph : phase^]) syntax/super@ t te cstx)))

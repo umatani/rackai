@@ -1,12 +1,10 @@
 #lang racket/unit
 (require
  racket/match
- (only-in "../../../term.rkt" use-terms)
+ (only-in "../../term.rkt" use-terms)
 
-
- (only-in "../../../signatures.rkt"
-          mcont^)
- (only-in "terms.rkt" terms^ #%term-forms))
+ (only-in "../../signatures.rkt" mcont^)
+ (only-in "../../terms.rkt" terms^ #%term-forms))
 
 (import (only terms^
               Θ% 𝓁%))

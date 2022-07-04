@@ -6,12 +6,12 @@
  (only-in "conc/base/phases/main.rkt" [run base:phases:run])
  (only-in "conc/base/full/main.rkt" [run base:full:run])
 
- (only-in "conc/base+set-heap/core/main.rkt"
-          [run base+set-heap:core:run])
- (only-in "conc/base+set-heap/phases/main.rkt"
-          [run base+set-heap:phases:run])
- (only-in "conc/base+set-heap/full/main.rkt"
-          [run base+set-heap:full:run])
+ (only-in "conc/set/core/main.rkt"
+          [run set:core:run])
+ (only-in "conc/set/phases/main.rkt"
+          [run set:phases:run])
+ (only-in "conc/set/full/main.rkt"
+          [run set:full:run])
 
  ;; (only-in "abs/naive/core.rkt" [run naive:core:run])
  ;; (only-in "abs/naive/phases.rkt" [run naive:phases:run])
@@ -19,12 +19,12 @@
  )
 
 (define main
-  (let ([all-runs `([base:core            1 ,base:core:run]
-                    [base:phases          2 ,base:phases:run]
-                    [base:full            3 ,base:full:run]
-                    [base+set-heap:core   1 ,base+set-heap:core:run]
-                    [base+set-heap:phases 2 ,base+set-heap:phases:run]
-                    [base+set-heap:full   3 ,base+set-heap:full:run]
+  (let ([all-runs `([base:core   1 ,base:core:run]
+                    [base:phases 2 ,base:phases:run]
+                    [base:full   3 ,base:full:run]
+                    [set:core    1 ,set:core:run]
+                    [set:phases  2 ,set:phases:run]
+                    [set:full    3 ,set:full:run]
 
                     ;; [naive:core           1 ,naive:core:run]
                     ;; [naive:phases         2 ,naive:phases:run]

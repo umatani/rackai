@@ -1,11 +1,13 @@
 #lang racket/unit
 (require
- (only-in "../../../signatures.rkt"
-          store^ cont^))
+ (only-in "../../signatures.rkt" cont^ store^))
 
-(import (only store^
-              alloc-loc update-store))
+(import (only store^ alloc-loc update-store))
 (export cont^)
+
+
+;; ----------------------------------------
+;; Continuation:
 
 ; push-cont : Store Cont -> (Values Loc Store)
 (define (push-cont st cont)

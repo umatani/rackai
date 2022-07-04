@@ -1,12 +1,11 @@
 #lang racket
 (require
  racket/match
- "../../../set.rkt"
- (only-in "../../../term.rkt" use-terms)
+ "../../set.rkt"
+ (only-in "../../term.rkt" use-terms)
 
- (only-in "../../../signatures.rkt"
-          syntax^ menv^ mstore^)
- (only-in "terms.rkt" terms^ #%term-forms))
+ (only-in "../../signatures.rkt" syntax^ menv^ mstore^)
+ (only-in "../../terms.rkt" terms^ #%term-forms))
 (provide mstore@)
 
 (define-unit mstore@

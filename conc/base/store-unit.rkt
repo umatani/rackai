@@ -1,11 +1,10 @@
 #lang racket/unit
 (require
  racket/match
- (only-in "../../../term.rkt" use-terms)
- (only-in "../../../dprint.rkt" dprint)
+ (only-in "../../term.rkt" use-terms)
 
- (only-in "../../../signatures.rkt" store^)
- (only-in "terms.rkt" terms^ #%term-forms))
+ (only-in "../../signatures.rkt" store^)
+ (only-in "../../terms.rkt" terms^ #%term-forms))
 
 (import (only terms^
               Store%))
@@ -13,42 +12,36 @@
 
 (use-terms Store)
 
-
 ;; ----------------------------------------
 ;; Store
 
-; (: init-store : -> Store)
+; init-store : -> Store
 (define (init-store) (Store 0 (make-immutable-hash)))
 
-;(: lookup-store : Store Loc -> (U Val Cont))
+; lookup-store : Store Loc -> (U Val Cont)
 (define (lookup-store st loc)
-  (dprint 'core 'lookup-store "")
   (hash-ref (Store-tbl st) loc))
 
-;(: update-store : Store Loc (U Val Cont) -> Store)
+; update-store : Store Loc (U Val Cont) -> Store
 (define (update-store st loc u)
-  (dprint 'core 'update-store "")
   (Store (Store-size st)
          (hash-set (Store-tbl st) loc u)))
 
-;(: update-store* : Store (Listof Loc) (Listof (U Val Cont)) -> Store)
+; update-store* : Store (Listof Loc) (Listof (U Val Cont)) -> Store
 (define (update-store* st locs us)
-  (dprint 'core 'update-store* "")
   (Store (Store-size st)
          (foldl (λ (l u t) (hash-set t l u))
                 (Store-tbl st) locs us)))
 
-;(: alloc-loc : Store -> (Values Loc Store))
+; alloc-loc : Store -> (Values Loc Store)
 (define (alloc-loc st)
-  (dprint 'core 'alloc-loc "")
   (let ([size (Store-size st)])
     (values (string->symbol (format "l~a" size))
             (Store (add1 size) (Store-tbl st)))))
 
 ;; for eval-time value binding
-;(: alloc-loc* : (Listof Nam) Store -> (Values (Listof Loc) Store))
+; alloc-loc* : (Listof Nam) Store -> (Values (Listof Loc) Store)
 (define (alloc-loc* nams st)
-  (dprint 'core 'alloc-loc* "")
   (match nams
     ['() (values '() st)]
     [(list nam1 nams ...)

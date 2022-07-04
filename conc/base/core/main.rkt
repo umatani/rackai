@@ -6,11 +6,11 @@
  (only-in "../../../signatures.rkt" run^ debug^)
 
  ;;;; Units
- (only-in "../../../units.rkt" terms-extra@)
- (only-in "../units.rkt" bind@ run@)
- (only-in "units.rkt"
-          terms@ syntax@ env@ store@ cont@ delta@ eval@
-          menv@ mstore@ mcont@ parser@ expander@ io@ debug@))
+ (only-in "../../../units.rkt" terms-extra@ env@ menv@ io@)
+ (only-in "../../units.rkt"    delta@)
+ (only-in "../units.rkt"       cont@ mstore@ mcont@ bind@ run@ store@)
+ (only-in "units.rkt"          terms@ syntax@ eval@
+                               parser@ expander@ debug@))
 (provide run)
 
 (define-values/invoke-unit

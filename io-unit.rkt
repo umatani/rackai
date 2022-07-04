@@ -1,9 +1,9 @@
 #lang racket/unit
 (require
  racket/match
- (only-in "../../../term.rkt" use-terms)
+ (only-in "term.rkt" use-terms)
  
- (only-in "../../../signatures.rkt"
+ (only-in "signatures.rkt"
           terms-extra^ syntax^ io^)
  (only-in "terms.rkt" terms^ #%term-forms))
 
