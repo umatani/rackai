@@ -3,42 +3,45 @@
  racket/match
  (only-in "../../../term.rkt" use-terms)
 
- (only-in "../../../signatures.rkt"
-          terms-extra^ syntax^)
+ (only-in "../../../signatures.rkt" terms-extra^ syntax^)
  (only-in "terms.rkt" terms^ #%term-forms)
 
- ;; partially reused from conc/base/phases
- (only-in "../phases/syntax.rkt" [syntax@ phases:syntax@]))
+ (only-in "../units.rkt"        [syntax@ super:syntax@])
+ (only-in "../phases/units.rkt" [syntax@ phases:syntax@]))
 (provide syntax@)
 
 (define-unit syntax/super@
   (import
-   (only terms^
-         Stx% Stxξ% Hole%)
-   (only terms-extra^
-         atom?)
-   (prefix phases: (except syntax^
-                           in-hole)))
+   (only terms^       Stx% Stxξ% Hole%)
+   (only terms-extra^ atom?)
+   (prefix super: (only syntax^
+                        stl->seq zip unzip snoc in-hole-stl
+                        addremove strip subtract union
+                        binding-lookup biggest-subset))
+   (tag p (prefix phases: (only syntax^
+                                empty-ctx add add-stl flip flip-stl
+                                at-phase update-ctx prune))))
   (export syntax^)
 
   (use-terms Stx Stxξ Hole)
 
+  (define stl->seq       super:stl->seq)
+  (define zip            super:zip)
+  (define unzip          super:unzip)
+  (define snoc           super:snoc)
+  (define in-hole-stl    super:in-hole-stl)
+  (define addremove      super:addremove)
+  (define strip          super:strip)
+  (define subtract       super:subtract)
+  (define union          super:union)
+  (define binding-lookup super:binding-lookup)
+  (define biggest-subset super:biggest-subset)
+
   (define empty-ctx      phases:empty-ctx)
-  (define stl->seq       phases:stl->seq)
-  (define zip            phases:zip)
-  (define unzip          phases:unzip)
-  (define snoc           phases:snoc)
-  (define in-hole-stl    phases:in-hole-stl)
   (define add            phases:add)
   (define add-stl        phases:add-stl)
-  (define addremove      phases:addremove)
   (define flip           phases:flip)
   (define flip-stl       phases:flip-stl)
-  (define strip          phases:strip)
-  [define subtract       phases:subtract]
-  (define union          phases:union)
-  (define binding-lookup phases:binding-lookup)
-  (define biggest-subset phases:biggest-subset)
   (define at-phase       phases:at-phase)
   (define update-ctx     phases:update-ctx)
   (define prune          phases:prune)
@@ -55,6 +58,7 @@
 
 (define-compound-unit/infer syntax@
   (import terms^ terms-extra^)
-  (export stx)
-  (link (([pstx : syntax^]) phases:syntax@)
-        (([stx  : syntax^]) syntax/super@ pstx)))
+  (export s)
+  (link (([ss : syntax^]) super:syntax@)
+        (([ps : syntax^]) phases:syntax@)
+        (([s  : syntax^]) syntax/super@ (tag p ps) ss)))

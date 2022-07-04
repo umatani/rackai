@@ -6,7 +6,8 @@
  (only-in "mstore.rkt"      mstore@)
  (only-in "parse-unit.rkt"  parse@)
  (only-in "run-unit.rkt"    run@)
- (only-in "store-unit.rkt"  store@))
+ (only-in "store-unit.rkt"  store@)
+ (only-in "syntax-unit.rkt" syntax@))
 
 (provide bind@
          cont@
@@ -14,4 +15,5 @@
          mstore@
          parse@
          run@
-         store@)
+         store@
+         syntax@)

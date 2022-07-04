@@ -4,12 +4,10 @@
  "../../../set.rkt"
  (only-in "../../../term.rkt" use-terms)
 
- (only-in "../../../signatures.rkt"
-          terms-extra^ syntax^)
+ (only-in "../../../signatures.rkt" terms-extra^ syntax^)
  (only-in "terms.rkt" terms^ #%term-forms)
 
- ;; partially reused from conc/base/core
- (only-in "../core/syntax-unit.rkt" [syntax@ core:syntax@]))
+ (only-in "../units.rkt" [syntax@ super:syntax@]))
 (provide syntax@)
 
 (define-unit syntax/super@
@@ -18,7 +16,7 @@
          Stx% Stxξ% Hole%)
    (only terms-extra^
          atom?)
-   (prefix core: (only syntax^ ;; from conc/base/core
+   (prefix super: (only syntax^ ;; from conc/base/core
                        addremove strip subtract union in-hole-stl
                        binding-lookup biggest-subset
                        stl->seq snoc zip unzip)))
@@ -26,18 +24,17 @@
 
   (use-terms Stx Stxξ Hole)
 
-  ;; inherited from conc/base/core
-  (define stl->seq       core:stl->seq)
-  (define in-hole-stl    core:in-hole-stl)
-  (define addremove      core:addremove)
-  (define strip          core:strip)
-  (define subtract       core:subtract)
-  (define union          core:union)
-  (define binding-lookup core:binding-lookup)
-  (define biggest-subset core:biggest-subset)
-  (define snoc           core:snoc)
-  (define zip            core:zip)
-  (define unzip          core:unzip)
+  (define stl->seq       super:stl->seq)
+  (define zip            super:zip)
+  (define unzip          super:unzip)
+  (define snoc           super:snoc)
+  (define in-hole-stl    super:in-hole-stl)
+  (define addremove      super:addremove)
+  (define strip          super:strip)
+  (define subtract       super:subtract)
+  (define union          super:union)
+  (define binding-lookup super:binding-lookup)
+  (define biggest-subset super:biggest-subset)
 
 
   (define (empty-ctx) (make-immutable-hash))
@@ -48,7 +45,7 @@
       [(Stxξ ph stx1 ξ scps) (Stxξ ph (in-hole stx1 v) ξ scps)] ; added
       [(Stx (? atom? atom) ctx) (Stx atom ctx)]
       [(Stx (cons stx1 stl) ctx)
-       (Stx (cons (in-hole stx1 v) (core:in-hole-stl in-hole stl v)) ctx)]
+       (Stx (cons (in-hole stx1 v) (in-hole-stl in-hole stl v)) ctx)]
       [(Hole) v]
       [_ stx]))
 
@@ -94,9 +91,9 @@
     (match stx
       [(Stx (cons stx stl) ctx)
        (Stx (cons (flip ph stx scp) (flip-stl ph stl scp))
-            (update-ctx ctx ph (core:addremove scp (at-phase ctx ph))))]
+            (update-ctx ctx ph (addremove scp (at-phase ctx ph))))]
       [(Stx (? atom? atom) ctx)
-       (Stx atom (update-ctx ctx ph (core:addremove scp (at-phase ctx ph))))]))
+       (Stx atom (update-ctx ctx ph (addremove scp (at-phase ctx ph))))]))
 
   ; flip-stl : Ph Stl Scp -> Stl
   (define (flip-stl ph stl scp)
@@ -104,9 +101,9 @@
       ['() '()]
       [(Stx (cons stx stl) ctx)
        (Stx (cons (flip ph stx scp) (flip-stl ph stl scp))
-            (update-ctx ctx ph (core:addremove scp (at-phase ctx ph))))]
+            (update-ctx ctx ph (addremove scp (at-phase ctx ph))))]
       [(Stx (? atom? atom) ctx)
-       (Stx atom (update-ctx ctx ph (core:addremove scp (at-phase ctx ph))))]
+       (Stx atom (update-ctx ctx ph (addremove scp (at-phase ctx ph))))]
       [(cons stx stl) (cons (flip ph stx scp) (flip-stl ph stl scp))]))
 
   ;; Recursively removes a set of scopes from a syntax object
@@ -116,9 +113,9 @@
     (match stx
       [(Stx (cons stx stl) ctx)
        (Stx (cons (prune ph stx scps_p) (prune-stl ph stl scps_p))
-            (update-ctx ctx ph (core:subtract (at-phase ctx ph) scps_p)))]
+            (update-ctx ctx ph (subtract (at-phase ctx ph) scps_p)))]
       [(Stx (? atom? atom) ctx)
-       (Stx atom (update-ctx ctx ph (core:subtract
+       (Stx atom (update-ctx ctx ph (subtract
                                      (at-phase ctx ph) scps_p)))]))
 
   ; prune-stl : Ph Stl Scps -> Stl
@@ -127,13 +124,13 @@
       ['() '()]
       [(Stx (cons stx stl) ctx)
        (Stx (cons (prune ph stx scps_p) (prune-stl ph stl scps_p))
-            (update-ctx ctx ph (core:subtract (at-phase ctx ph) scps_p)))]
+            (update-ctx ctx ph (subtract (at-phase ctx ph) scps_p)))]
       [(Stx (? atom? atom) ctx)
-       (Stx atom (update-ctx ctx ph (core:subtract (at-phase ctx ph) scps_p)))]
+       (Stx atom (update-ctx ctx ph (subtract (at-phase ctx ph) scps_p)))]
       [(cons stx stl) (cons (prune ph stx scps_p) (prune-stl ph stl scps_p))])))
 
 (define-compound-unit/infer syntax@
   (import terms^ terms-extra^)
-  (export stx)
-  (link (([cstx : syntax^]) core:syntax@)
-        (([stx  : syntax^]) syntax/super@ cstx)))
+  (export s)
+  (link (([ss : syntax^]) super:syntax@)
+        (([s  : syntax^]) syntax/super@ ss)))

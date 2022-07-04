@@ -4,7 +4,7 @@
           terms-extra^ syntax^ menv^ bind^ parse^ parser^)
  (only-in "../../base/phases/terms.rkt" terms^)
 
- (only-in "../parse-unit.rkt" parse@))
+ (only-in "../units.rkt" parse@))
 (provide parser@)
 
 ;; Non-deterministic parsing

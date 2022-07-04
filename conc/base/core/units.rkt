@@ -4,7 +4,7 @@
  (only-in "eval.rkt"        eval@)
  (only-in "expander.rkt"    expander@)
  (only-in "parser.rkt"      parser@)
- (only-in "syntax-unit.rkt" syntax@)
+ (only-in "syntax.rkt"      syntax@)
  (only-in "terms.rkt"       terms@))
 
 (provide debug@

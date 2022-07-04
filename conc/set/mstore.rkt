@@ -8,7 +8,7 @@
  (only-in "../base/core/terms.rkt" terms^ #%term-forms)
 
  ;; partially reused from conc/base
- (rename-in "../base/mstore.rkt" [mstore@ base:mstore@]))
+ (rename-in "../base/units.rkt" [mstore@ base:mstore@]))
 (provide mstore@)
 
 (define-unit mstore/super@

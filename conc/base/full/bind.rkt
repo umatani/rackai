@@ -7,7 +7,7 @@
           syntax^ menv^ mstore^ bind^)
  (only-in "terms.rkt" terms^ #%term-forms)
 
- (only-in "../bind-unit.rkt" [bind@ super:bind@]))
+ (only-in "../units.rkt" [bind@ super:bind@]))
 (provide bind@)
 
 (define-unit bind/super@

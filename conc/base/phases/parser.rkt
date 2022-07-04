@@ -4,7 +4,7 @@
           terms-extra^ syntax^ menv^ bind^ parse^ parser^)
  (only-in "terms.rkt" terms^)
 
- (only-in "../parse-unit.rkt" parse@))
+ (only-in "../units.rkt" parse@))
 (provide parser@)
 
 (define-unit parser/parse@
