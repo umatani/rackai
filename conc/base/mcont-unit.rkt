@@ -3,36 +3,19 @@
  racket/match
  (only-in "../../term.rkt" use-terms)
 
- (only-in "../../signatures.rkt" mcont^)
+ (only-in "../../signatures.rkt" mstore^ mcont^)
  (only-in "../../terms.rkt" terms^ #%term-forms))
 
-(import (only terms^
-              Θ% 𝓁%))
+(import (only terms^  𝓁%)
+        (only mstore^ update-Σ alloc-𝓁))
 (export mcont^)
 
-(use-terms Θ 𝓁)
+(use-terms 𝓁)
 
 ;; ----------------------------------------
 ;; Expand-time stack operations:
 
-; init-Θ : -> Θ
-(define (init-Θ) (Θ 0 (make-immutable-hash)))
-
-; alloc-κ : Θ -> (Values 𝓁 Θ)
-(define (alloc-κ θ)
-  (match-let ([(Θ size tbl) θ])
-    (values (𝓁 (string->symbol (format "k~a" size)))
-            (Θ (add1 size) tbl))))
-
-; lookup-κ : Θ 𝓁 -> κ
-(define (lookup-κ θ 𝓁) (hash-ref (Θ-tbl θ) 𝓁))
-
-; update-κ : Θ 𝓁 κ -> Θ
-(define (update-κ θ 𝓁 κ)
-  (match-let ([(Θ size tbl) θ])
-    (Θ size (hash-set tbl 𝓁 κ))))
-
-; push-κ : Θ κ -> (Values 𝓁 Θ)
-(define (push-κ θ κ)
-  (let-values ([(𝓁 θ_1) (alloc-κ θ)])
-    (values 𝓁 (update-κ θ_1 𝓁 κ))))
+; push-κ : Σ κ -> (Values 𝓁 Σ)
+(define (push-κ Σ κ)
+  (let-values ([(𝓁 Σ_1) (alloc-𝓁 Σ)])
+    (values 𝓁 (update-Σ Σ_1 𝓁 κ))))

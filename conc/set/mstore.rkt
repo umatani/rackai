@@ -15,7 +15,7 @@
   (import (only terms^
                 Sym% Stx% Σ%)
           (prefix base: (only mstore^
-                              init-Σ alloc-name alloc-scope)))
+                              init-Σ alloc-name alloc-scope alloc-𝓁)))
   (export mstore^)
 
   (use-terms Sym Stx Σ)
@@ -23,12 +23,19 @@
   (define init-Σ      base:init-Σ)
   (define alloc-name  base:alloc-name)
   (define alloc-scope base:alloc-scope)
+  (define alloc-𝓁     base:alloc-𝓁)
 
   ;; Set-based Σ
 
-  ; lookup-Σ : Σ Nam -> (SetM (U (Setof StoBind) Val ξ))
+  ; lookup-Σ : Σ Nam -> (SetM (U (Setof StoBind) Val ξ κ))
   (define (lookup-Σ Σ0 nam)
-    (lift (hash-ref (Σ-tbl Σ0) nam (λ () (set))))))
+    (lift (hash-ref (Σ-tbl Σ0) nam (λ () (set)))))
+
+  ; update-Σ : Σ Nam (U (Setof StoBind) Val ξ κ) -> Σ
+  (define (update-Σ Σ0 nam u)
+    (Σ (Σ-size Σ0)
+      (hash-update (Σ-tbl Σ0) nam
+                   (λ (old) (set-add old u)) (set)))))
 
 (define-compound-unit/infer mstore@
   (import terms^ syntax^ menv^)

@@ -7,7 +7,7 @@
 
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ env^ store^ cont^ delta^ eval^
-          menv^ mstore^ bind^ mcont^ parser^ expand^)
+          menv^ mstore^ bind^ parser^ expand^)
  (only-in "terms.rkt" terms^ #%term-forms))
 (provide --> eval@)
 
@@ -33,8 +33,6 @@
                              alloc-name alloc-scope)
                        (only bind^
                              bind resolve)
-                       (only mcont^
-                             init-Θ)
                        (only parser^
                              parse)]
   #:do [(use-terms Var Fun App If VFun Sym Stx KApp KIf SApp SIf AstEnv
@@ -211,7 +209,7 @@
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
    #:with (values stx_arg2) := (add ph (flip ph stx_arg maybe-scp_i) scp_defs)
    (InExpand (ζ (Stxξ (add1 ph) stx_arg2 (init-ξ))
-                 '∘ '• (init-Θ) (Σ* Σ (set) (set)))
+                 '∘ '• (Σ* Σ (set) (set)))
              `(,(SApp `(,ph ,maybe-scp_i ,ξ)
                       `(,(Stx (Sym 'syntax-local-bind-syntaxes2)
                               `((0 . ,scps_p) (1 . ,scps_u)))
@@ -219,7 +217,7 @@
                ,cont ,store ,Σ*_0))
    ev-slbcm]
 
-  [(InExpand (ζ stx_exp '• '• Θ_new (Σ* Σ_2 _ _))
+  [(InExpand (ζ stx_exp '• '• (Σ* Σ_2 _ _))
              `(,(SApp `(,ph ,maybe-scp_i ,ξ)
                       `(,(Stx (Sym 'syntax-local-bind-syntaxes2)
                               `((0 . ,scps_p) (1 . ,scps_u)))
@@ -265,12 +263,12 @@
                             (map (λ (n) (cons n (TStop (lookup-ξ ξ_unstops n))))
                                  nams_stop))
    (InExpand
-    (ζ (Stxξ ph (flip ph stx maybe-scp_i) ξ_stops) '∘ '• (init-Θ) Σ*_0)
+    (ζ (Stxξ ph (flip ph stx maybe-scp_i) ξ_stops) '∘ '• Σ*_0)
     `(,(SApp `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) `())
       ,cont ,store ,Σ*_0))
    ev-lexpand]  
 
-  [(InExpand (ζ stx_exp '• '• Θ_new Σ*)
+  [(InExpand (ζ stx_exp '• '• Σ*)
              `(,(SApp `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) `())
                ,cont ,store ,_))
    `(,(flip ph stx_exp maybe-scp_i) ,cont ,store ,Σ*)
@@ -297,7 +295,7 @@
    ; しかし，flipないとdefs-begin-with-defnの挙動が実際の処理系と異なってしまう．
    (InExpand
     (ζ (Stxξ ph (add ph (flip ph stx maybe-scp_i) scp_defs)
-               ξ_stops) '∘ '• (init-Θ) Σ*_0)
+               ξ_stops) '∘ '• Σ*_0)
     `(,(SApp `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) `())
       ,cont ,store ,Σ*_0))
    ev-lexpand-defs]
@@ -413,6 +411,6 @@
 
 (define-compound-unit/infer eval@
   (import terms^ terms-extra^ syntax^ env^ store^ cont^ delta^
-          menv^ mstore^ bind^ mcont^ parser^ expand^)
+          menv^ mstore^ bind^ parser^ expand^)
   (export eval^)
   (link   red@ eval/red@))

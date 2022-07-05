@@ -30,11 +30,11 @@
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
-                             alloc-name alloc-scope)
+                             lookup-Σ alloc-name alloc-scope)
                        (only bind^
                              bind resolve id=?)
                        (only mcont^
-                             lookup-κ push-κ)
+                             push-κ)
                        (only parser^
                              parse)])
 
@@ -49,8 +49,6 @@
                 init-ξ)
           (only mstore^
                 init-Σ)
-          (only mcont^
-                init-Θ)
           (only red^
                 reducer))
   (export expand^)
@@ -61,8 +59,8 @@
 
   ; expand : Stx ξ Σ -> (Setof (Cons Stx Σ))
   (define (expand stx0 ξ Σ)
-    (let ([init-ζ (ζ (Stxξ stx0 ξ) '∘ '• (init-Θ) Σ)])
-      (match-let ([(set (ζ stx_new '• '• Θ_new Σ_new) ...)
+    (let ([init-ζ (ζ (Stxξ stx0 ξ) '∘ '• Σ)])
+      (match-let ([(set (ζ stx_new '• '• Σ_new) ...)
                    (apply-reduction-relation* ==> init-ζ)])
         (list->set (map cons stx_new Σ_new))))))
 

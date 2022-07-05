@@ -11,6 +11,5 @@
 
 ; push-cont : Store Cont -> (Values Loc Store)
 (define (push-cont st cont)
-  (let-values ([(loc store_1) (alloc-loc st)])
-    (let ([store_2 (update-store store_1 loc cont)])
-      (values loc store_2))))
+  (let-values ([(loc st_1) (alloc-loc st)])
+    (values loc (update-store st_1 loc cont))))

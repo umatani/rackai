@@ -35,8 +35,6 @@
                              alloc-name alloc-scope)
                        (only bind^
                              bind resolve)
-                       (only mcont^
-                             init-Θ)
                        (only parser^
                              parse)]
   #:do [; resolve* : Ph (Listof Id) Σ -> (SetM (Listof Nam))

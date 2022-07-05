@@ -36,7 +36,6 @@
   (define-term Stxξ    common:Stxξ    ())
   (define-term Σ       common:Σ       ())
   (define-term StoBind common:StoBind ())
-  (define-term Θ       common:Θ       ())
   (define-term 𝓁       common:𝓁       ())
   (define-term Hole    common:Hole    ())
   (define-term κ       common:κ       ())

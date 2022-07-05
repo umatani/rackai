@@ -38,7 +38,6 @@
   (define-term TStop   core:TStop   ())
   (define-term Σ       core:Σ       ())
   (define-term StoBind core:StoBind ())
-  (define-term Θ       core:Θ       ())
   (define-term 𝓁       core:𝓁       ())
   (define-term Hole    core:Hole    ())
   (define-term κ       core:κ       ())

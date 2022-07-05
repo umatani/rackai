@@ -22,7 +22,7 @@
    ;; Expand-time environment
    TVar% TStop%
    ;; Expand-time store
-   Σ% StoBind% Θ% 𝓁%
+   Σ% StoBind% 𝓁%
    ;; Expand-time continuation
    Stxξ% Hole% κ%
    ;; Expand-time state (configuration)
@@ -67,7 +67,6 @@
   ;; Expand-time store
   (define-term Σ       (size tbl))
   (define-term StoBind (scps nam))
-  (define-term Θ       (size tbl))
   (define-term 𝓁       (nam))
 
   ;; Expand-time continuation
@@ -77,7 +76,7 @@
 
   ;; Expand-time state (configuration)
   (define-term InEval  (state ξ))
-  (define-term ζ       (stx ex? κ Θ Σ)))
+  (define-term ζ       (stx ex? κ Σ)))
 
 (define-syntax #%term-forms
   '((Var     nam)
@@ -100,13 +99,12 @@
     (TStop   all-transform)
     (Σ       size tbl)
     (StoBind scps nam)
-    (Θ       size tbl)
     (𝓁       nam)
     (Stxξ    stx ξ)
     (Hole)
     (κ       stx ex? 𝓁)
     (InEval  state ξ)
-    (ζ       stx ex? κ Θ Σ)))
+    (ζ       stx ex? κ Σ)))
 
 ;;;; Extra predicates
 

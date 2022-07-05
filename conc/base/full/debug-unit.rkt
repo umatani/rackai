@@ -6,7 +6,7 @@
 
  (only-in "terms.rkt" terms^ #%term-forms)
  (only-in "../../../signatures.rkt"
-          env^ store^ eval^ menv^ mstore^ mcont^ expand^ io^ run^ debug^))
+          env^ store^ eval^ menv^ mstore^ expand^ io^ run^ debug^))
 
 (import (only terms^
               AstEnv% Stxξ% ζ% Σ*%)
@@ -20,8 +20,6 @@
               init-ξ)
         (only mstore^
               init-Σ)
-        (only mcont^
-              init-Θ)
         (only expand^
               ==>)
         (only io^
@@ -52,11 +50,11 @@
 ; expand==> : Sexp -> (Setof ζ)
 (define (expand==> form)
   (==>f
-   (ζ (Stxξ 0 (reader form) (init-ξ)) '∘ '• (init-Θ) (Σ* (init-Σ) (set) (set)))))
+   (ζ (Stxξ 0 (reader form) (init-ξ)) '∘ '• (Σ* (init-Σ) (set) (set)))))
 
 ; expand==>* : (->* (Sexp) (#:steps (Option Natural)) (Setof ζ))
 (define (expand==>* form #:steps [steps #f])
   (apply-reduction-relation*
    ==>f
-   (ζ (Stxξ 0 (reader form) (init-ξ)) '∘ '• (init-Θ) (Σ* (init-Σ) (set) (set)))
+   (ζ (Stxξ 0 (reader form) (init-ξ)) '∘ '• (Σ* (init-Σ) (set) (set)))
    #:steps steps))
