@@ -2,6 +2,7 @@
 (require
  "../../../set.rkt"
  "../../../reduction.rkt"
+ "../../../mix.rkt"
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt"
@@ -29,7 +30,7 @@
 
 (define-unit-from-reduction red@ -->)
 
-(define-unit eval/red@
+(define-mixed-unit eval@
   (import (only terms^
                 AstEnv%)
           (only terms-extra^
@@ -39,11 +40,10 @@
           (only store^
                 init-store)
           (only delta^
-                delta)
-          (only red^
-                reducer))
+                delta))
   (export eval^)
-
+  (inherit [red@ reducer])
+  
   (use-terms AstEnv)
 
   (define --> (reducer delta))
@@ -54,8 +54,3 @@
                  (apply-reduction-relation*
                   --> `(,(AstEnv ast (init-env)) • ,(init-store)))])
       (list->set val))))
-
-(define-compound-unit/infer eval@
-  (import terms^ terms-extra^ env^ store^ cont^ delta^)
-  (export eval^)
-  (link   red@ eval/red@))

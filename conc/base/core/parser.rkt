@@ -1,21 +1,20 @@
 #lang racket
 (require
+ (for-syntax racket/unit-exptime
+             racket/syntax
+             syntax/parse syntax/stx syntax/id-set)
+ (only-in "../../../mix.rkt" define-mixed-unit)
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ menv^ bind^ parse^ parser^)
  (only-in "../../../terms.rkt" terms^ #%term-forms)
 
- (only-in "../units.rkt" parse@))
+ (only-in "../units.rkt" parse@ bind@ run@))
 (provide parser@)
 
-(define-unit parser/parse@
-  (import (prefix p: parse^))
-  (export parser^)
 
-  (define parse p:parse)
+(define-mixed-unit parser@
+  (import)
+  (export parser^)
+  (inherit [parse@ parse])
+
   (define parser parse))
-
-
-(define-compound-unit/infer parser@
-  (import terms^ terms-extra^ syntax^ menv^ bind^)
-  (export parser^)
-  (link   parse@ parser/parse@))

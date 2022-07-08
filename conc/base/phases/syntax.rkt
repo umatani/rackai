@@ -2,6 +2,7 @@
 (require
  racket/match racket/dict
  "../../../set.rkt"
+ "../../../mix.rkt"
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt" terms-extra^ syntax^)
@@ -10,36 +11,22 @@
  (only-in "../units.rkt" [syntax@ super:syntax@]))
 (provide syntax@)
 
-(define-unit syntax/super@
-  (import
-   (only terms^
-         Stx% Stxξ% Hole%)
-   (only terms-extra^
-         atom?)
-   (prefix super: (only syntax^ ;; from conc/base/core
-                       addremove strip subtract union in-hole-stl
-                       binding-lookup biggest-subset
-                       stl->seq snoc zip unzip)))
+
+(define-mixed-unit syntax@
+  (import (only terms^
+                Stx% Stxξ% Hole%)
+          (only terms-extra^
+                atom?))
   (export syntax^)
+  (inherit [super:syntax@ addremove strip subtract union in-hole-stl
+                          binding-lookup biggest-subset
+                          stl->seq snoc zip unzip])
 
   (use-terms Stx Stxξ Hole)
 
-  (define stl->seq       super:stl->seq)
-  (define zip            super:zip)
-  (define unzip          super:unzip)
-  (define snoc           super:snoc)
-  (define in-hole-stl    super:in-hole-stl)
-  (define addremove      super:addremove)
-  (define strip          super:strip)
-  (define subtract       super:subtract)
-  (define union          super:union)
-  (define binding-lookup super:binding-lookup)
-  (define biggest-subset super:biggest-subset)
-
-
   (define (empty-ctx) (make-immutable-hash))
 
-  ;(: in-hole : Stx Stx -> Stx)
+  ; in-hole : Stx Stx -> Stx
   (define (in-hole stx v)
     (match stx
       [(Stxξ ph stx1 ξ scps) (Stxξ ph (in-hole stx1 v) ξ scps)] ; added
@@ -128,9 +115,3 @@
       [(Stx (? atom? atom) ctx)
        (Stx atom (update-ctx ctx ph (subtract (at-phase ctx ph) scps_p)))]
       [(cons stx stl) (cons (prune ph stx scps_p) (prune-stl ph stl scps_p))])))
-
-(define-compound-unit/infer syntax@
-  (import terms^ terms-extra^)
-  (export s)
-  (link (([ss : syntax^]) super:syntax@)
-        (([s  : syntax^]) syntax/super@ ss)))

@@ -1,5 +1,6 @@
 #lang racket
 (require
+ "../../../mix.rkt"
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt"
@@ -12,22 +13,13 @@
 ;; ----------------------------------------
 ;; Simple parsing of already-expanded code
 
-(define-unit parser/parse@
+(define-mixed-unit parser@
   (import (only terms^
-                Σ*%)
-          (prefix p: (only parse^
-                           parse)))
+                Σ*%))
   (export parser^)
+  (inherit [parse@ parse])
 
   (use-terms Σ*)
 
-  ; parse : Ph Stx Σ -> Ast
-  (define parse p:parse)
-
-  ; parser : Stx Σ* -> Ast
   (define (parser stx Σ*) (parse #:phase 0 stx (Σ*-Σ Σ*))))
 
-(define-compound-unit/infer parser@
-  (import terms^ terms-extra^ syntax^ menv^ bind^)
-  (export parser^)
-  (link parse@ parser/parse@))

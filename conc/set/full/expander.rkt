@@ -2,6 +2,7 @@
 (require
  "../../../set.rkt"
  "../../../reduction.rkt"
+ "../../../mix.rkt"
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt"
@@ -38,18 +39,14 @@
 
 (define-unit-from-reduction red@ ==>)
 
-(define-unit expand/red@
+(define-mixed-unit expander@
   (import (only terms^
                 Stxξ% Σ*% ζ%)
           (only eval^
-                -->)
-          (only menv^
-                init-ξ)
-          (only mstore^
-                init-Σ)
-          (only red^
-                reducer))
-  (export expand^)
+                -->))
+  (export expand^ expander^)
+  (inherit [red@ reducer]
+           [expander/expand@ expander])
 
   (use-terms Stxξ Σ* ζ)
 
@@ -61,9 +58,3 @@
       (match-let ([(set (ζ stx_new '• '• Σ*_new) ...)
                    (apply-reduction-relation* (==>) init-ζ)])
         (list->set (map cons stx_new Σ*_new))))))
-
-(define-compound-unit/infer expander@
-  (import terms^ terms-extra^ syntax^ env^ store^ eval^
-          menv^ mstore^ bind^ mcont^ parser^)
-  (export expand^ expander^)
-  (link   red@ expand/red@ expander/expand@))

@@ -3,6 +3,7 @@
  (except-in racket set do)
  "../../set.rkt"
  "../../nondet.rkt"
+ "../../mix.rkt"
  (only-in "../../term.rkt" use-terms)
 
  (only-in "../../signatures.rkt" store^)
@@ -12,18 +13,13 @@
  (rename-in "../base/units.rkt" [store@ base:store@]))
 (provide store@)
 
-(define-unit store/super@
+(define-mixed-unit store@
   (import (only terms^
-                Store%)
-          (prefix base: (only store^
-                              init-store alloc-loc alloc-loc*)))
+                Store%))
   (export store^)
+  (inherit [base:store@ init-store alloc-loc alloc-loc*])
 
   (use-terms Store)
-
-  (define init-store base:init-store)
-  (define alloc-loc  base:alloc-loc)
-  (define alloc-loc* base:alloc-loc*)
 
   ;; Set-based heap
 
@@ -43,9 +39,3 @@
            (foldl (λ (loc u tbl)
                     (hash-update tbl loc (λ (old) (set-add old u)) (set)))
                   (Store-tbl store0) locs us))))
-
-(define-compound-unit/infer store@
-  (import terms^)
-  (export sto)
-  (link (([bsto : store^]) base:store@)
-        (([sto  : store^]) store/super@ bsto)))

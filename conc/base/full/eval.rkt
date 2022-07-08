@@ -2,6 +2,7 @@
 (require
  "../../../reduction.rkt"
  "../../../set.rkt"
+ "../../../mix.rkt"
  (only-in "../../../term.rkt" use-terms)
  (only-in "../../../dprint.rkt" dprint)
 
@@ -370,26 +371,25 @@
 
 (define-unit-from-reduction red@ -->)
 
-(define-unit eval/red@
+(define-mixed-unit eval@
   (import (only terms^
                 AstEnv% Σ*%)
           (only terms-extra^
                 val?)
-          (only delta^
-                delta)
           (only env^
                 init-env)
           (only store^
                 init-store)
+          (only delta^
+                delta)
           (only menv^
                 init-ξ)
           (only mstore^
                 init-Σ)
           (only expand^
-                ==>)
-          (only red^
-                reducer))
+                ==>))
   (export eval^)
+  (inherit [red@ reducer])
 
   (use-terms AstEnv Σ*)
 
@@ -408,9 +408,3 @@
     (call-with-values
      (λ () (eval 0 ast 'no-scope (init-ξ) (Σ* (init-Σ) (set) (set))))
      (λ (val Σ*) val))))
-
-(define-compound-unit/infer eval@
-  (import terms^ terms-extra^ syntax^ env^ store^ cont^ delta^
-          menv^ mstore^ bind^ parser^ expand^)
-  (export eval^)
-  (link   red@ eval/red@))

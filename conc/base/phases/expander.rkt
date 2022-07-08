@@ -2,6 +2,7 @@
 (require
  "../../../set.rkt"
  "../../../reduction.rkt"
+ "../../../mix.rkt"
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt"
@@ -65,7 +66,8 @@
               ξ scps_p) '∘ κ0 Σ)
    #:when (id=? #:phase ph id_lam 'lambda Σ)
    #:with         (values scp_new Σ_1) := (alloc-scope 'lam Σ)
-   #:with (values stl_args2 ξ_new Σ_2) := (regist-vars ph scp_new stl_args ξ Σ_1)
+   #:with (values stl_args2 ξ_new Σ_2) := (regist-vars ph scp_new
+                                                         stl_args ξ Σ_1)
    #:with           (values 𝓁_new Σ_3) := (push-κ Σ_2 κ0)
    (ζ (Stxξ ph (add ph stx_body scp_new) ξ_new (union (set scp_new) scps_p))
        '∘
@@ -82,7 +84,8 @@
    #:when (id=? #:phase ph id_let 'let Σ)
    #:with    (values stl_vars stl_rhs) := (unzip stl_binds)
    #:with         (values scp_new Σ_1) := (alloc-scope 'let Σ)
-   #:with (values stl_vars2 ξ_new Σ_2) := (regist-vars ph scp_new stl_vars ξ Σ_1)
+   #:with (values stl_vars2 ξ_new Σ_2) := (regist-vars ph scp_new
+                                                         stl_vars ξ Σ_1)
    #:with           (values 𝓁_new Σ_3) := (push-κ Σ_2 κ0)
    (ζ (Stxξ ph (add ph stx_body scp_new) ξ_new (union (set scp_new) scps_p))
        '∘
@@ -345,26 +348,6 @@
 
 (define-unit-from-reduction red@ ==>)
 
-(define-unit expand/red@
-  (import (only terms^
-                Stxξ% ζ%)
-          (only eval^
-                -->)
-          (only red^
-                reducer))
-  (export expand^)
-
-  (use-terms Stxξ ζ)
-
-  (define ==> (reducer := -->))
-
-  ; expand : Ph Stx ξ Scps Σ -> (Cons Stx Σ)
-  (define (expand ph stx ξ scps_p Σ)
-    (let ([init-ζ (ζ (Stxξ ph stx ξ scps_p) '∘ '• Σ)])
-      (match-let ([(set (ζ stx_new '• '• Σ_new))
-                   (apply-reduction-relation* ==> init-ζ)])
-        (cons stx_new Σ_new)))))
-
 (define-unit expander/expand@
   (import (only menv^
                 init-ξ)
@@ -376,8 +359,22 @@
   (define (expander stx)
     (expand 0 stx (init-ξ) (set) (init-Σ))))
 
-(define-compound-unit/infer expander@
-  (import terms^ terms-extra^ syntax^ env^ store^ eval^
-          menv^ mstore^ bind^ mcont^ parser^)
+(define-mixed-unit expander@
+  (import (only terms^
+                Stxξ% ζ%)
+          (only eval^
+                -->))
   (export expand^ expander^)
-  (link   red@ expand/red@ expander/expand@))
+  (inherit [red@ reducer]
+           [expander/expand@ expander])
+
+  (use-terms Stxξ ζ)
+
+  (define ==> (reducer := -->))
+
+  ; expand : Ph Stx ξ Scps Σ -> (Cons Stx Σ)
+  (define (expand ph stx ξ scps_p Σ)
+    (let ([init-ζ (ζ (Stxξ ph stx ξ scps_p) '∘ '• Σ)])
+      (match-let ([(set (ζ stx_new '• '• Σ_new))
+                   (apply-reduction-relation* ==> init-ζ)])
+        (cons stx_new Σ_new)))))

@@ -2,6 +2,8 @@
 (require
  (except-in racket do)
  "../../nondet.rkt"
+ "../../mix.rkt"
+ 
  (only-in "../../term.rkt" use-terms)
  
  (only-in "../../signatures.rkt" syntax^ menv^ mstore^)
@@ -11,19 +13,13 @@
  (rename-in "../base/units.rkt" [mstore@ base:mstore@]))
 (provide mstore@)
 
-(define-unit mstore/super@
+(define-mixed-unit mstore@
   (import (only terms^
-                Sym% Stx% Σ%)
-          (prefix base: (only mstore^
-                              init-Σ alloc-name alloc-scope alloc-𝓁)))
+                Sym% Stx% Σ%))
   (export mstore^)
+  (inherit [base:mstore@ init-Σ alloc-name alloc-scope alloc-𝓁])
 
   (use-terms Sym Stx Σ)
-
-  (define init-Σ      base:init-Σ)
-  (define alloc-name  base:alloc-name)
-  (define alloc-scope base:alloc-scope)
-  (define alloc-𝓁     base:alloc-𝓁)
 
   ;; Set-based Σ
 
@@ -36,9 +32,3 @@
     (Σ (Σ-size Σ0)
       (hash-update (Σ-tbl Σ0) nam
                    (λ (old) (set-add old u)) (set)))))
-
-(define-compound-unit/infer mstore@
-  (import terms^ syntax^ menv^)
-  (export msto)
-  (link (([smsto : mstore^]) base:mstore@)
-        (([msto  : mstore^]) mstore/super@ smsto)))

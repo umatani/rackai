@@ -1,6 +1,7 @@
 #lang racket
 (require
  "../../../set.rkt"
+ "../../../mix.rkt"
  (only-in "../../../term.rkt" use-terms)
  
  (only-in "../../../signatures.rkt" terms-extra^ syntax^)
@@ -9,30 +10,22 @@
  (only-in "../units.rkt" [syntax@ super:syntax@]))
 (provide syntax@)
 
-(define-unit syntax/super@
-  (import (prefix super: syntax^)
-          (only terms^       Stx% Hole%)
-          (only terms-extra^ atom?))
+(define-mixed-unit syntax@
+  (import (only terms^
+                Stx% Hole%)
+          (only terms-extra^
+                atom?))
   (export syntax^)
+  (inherit [super:syntax@
+            stl->seq zip unzip snoc in-hole-stl addremove
+            strip subtract union binding-lookup biggest-subset])
 
   (use-terms Stx Hole)
 
-  (define stl->seq       super:stl->seq)
-  (define zip            super:zip)
-  (define unzip          super:unzip)
-  (define snoc           super:snoc)
-  (define in-hole-stl    super:in-hole-stl)
-  (define addremove      super:addremove)
-  (define strip          super:strip)
-  (define subtract       super:subtract)
-  (define union          super:union)
-  (define binding-lookup super:binding-lookup)
-  (define biggest-subset super:biggest-subset)
-
   ;; not used in core
-  (define at-phase       super:at-phase)
-  (define prune          super:prune)
-  (define update-ctx     super:update-ctx)
+  (define (at-phase .   args) (error "must not be used"))
+  (define (prune    .   args) (error "must not be used"))
+  (define (update-ctx . args) (error "must not be used"))
 
   ;; ----------------------------------------
   ;; stx utils
@@ -91,9 +84,3 @@
       [(Stx (? atom? atom) ctx)
        (Stx atom (addremove scp ctx))]
       [(cons stx stl) (cons (flip stx scp) (flip-stl stl scp))])))
-
-(define-compound-unit/infer syntax@
-  (import terms^ terms-extra^)
-  (export s)
-  (link   (([ss : syntax^]) super:syntax@)
-          (([s  : syntax^]) syntax/super@ ss)))

@@ -3,6 +3,7 @@
  racket/match
  "../../../set.rkt"
  "../../../reduction.rkt"
+ "../../../mix.rkt"
  (only-in "../../../term.rkt"        use-terms)
  
  (only-in "../../../signatures.rkt"
@@ -334,26 +335,6 @@
 
 (define-unit-from-reduction red@ ==>)
 
-(define-unit expand/red@
-  (import (only terms^
-                ζ% Stxξ%)
-          (only eval^
-                -->)
-          (only red^
-                reducer))
-  (export expand^)
-
-  (use-terms ζ Stxξ)
-
-  (define ==> (reducer --> :=))
-
-  ; expand : Stx ξ Σ -> (Cons Stx Σ)
-  (define (expand stx0 ξ Σ)
-    (let ([init-ζ (ζ (Stxξ stx0 ξ) '∘ '• Σ)])
-      (match-let ([(set (ζ stx_new '• '• Σ_new))
-                   (apply-reduction-relation* ==> init-ζ)])
-        (cons stx_new Σ_new)))))
-
 (define-unit expander/expand@
   (import (only menv^
                 init-ξ)
@@ -366,8 +347,22 @@
   (define (expander stx)
     (expand stx (init-ξ) (init-Σ))))
 
-(define-compound-unit/infer expander@
-  (import terms^ terms-extra^ syntax^ env^ store^ eval^
-          menv^ mstore^ bind^ mcont^ parser^)
+(define-mixed-unit expander@
+  (import (only terms^
+                ζ% Stxξ%)
+          (only eval^
+                -->))
   (export expand^ expander^)
-  (link   red@ expand/red@ expander/expand@))
+  (inherit [red@ reducer]
+           [expander/expand@ expander])
+
+  (use-terms ζ Stxξ)
+
+  (define ==> (reducer --> :=))
+
+  ; expand : Stx ξ Σ -> (Cons Stx Σ)
+  (define (expand stx0 ξ Σ)
+    (let ([init-ζ (ζ (Stxξ stx0 ξ) '∘ '• Σ)])
+      (match-let ([(set (ζ stx_new '• '• Σ_new))
+                   (apply-reduction-relation* ==> init-ζ)])
+        (cons stx_new Σ_new)))))
