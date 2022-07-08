@@ -34,13 +34,14 @@
                 (Store-tbl st) locs us)))
 
 ; alloc-loc : Store -> (Values Loc Store)
+;   called only from push-cont
 (define (alloc-loc st)
   (let ([size (Store-size st)])
     (values (string->symbol (format "l~a" size))
             (Store (add1 size) (Store-tbl st)))))
 
-;; for eval-time value binding
 ; alloc-loc* : (Listof Nam) Store -> (Values (Listof Loc) Store)
+;   for eval-time value binding
 (define (alloc-loc* nams st)
   (match nams
     ['() (values '() st)]

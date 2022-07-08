@@ -49,6 +49,7 @@
             (Σ (add1 size) tbl))))
 
 ; alloc-𝓁 : Σ -> (Values 𝓁 Σ)
+;   called only from push-κ
 (define (alloc-𝓁 Σ0)
   (match-let ([(Σ size tbl) Σ0])
     (values (𝓁 (string->symbol (format "𝓁~a" size)))
