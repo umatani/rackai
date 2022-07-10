@@ -74,7 +74,7 @@
                                                               stx Σ))))])
                                     ast))))]
              [ast_body (in-set (car (do (parse #:phase ph stx_body Σ))))])
-          (App (Fun var_list ast_body) rhs_list)))]
+          (App (gensym 'let) (Fun var_list ast_body) rhs_list)))]
      ; (quote stx)
      [(Stx `(,(? id? (? (id=? 'quote))) ,stx) _)
       (set (strip stx))]
@@ -86,13 +86,13 @@
                  (Stx (cons stx_fun stl_args) _)) _)
       (for*/set ([ast_fun  (in-set (car (do (parse #:phase ph stx_fun Σ))))]
                  [ast_args (in-set (parse* #:phase ph stl_args Σ))])
-        (App ast_fun ast_args))]
+        (App (gensym 'app) ast_fun ast_args))]
      ; (if stx stx stx)
      [(Stx `(,(? id? (? (id=? 'if))) ,stx_test ,stx_then ,stx_else) _)
       (for*/set ([ast_test (in-set (car (do (parse #:phase ph stx_test Σ))))]
                  [ast_then (in-set (car (do (parse #:phase ph stx_then Σ))))]
                  [ast_else (in-set (car (do (parse #:phase ph stx_else Σ))))])
-        (If ast_test ast_then ast_else))]
+        (If (gensym 'if) ast_test ast_then ast_else))]
      ; reference
      [(? id? id)
       (for/set ([nam (in-set (car (do (resolve #:phase ph id Σ))))]) (Var nam))]

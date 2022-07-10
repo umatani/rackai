@@ -100,15 +100,16 @@
             (Σ size (hash-set binds 𝓁0 val))))]
 
   ;; propagate env into subterms
-  [`(,(AstEnv ph (If ast_test ast_then ast_else) env maybe-scp_i ξ)
+  [`(,(AstEnv ph (If lbl ast_test ast_then ast_else) env maybe-scp_i ξ)
      ,cont ,store ,Σ*)
-   `(,(SIf (AstEnv ph ast_test env maybe-scp_i ξ)
+   `(,(SIf lbl
+           (AstEnv ph ast_test env maybe-scp_i ξ)
            (AstEnv ph ast_then env maybe-scp_i ξ)
            (AstEnv ph ast_else env maybe-scp_i ξ)) ,cont ,store ,Σ*)
    ev-env-if]
 
-  [`(,(AstEnv ph (App ast_fun ast_args) env maybe-scp_i ξ) ,cont ,store ,Σ*)
-   `(,(SApp `(,ph ,maybe-scp_i ,ξ)
+  [`(,(AstEnv ph (App lbl ast_fun ast_args) env maybe-scp_i ξ) ,cont ,store ,Σ*)
+   `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
             '()
             (cons (AstEnv ph ast_fun env maybe-scp_i ξ)
                   (map (λ (arg) (AstEnv ph arg env maybe-scp_i ξ))
@@ -133,20 +134,21 @@
    ev-lam]
 
   ;; application
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
+  [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
             `(,vals ...) `(,tm ,tms ...)) ,cont ,store ,Σ*)
-   #:with (values loc_new store_1) := (push-cont store cont)
-   `(,tm ,(KApp `(,ph ,maybe-scp_i ,ξ) vals  tms loc_new) ,store_1 ,Σ*)
+   #:with (values loc_new store_1) := (push-cont store lbl cont)
+   `(,tm ,(KApp lbl `(,ph ,maybe-scp_i ,ξ) vals  tms loc_new) ,store_1 ,Σ*)
    ev-push-app]
 
-  [`(,(? val? val) ,(KApp `(,ph ,maybe-scp_i ,ξ) vals clos loc_cont) ,store ,Σ*)
+  [`(,(? val? val) ,(KApp lbl `(,ph ,maybe-scp_i ,ξ)
+                          vals clos loc_cont) ,store ,Σ*)
    #:with cont :=<1> (lookup-store store loc_cont)
-   `(,(SApp `(,ph ,maybe-scp_i ,ξ) (append vals (list val)) clos)
+   `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ) (append vals (list val)) clos)
      ,cont ,store ,Σ*)
    ev-pop-app]
 
   ;; local value
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
+  [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(syntax-local-value ,(? id? id)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    #:with nam :=<1> (resolve #:phase ph id Σ)
@@ -159,7 +161,7 @@
   ;; - Unlike the fourth argument to local-expand, the scopes associated with
   ;;   the provided definition contexts are not used to enrich id's
   ;;   lexical information.
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
+  [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(syntax-local-value ,(? id? id) #f ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    #:with ξ_defs :=    (def-ξ-lookup Σ 𝓁)
@@ -168,14 +170,14 @@
    ev-lval-defs]
 
   ;; local binder
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
+  [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(syntax-local-identifier-as-binding ,(? id? id)) '())
      ,cont ,store ,(and Σ*_0 (Σ* _ _ scps_u)))
    `(,(prune ph id scps_u) ,cont ,store ,Σ*_0)
    ev-lbinder]
 
   ;; create definition context
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
+  [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(syntax-local-make-definition-context) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
    #:with (values scp_defs Σ_2) := (alloc-scope 'defs Σ)
@@ -187,7 +189,7 @@
    ev-slmdc]
 
   ;; create definition binding (for a variable)
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
+  [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(syntax-local-bind-syntaxes
               (,(? id? id_arg)) #f ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
@@ -204,14 +206,14 @@
    ev-slbcv]
 
   ;; create macro definition binding
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
+  [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
             `(syntax-local-bind-syntaxes
               (,(? id? id_arg)) ,(? Stx? stx_arg) ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
    #:with (values stx_arg2) := (add ph (flip ph stx_arg maybe-scp_i) scp_defs)
    (InExpand (ζ (Stxξ (add1 ph) stx_arg2 (init-ξ))
                  '∘ '• (Σ* Σ (set) (set)))
-             `(,(SApp `(,ph ,maybe-scp_i ,ξ)
+             `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
                       `(,(Stx (Sym 'syntax-local-bind-syntaxes2)
                               `((0 . ,scps_p) (1 . ,scps_u)))
                         (,id_arg) ,(Defs scp_defs 𝓁)) '())
@@ -219,22 +221,22 @@
    ev-slbcm]
 
   [(InExpand (ζ stx_exp '• '• (Σ* Σ_2 _ _))
-             `(,(SApp `(,ph ,maybe-scp_i ,ξ)
+             `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
                       `(,(Stx (Sym 'syntax-local-bind-syntaxes2)
                               `((0 . ,scps_p) (1 . ,scps_u)))
                         (,id_arg) ,(Defs scp_defs 𝓁)) '())
                ,cont ,store ,_))
    #:with                  ast_exp :=<1> (parse #:phase (add1 ph) stx_exp Σ_2)
-   #:with (values loc_new store_1) :=    (push-cont store cont)
+   #:with (values loc_new store_1) :=    (push-cont store lbl cont)
    `(,(AstEnv ph ast_exp (init-env) 'no-scope ξ)
-     ,(KApp `(,ph ,maybe-scp_i ,ξ)
+     ,(KApp lbl `(,ph ,maybe-scp_i ,ξ)
             `(,(Stx (Sym 'syntax-local-bind-syntaxes2)
                     `((0 . ,scps_p) (1 . ,scps_u)))
               (,id_arg) ,(Defs scp_defs 𝓁)) '() loc_new)
      ,store_1 ,(Σ* Σ_2 scps_p (set)))
    ev-slbcm2]
 
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
+  [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(,(Stx (Sym 'syntax-local-bind-syntaxes2)
                     `((0 . ,scps_p) (1 . ,scps_u)))
               (,(? id? id_arg)) ,(Defs scp_defs 𝓁) ,val_exp) '())
@@ -252,7 +254,7 @@
    ev-slbcm3]
 
   ;; local expand
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
+  [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
             `(local-expand ,(? Stx? stx) ,val_contextv ,val_idstops) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    #:with ξ_unstops :=    (make-immutable-hash
@@ -265,12 +267,12 @@
                                  nams_stop))
    (InExpand
     (ζ (Stxξ ph (flip ph stx maybe-scp_i) ξ_stops) '∘ '• Σ*_0)
-    `(,(SApp `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) `())
+    `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) `())
       ,cont ,store ,Σ*_0))
    ev-lexpand]  
 
   [(InExpand (ζ stx_exp '• '• Σ*)
-             `(,(SApp `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) `())
+             `(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) `())
                ,cont ,store ,_))
    `(,(flip ph stx_exp maybe-scp_i) ,cont ,store ,Σ*)
    ev-lexpand2]
@@ -278,7 +280,7 @@
   ;; local expand with definition context
   ;; - similar to the basic local expand case, but adding the
   ;;   definition context's scope and using its environment
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
+  [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
             `(local-expand ,(? Stx? stx) ,val_contextv ,val_idstops
                            ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
@@ -297,7 +299,7 @@
    (InExpand
     (ζ (Stxξ ph (add ph (flip ph stx maybe-scp_i) scp_defs)
                ξ_stops) '∘ '• Σ*_0)
-    `(,(SApp `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) `())
+    `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) `())
       ,cont ,store ,Σ*_0))
    ev-lexpand-defs]
 
@@ -307,26 +309,26 @@
   ;; binding scope with macros.
 
   ;; box
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
+  [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(box ,val) '()) ,cont ,store ,(Σ* Σ scps_p scps_u))
    #:with (values 𝓁 Σ_1) := (alloc-box Σ)
    `(,𝓁 ,cont ,store ,(Σ* (box-update Σ_1 𝓁 val) scps_p scps_u))
    ev-box]
 
   ;; unbox
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
+  [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(unbox ,(? 𝓁? 𝓁)) '()) ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    `(,(box-lookup Σ 𝓁) ,cont ,store ,Σ*_0)
    ev-unbox]
 
   ;; set-box!
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ)
+  [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(set-box! ,(? 𝓁? 𝓁) ,val) '()) ,cont ,store ,(Σ* Σ scps_p scps_u))
    `(,val ,cont ,store ,(Σ* (box-update Σ 𝓁 val) scps_p scps_u))
    ev-set-box!]
 
   ;; β
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ) vals '()) ,cont ,store ,Σ*)
+  [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ) vals '()) ,cont ,store ,Σ*)
    #:when (and (pair? vals) (VFun? (car vals)))
    #:with (cons (VFun vars ast env) vals) := vals
    #:with                            nams := (map Var-nam vars)
@@ -337,28 +339,28 @@
    ev-β]
 
   ;; primitive application (except StxPrim)
-  [`(,(SApp `(,ph ,maybe-scp_i ,ξ) vals '()) ,cont ,store ,Σ*)
+  [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ) vals '()) ,cont ,store ,Σ*)
    #:when (and (pair? vals) (prim? (car vals)) (not (stx-prim? (car vals))))
    `(,(delta (car vals) (cdr vals)) ,cont ,store ,Σ*)
    ev-delta]
 
   ;; if
-  [`(,(SIf (? (λ (x) (not (val? x))) ser_test) tm_then tm_else)
+  [`(,(SIf lbl (? (λ (x) (not (val? x))) ser_test) tm_then tm_else)
      ,cont ,store ,Σ*)
-   #:with (values loc_new store_1) := (push-cont store cont)
-   `(,ser_test ,(KIf tm_then tm_else loc_new) ,store_1 ,Σ*)
+   #:with (values loc_new store_1) := (push-cont store lbl cont)
+   `(,ser_test ,(KIf lbl tm_then tm_else loc_new) ,store_1 ,Σ*)
    ev-push-if]
 
-  [`(,(? val? val) ,(KIf tm_then tm_else loc_cont) ,store ,Σ*)
+  [`(,(? val? val) ,(KIf lbl tm_then tm_else loc_cont) ,store ,Σ*)
    #:with cont :=<1> (lookup-store store loc_cont)
-   `(,(SIf val tm_then tm_else) ,cont ,store ,Σ*)
+   `(,(SIf lbl val tm_then tm_else) ,cont ,store ,Σ*)
    ev-pop-if]
 
-  [`(,(SIf #f _ tm_else) ,cont ,store ,Σ*)
+  [`(,(SIf _lbl #f _ tm_else) ,cont ,store ,Σ*)
    `(,tm_else ,cont ,store ,Σ*)
    ev-if-#f]
 
-  [`(,(SIf (? val? val) tm_then _) ,cont ,store ,Σ*)
+  [`(,(SIf _lbl (? val? val) tm_then _) ,cont ,store ,Σ*)
    #:when (not (equal? val #f))
    `(,tm_then ,cont ,store ,Σ*)
    ev-if-#t]

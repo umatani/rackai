@@ -29,14 +29,16 @@
   #:do [(use-terms Var Fun App If VFun AstEnv KApp KIf SApp SIf)]
 
   ;; propagate env into subterms
-  [`(,(AstEnv (If ast_test ast_then ast_else) env) ,cont ,store)
-   `(,(SIf (AstEnv ast_test env)
+  [`(,(AstEnv (If lbl ast_test ast_then ast_else) env) ,cont ,store)
+   `(,(SIf lbl
+           (AstEnv ast_test env)
            (AstEnv ast_then env)
            (AstEnv ast_else env)) ,cont ,store)
    ev-env-if]
 
-  [`(,(AstEnv (App ast_fun ast_args) env) ,cont ,store)
-   `(,(SApp '()
+  [`(,(AstEnv (App lbl ast_fun ast_args) env) ,cont ,store)
+   `(,(SApp lbl
+            '()
             (cons (AstEnv ast_fun env)
                   (map (λ (arg) (AstEnv arg env)) ast_args)))
      ,cont ,store)
@@ -59,18 +61,18 @@
    ev-lam]
 
   ;; application
-  [`(,(SApp `(,vals ...) `(,tm ,tms ...)) ,cont ,store)
-   #:with (values loc_new store_1) := (push-cont store cont)
-   `(,tm ,(KApp vals  tms loc_new) ,store_1)
+  [`(,(SApp lbl `(,vals ...) `(,tm ,tms ...)) ,cont ,store)
+   #:with (values loc_new store_1) := (push-cont store lbl cont)
+   `(,tm ,(KApp lbl vals  tms loc_new) ,store_1)
    ev-push-app]
 
-  [`(,(? val? val) ,(KApp vals tms loc_cont) ,store)
+  [`(,(? val? val) ,(KApp lbl vals tms loc_cont) ,store)
    #:with cont :=<1> (lookup-store store loc_cont)
-   `(,(SApp (append vals (list val)) tms) ,cont ,store)
+   `(,(SApp lbl (append vals (list val)) tms) ,cont ,store)
    ev-pop-app]
 
   ;; β
-  [`(,(SApp vals '()) ,cont ,store)
+  [`(,(SApp _lbl vals '()) ,cont ,store)
    #:when (and (pair? vals) (VFun? (car vals)))
    #:with (values vars ast env vals) := (let ([f(car vals)])
                                           (values (VFun-vars f)
@@ -85,27 +87,28 @@
    ev-β]
 
   ;; primitive application
-  [`(,(SApp vals '()) ,cont ,store)
+  [`(,(SApp _lbl vals '()) ,cont ,store)
    #:when (and (pair? vals) (prim? (car vals)))
    `(,(delta (car vals) (cdr vals)) ,cont ,store)
    ev-delta]
 
   ;; if
-  [`(,(SIf (? (λ (x) (not (val? x))) ser_test) tm_then tm_else) ,cont ,store)
-   #:with (values loc_new store_1) := (push-cont store cont)
-   `(,ser_test ,(KIf tm_then tm_else loc_new) ,store_1)
+  [`(,(SIf lbl (? (λ (x) (not (val? x))) ser_test)
+           tm_then tm_else) ,cont ,store)
+   #:with (values loc_new store_1) := (push-cont store lbl cont)
+   `(,ser_test ,(KIf lbl tm_then tm_else loc_new) ,store_1)
    ev-push-if]
 
-  [`(,(? val? val) ,(KIf tm_then tm_else loc_cont) ,store)
+  [`(,(? val? val) ,(KIf lbl tm_then tm_else loc_cont) ,store)
    #:with cont :=<1> (lookup-store store loc_cont)
-   `(,(SIf val tm_then tm_else) ,cont ,store)
+   `(,(SIf lbl val tm_then tm_else) ,cont ,store)
    ev-pop-if]
 
-  [`(,(SIf #f _ tm_else) ,cont ,store)
+  [`(,(SIf _lbl #f _ tm_else) ,cont ,store)
    `(,tm_else ,cont ,store)
    ev-if-#f]
 
-  [`(,(SIf (? val? val) tm_then _) ,cont ,store)
+  [`(,(SIf _lbl (? val? val) tm_then _) ,cont ,store)
    #:when (not (equal? val #f))
    `(,tm_then ,cont ,store)
    ev-if-#t])

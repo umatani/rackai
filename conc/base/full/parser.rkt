@@ -22,4 +22,3 @@
   (use-terms Σ*)
 
   (define (parser stx Σ*) (parse #:phase 0 stx (Σ*-Σ Σ*))))
-

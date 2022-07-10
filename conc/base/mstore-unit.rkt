@@ -48,9 +48,11 @@
     (values (string->symbol (format "~a::~a" s size))
             (Σ (add1 size) tbl))))
 
-; alloc-𝓁 : Σ -> (Values 𝓁 Σ)
-;   called only from push-κ
-(define (alloc-𝓁 Σ0)
+; alloc-𝓁 : Stx Σ -> (Values 𝓁 Σ)
+;   - called only from push-κ
+;   - stx is used in abs for ensuring finiteness of the domain
+(define (alloc-𝓁 stx Σ0)
   (match-let ([(Σ size tbl) Σ0])
-    (values (𝓁 (string->symbol (format "𝓁~a" size)))
-            (Σ (add1 size) tbl))))
+    (values ;(𝓁 (string->symbol (format "𝓁:~a:~a" stx size)))
+     (𝓁 (cons stx size)) 
+     (Σ (add1 size) tbl))))

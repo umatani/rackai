@@ -33,8 +33,8 @@
 
   (define-term Var     (nam))
   (define-term Fun     (vars ast))
-  (define-term App     (rator rands))
-  (define-term If      (tst thn els))
+  (define-term App     (lbl rator rands)) ; unique lbl is assigned at parse
+  (define-term If      (lbl tst thn els)) ; unique lbl is assigned at parse
 
   ;; Value
   (define-term VFun    (vars ast env))
@@ -53,10 +53,10 @@
   ;; Eval-time continuation, environment, and store
   (define-term AstEnv  (ast env))
   (define-term Store   (size tbl))
-  (define-term KApp    (vals tms loc))
-  (define-term KIf     (thn els loc))
-  (define-term SApp    (vals tms))
-  (define-term SIf     (tst thn els))
+  (define-term KApp    (lbl vals tms loc))
+  (define-term KIf     (lbl thn els loc))
+  (define-term SApp    (lbl vals tms))
+  (define-term SIf     (lbl tst thn els))
   ;; SSeq is used only in full
   (define-term SSeq    (tms))
 
@@ -81,8 +81,8 @@
 (define-syntax #%term-forms
   '((Var     nam)
     (Fun     vars ast)
-    (App     rator rands)
-    (If      tst thn els)
+    (App     lbl rator rands)
+    (If      lbl tst thn els)
     (VFun    vars ast env)
     (LBind2  scps_p scps_u)
     (Sym     nam)
@@ -90,10 +90,10 @@
     (Stx     e ctx)
     (AstEnv  ast env)
     (Store   size tbl)
-    (KApp    vals tms loc)
-    (KIf     thn els loc)
-    (SApp    vals tms)
-    (SIf     tst thn els)
+    (KApp    lbl vals tms loc)
+    (KIf     lbl thn els loc)
+    (SApp    lbl vals tms)
+    (SIf     lbl tst thn els)
     (SSeq    tms)
     (TVar    id)
     (TStop   all-transform)

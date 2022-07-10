@@ -33,11 +33,12 @@
          (foldl (λ (l u t) (hash-set t l u))
                 (Store-tbl st) locs us)))
 
-; alloc-loc : Store -> (Values Loc Store)
-;   called only from push-cont
-(define (alloc-loc st)
+; alloc-loc : Symbol Store -> (Values Loc Store)
+;   - called only from push-cont
+;   - a unique lbl is generated for each App and If form during parse
+(define (alloc-loc lbl st)
   (let ([size (Store-size st)])
-    (values (string->symbol (format "l~a" size))
+    (values (string->symbol (format "~a::~a" lbl size))
             (Store (add1 size) (Store-tbl st)))))
 
 ; alloc-loc* : (Listof Nam) Store -> (Values (Listof Loc) Store)
