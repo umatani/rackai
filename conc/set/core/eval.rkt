@@ -17,8 +17,8 @@
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta) #:super (base:--> delta <-)
   #:within-signatures [(only terms^
-                             Var% Fun% App% If% VFun% KApp% KIf% SApp% SIf%
-                             AstEnv%)
+                             Var% Fun% App% If% Bool% VFun% KApp% KIf%
+                             SApp% SIf% AstEnv%)
                        (only terms-extra^
                              val? prim?)
                        (only env^

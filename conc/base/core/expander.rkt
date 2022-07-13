@@ -18,10 +18,10 @@
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> --> :=<1>)
   #:within-signatures [(only terms^
-                             App% Sym% Stx% AstEnv% TVar% Stxξ% Hole% κ%
-                             InEval% ζ%)
+                             App% Sym% Stx% AstEnv% TVar%
+                             Stxξ% Hole% κ% InEval% ζ%)
                        (only terms-extra^
-                             val? stx? atom? id? proper-stl?)
+                             val? atom? stx? id? proper-stl?)
                        (only syntax^
                              empty-ctx zip unzip snoc in-hole add flip)
                        (only env^
@@ -315,7 +315,7 @@
                       ,(Stx (? proper-stl? val_dones) ctx_1)
                       ,(? stx? stx_done)) _)
               ,stl_exps ...) ctx) '∘ κ Σ)
-   #:when (and (id=? id_seq  '#%seq  Σ) (id=? id_snoc '#%snoc Σ))
+   #:when (and (id=? id_seq '#%seq Σ) (id=? id_snoc '#%snoc Σ))
    #:with val_dones2 := (snoc val_dones stx_done)
    (ζ (Stxξ (Stx `(,id_seq ,(Stx val_dones2 ctx_1)
                              ,@stl_exps) ctx) ξ) '∘ κ Σ)

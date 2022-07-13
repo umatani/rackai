@@ -4,5 +4,5 @@
 (provide (all-from-out "struct-core.rkt")
          (all-defined-out))
 
-;; updated (ph scps
+;; updated (ph scps)
 (struct Stxξ (ph stx ξ scps) #:transparent)

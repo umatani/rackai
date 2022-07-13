@@ -16,7 +16,7 @@
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta :=<1>)
   #:within-signatures [(only terms^
-                             Var% Fun% App% If% VFun% AstEnv%
+                             Var% Fun% App% If% Bool% VFun% AstEnv%
                              KIf% KApp% SIf% SApp%)
                        (only terms-extra^
                              val? prim?)
@@ -26,7 +26,7 @@
                              lookup-store alloc-loc* update-store*)
                        (only cont^
                              push-cont)]
-  #:do [(use-terms Var Fun App If VFun AstEnv KApp KIf SApp SIf)]
+  #:do [(use-terms Var Fun App If Bool VFun AstEnv KApp KIf SApp SIf)]
 
   ;; propagate env into subterms
   [`(,(AstEnv (If lbl ast_test ast_then ast_else) env) ,cont ,store)
@@ -104,12 +104,12 @@
    `(,(SIf lbl val tm_then tm_else) ,cont ,store)
    ev-pop-if]
 
-  [`(,(SIf _lbl #f _ tm_else) ,cont ,store)
+  [`(,(SIf _lbl (Bool #f) _ tm_else) ,cont ,store)
    `(,tm_else ,cont ,store)
    ev-if-#f]
 
   [`(,(SIf _lbl (? val? val) tm_then _) ,cont ,store)
-   #:when (not (equal? val #f))
+   #:when (not (equal? val (Bool #f)))
    `(,tm_then ,cont ,store)
    ev-if-#t])
 

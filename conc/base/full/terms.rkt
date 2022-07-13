@@ -14,6 +14,10 @@
   (import (prefix phases: phases:terms^))
   (export terms^)
   
+  ;; abstract term
+  (define Val%  phases:Val%)
+  (define Atom% phases:Atom%)
+
   ;; add ph, maybe-scp, and ξ
   (define-term AstEnv   phases:AstEnv (ph maybe-scp ξ))
   ;; remove scps from those of phases
@@ -38,6 +42,8 @@
   (define-term If      phases:If      ())
   (define-term VFun    phases:VFun    ())
   (define-term LBind2  phases:LBind2  ())
+  (define-term Bool    phases:Bool    ())
+  (define-term Num     phases:Num     ())
   (define-term Sym     phases:Sym     ())
   (define-term Defs    phases:Defs    ())
   (define-term Stx     phases:Stx     ())

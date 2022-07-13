@@ -8,9 +8,9 @@
   (;;;; Language
    Var% Fun% App% If%
    ;; Value
-   VFun% LBind2%
+   Val% Atom% VFun% LBind2%
    ;; Literal values
-   Sym%
+   Bool% Num% Sym%
    ;; Defs is used only in full
    Defs%
    ;; Syntax objects (a subset of values)
@@ -37,15 +37,21 @@
   (define-term If      (lbl tst thn els)) ; unique lbl is assigned at parse
 
   ;; Value
-  (define-term VFun    (vars ast env))
+  ; abstract term
+  (define-term Val ())
+  (define-term Atom Val ())
+
+  (define-term VFun Val (vars ast env))
   ;; LBind2 is used only in full
-  (define-term LBind2  (scps_p scps_u))
+  (define-term LBind2 Val (scps_p scps_u))
 
   ;; Literal values
-  (define-term Sym     (nam))
+  (define-term Bool Atom (b))
+  (define-term Num  Atom (n))
+  (define-term Sym  Atom (nam))
 
   ;; Defs is used only in full
-  (define-term Defs    (scp 𝓁))
+  (define-term Defs Atom (scp 𝓁))
 
   ;; Syntax objects (a subset of values)
   (define-term Stx     (e ctx))
@@ -67,7 +73,7 @@
   ;; Expand-time store
   (define-term Σ       (size tbl))
   (define-term StoBind (scps nam))
-  (define-term 𝓁       (nam))
+  (define-term 𝓁 Atom  (nam))
 
   ;; Expand-time continuation
   (define-term Stxξ    (stx ξ))
@@ -85,6 +91,10 @@
     (If      lbl tst thn els)
     (VFun    vars ast env)
     (LBind2  scps_p scps_u)
+    (Val)
+    (Atom)
+    (Bool    b)
+    (Num     n)
     (Sym     nam)
     (Defs    scp 𝓁)
     (Stx     e ctx)
@@ -114,16 +124,22 @@
 
 (define-unit terms-extra@
   (import (only terms^
-                Sym% Stx% Stxξ% Hole% 𝓁% Defs% VFun% LBind2% Store%
+                Val% Atom% Sym% Stx% Stxξ% Hole% 𝓁% Defs% VFun% LBind2% Store%
                 KApp% KIf% AstEnv% SApp% SIf% SSeq%))
   (export terms-extra^)
 
-  (use-terms Sym Stx Stxξ Hole 𝓁 Defs VFun LBind2 Store KApp KIf
+  (use-terms Val Atom Sym Stx Stxξ Hole 𝓁 Defs VFun LBind2 Store KApp KIf
              AstEnv SApp SIf SSeq)
 
   (define (id nam ctx) (Stx (Sym nam) ctx))
 
   ;; Additional predicates
+  (define (val? x)
+    (or (Val? x)
+        (atom? x)
+        (and (pair? x) (val? (car x)) (val? (cdr x)))
+        (stx? x)))
+
   (define (stx? x)
     (or (and (Stx? x) (atom? (Stx-e x)))
         (and (Stx? x) (pair? (Stx-e x))
@@ -141,14 +157,15 @@
         (Hole? x)))
 
   (define (proper-stl? x)
-    (or (null? x) (and (pair? x) (stx? (car x)) (proper-stl? (cdr x)))))
+    (or (null? x)
+        (and (pair? x) (stx? (car x)) (proper-stl? (cdr x)))))
 
   (define (id? x) (and (Stx? x) (Sym? (Stx-e x))))
 
   (define (atom? x)
-    (or (null? x) (boolean? x) (real? x) (Sym? x) (prim? x)
-        (𝓁? x) (Defs? x) ;; used only in full
-        ))
+    (or (Atom? x)
+        (null? x)
+        (prim? x)))
 
   (define (prim? x)
     (or (member x '(syntax-e datum->syntax + - * / < = eq?
@@ -164,18 +181,10 @@
                                    syntax-local-make-definition-context
                                    syntax-local-bind-syntaxes)))
 
-  (define (val? x)
-    (or (VFun? x)
-        (atom? x)
-        (and (pair? x) (val? (car x)) (val? (cdr x)))
-        (stx? x)
-        (LBind2? x)))
-
   (define (nam? x) (symbol? x))
 
   (define (state? x)
-    (and (list? x)
-         (= (length x) 3)
+    (and (list? x) (= (length x) 3)
          (tm? (first x))
          (cont? (second x))
          (Store? (third x))))

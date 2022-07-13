@@ -14,6 +14,10 @@
   (import (prefix common: common:terms^))
   (export terms^)
   
+  ;; abstract term
+  (define Val%  common:Val%)
+  (define Atom% common:Atom%)
+
   ;; same as common
   (define-term Var     common:Var     ())
   (define-term Fun     common:Fun     ())
@@ -21,6 +25,8 @@
   (define-term If      common:If      ())
   (define-term VFun    common:VFun    ())
   (define-term LBind2  common:LBind2  ())
+  (define-term Bool    common:Bool    ())
+  (define-term Num     common:Num     ())
   (define-term Sym     common:Sym     ())
   (define-term Defs    common:Defs    ())
   (define-term Stx     common:Stx     ())

@@ -17,6 +17,10 @@
   ;;; updated (ph scps
   (define-term Stxξ    core:Stxξ    (ph scps))
 
+  ;; abstract term
+  (define Val%  core:Val%)
+  (define Atom% core:Atom%)
+
   ;; same as common
   (define-term Var     core:Var     ())
   (define-term Fun     core:Fun     ())
@@ -24,6 +28,8 @@
   (define-term If      core:If      ())
   (define-term VFun    core:VFun    ())
   (define-term LBind2  core:LBind2  ())
+  (define-term Bool    core:Bool    ())
+  (define-term Num     core:Num     ())
   (define-term Sym     core:Sym     ())
   (define-term Defs    core:Defs    ())
   (define-term Stx     core:Stx     ())

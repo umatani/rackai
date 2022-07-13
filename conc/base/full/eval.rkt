@@ -15,9 +15,9 @@
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta ==> :=<1>)
   #:within-signatures [(only terms^
-                             Var% Fun% App% If% VFun% Sym% Stx% KApp% KIf%
-                             SApp% SIf% AstEnv% TVar% TStop% Defs% Stxξ%
-                             Σ% Σ*% 𝓁% ζ% InExpand%)
+                             Var% Fun% App% If% VFun% Bool% Sym% Stx%
+                             KApp% KIf% SApp% SIf% AstEnv% TVar% TStop%
+                             Defs% Stxξ% Σ% Σ*% 𝓁% ζ% InExpand%)
                        (only terms-extra^
                              val? id? prim? stx-prim?)
                        (only syntax^
@@ -36,7 +36,7 @@
                              bind resolve)
                        (only parser^
                              parse)]
-  #:do [(use-terms Var Fun App If VFun Sym Stx KApp KIf SApp SIf AstEnv
+  #:do [(use-terms Var Fun App If VFun Bool Sym Stx KApp KIf SApp SIf AstEnv
                    TVar TStop Defs Stxξ Σ Σ* 𝓁 ζ InExpand)
         ;; resolve* : Ph (Listof Id) Σ -> (Listof Nam))
         (define (resolve* ph val Σ)
@@ -162,7 +162,7 @@
   ;;   the provided definition contexts are not used to enrich id's
   ;;   lexical information.
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(syntax-local-value ,(? id? id) #f ,(Defs scp_defs 𝓁)) '())
+            `(syntax-local-value ,(? id? id) ,(Bool #f) ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    #:with ξ_defs :=    (def-ξ-lookup Σ 𝓁)
    #:with    nam :=<1> (resolve #:phase ph id Σ)
@@ -191,7 +191,7 @@
   ;; create definition binding (for a variable)
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(syntax-local-bind-syntaxes
-              (,(? id? id_arg)) #f ,(Defs scp_defs 𝓁)) '())
+              (,(? id? id_arg)) ,(Bool #f) ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
    #:with              id_defs := (add ph
                                        (prune ph (flip ph id_arg maybe-scp_i)
@@ -356,12 +356,12 @@
    `(,(SIf lbl val tm_then tm_else) ,cont ,store ,Σ*)
    ev-pop-if]
 
-  [`(,(SIf _lbl #f _ tm_else) ,cont ,store ,Σ*)
+  [`(,(SIf _lbl (Bool #f) _ tm_else) ,cont ,store ,Σ*)
    `(,tm_else ,cont ,store ,Σ*)
    ev-if-#f]
 
   [`(,(SIf _lbl (? val? val) tm_then _) ,cont ,store ,Σ*)
-   #:when (not (equal? val #f))
+   #:when (not (equal? val (Bool #f)))
    `(,tm_then ,cont ,store ,Σ*)
    ev-if-#t]
 

@@ -9,7 +9,7 @@
 
 (import
  (only terms^
-       Var% Fun% App% If% Stx%)
+       Var% Fun% App% If% Bool% Num% Sym% Stx%)
  (only terms-extra^
        atom? id? proper-stl?)
  (only syntax^
@@ -20,7 +20,7 @@
                resolve id=?) [b:id=? id=?]))
 (export parse^)
 
-(use-terms Var Fun App If Stx)
+(use-terms Var Fun App If Bool Num Sym Stx)
 
 ;; ----------------------------------------
 ;; Simple parsing of already-expanded code
@@ -66,7 +66,8 @@
     ; reference
     [(? id? id) (Var (resolve #:phase ph id Σ))]
     ; literal
-    [(Stx (? atom? atom) _) atom]))
+    [(Stx (? atom? a) _) a]
+    ))
 
 ; parse* : Ph Stl Σ -> (Listof Ast)
 (define (parse* #:phase [ph #f] stl Σ)

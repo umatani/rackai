@@ -396,7 +396,8 @@
         ex-local-expand
         ex-local-expand-stop
         ex-nested-local-expand
-        ex-local-binder))
+        ex-local-binder
+        ))
 
 
 (define ex-box
@@ -805,4 +806,5 @@
         ex-defs-shadow
         ex-defs-shadow2
         ex-defs-local-macro
-        ex-defs-begin-with-defn))
+        ex-defs-begin-with-defn
+        ))

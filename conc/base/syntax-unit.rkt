@@ -10,7 +10,7 @@
 (import (only terms^
               Stx% StoBind% Hole%)
         (only terms-extra^
-              stx? atom?))
+              stx?))
 (export syntax^)
 
 (use-terms Stx StoBind Hole)
@@ -76,7 +76,7 @@
   (match stl
     ['() '()]
     [(Stx (cons stx stl) _) (cons (strip stx) (strip stl))]
-    [(Stx (? atom? atom) _) atom]
+    [(Stx x _) x]
     [(cons stx stl) (cons (strip stx) (strip stl))]))
 
 ; subtract : Scps Scps -> Scps

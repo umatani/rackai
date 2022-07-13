@@ -22,5 +22,5 @@
            ast := (parser stx2 Σ2)
            #:failif (eq? mode 'parse) ast
            ast2 := (evaluate ast)
-           #:failif (eq? mode 'eval) (printer ast2)
+           #:failif (eq? mode 'eval) #;ast2 (printer ast2)
            (error 'run "unknown mode: ~e" mode))))

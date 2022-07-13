@@ -8,12 +8,12 @@
  (only-in "../terms.rkt" terms^ #%term-forms))
 
 (import (only terms^
-              Sym% Stx%)
+              Bool% Num% Sym% Stx%)
         (only terms-extra^
               stx? atom?))
 (export delta^)
 
-(use-terms Sym Stx)
+(use-terms Bool Num Sym Stx)
 
 ;; ----------------------------------------
 ;; Implementation of primitives:
@@ -24,27 +24,26 @@
 (define (div n . ns) (apply / n ns))
 (define (less-than n1 n2 . ns) (apply < n1 n2 ns))
 (define (num-eq n1 n2 . ns) (apply = n1 n2 ns))
-(define (sym-eq sym1 sym2)
-  (match* (sym1 sym2)
-    [((Sym nam1) (Sym nam2)) (eq? nam1 nam2)]))
+(define (sym-eq s1 s2) (eq? s1 s2))
 
 ; delta : Prim (Listof Val) -> Val
 (define (delta p vs)
   (match (cons p vs)
-    [`(+ ,(? real? ns) ...)
-     (apply plus ns)]
-    [`(- ,(? real? n) ,(? real? ns) ...)
-     (apply minus n ns)]
-    [`(* ,(? real? ns) ...)
-     (apply times ns)]
-    [`(/ ,(? real? n) ,(? real? ns) ...)
-     (apply div n ns)]
-    [`(< ,(? real? n1) ,(? real? n2) ,(? real? ns) ...)
-     (apply less-than n1 n2 ns)]
-    [`(= ,(? real? n1) ,(? real? n2) ,(? real? ns) ...)
-     (apply num-eq n1 n2 ns)]
+    [`(+ ,(Num ns) ...)
+     (Num (apply plus ns))]
+    [`(- ,(Num n) ,(Num ns) ...)
+     (Num (apply minus n ns))]
+    [`(* ,(Num ns) ...)
+     (Num (apply times ns))]
+    [`(/ ,(Num n) ,(Num ns) ...)
+     (Num (apply div n ns))]
+    [`(< ,(Num n1) ,(Num n2) ,(Num ns) ...)
+     (Bool (apply less-than n1 n2 ns))]
+    [`(= ,(Num n1) ,(Num n2) ,(Num ns) ...)
+     (Bool (apply num-eq n1 n2 ns))]
 
-    [`(eq? ,(? Sym? s1) ,(? Sym? s2)) (sym-eq s1 s2)]
+    [`(eq? ,(Sym s1) ,(Sym s2))
+     (Bool (sym-eq s1 s2))]
 
     [`(cons ,v1 ,v2) (cons v1 v2)]
     [`(car ,(cons v1 _)) v1]
