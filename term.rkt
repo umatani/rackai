@@ -1,5 +1,6 @@
 #lang racket
-(require (for-syntax racket racket/syntax
+(require racket/struct
+         (for-syntax racket racket/syntax
                      syntax/parse syntax/stx syntax/id-table))
 (provide (all-defined-out))
 
@@ -27,10 +28,17 @@
      #:with super-cls (if (syntax->datum #'super)
                           (cls-of #'super)
                           #'object%)
-     #`(define #,(cls-of #'name) (class* super-cls (#;printable<%>)
-                                   (inspect #f)
-                                   (init-field f ...)
-                                   (super-new [r #f] ...)))]))
+     #`(define #,(cls-of #'name)
+         (class* super-cls (#;writable<%>)
+           (inspect #f)
+           (init-field f ...)
+           (super-new [r #f] ...)
+           #;
+           (define/public (custom-write port)
+             (write `(name ,f ...) port))
+           #;
+           (define/public (custom-display port)
+             (custom-write port))))]))
 
 (define-syntax (define-term-form stx)
   (syntax-parse stx

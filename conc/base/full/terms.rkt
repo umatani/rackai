@@ -1,23 +1,30 @@
 #lang racket
 (require
+ "../../../mix.rkt"
  (only-in "../../../term.rkt" define-term)
  (only-in "../phases/terms.rkt"
-          [terms^ phases:terms^]
-          [terms@ phases:terms@]
+          [terms^       phases:terms^]
+          [terms@       phases:terms@]
           [#%term-forms phases:#%term-forms]))
 (provide terms^ terms@ #%term-forms)
 
 (define-signature terms^ extends phases:terms^
   (Σ*% InExpand%))
 
-(define-unit terms-full@
-  (import (prefix phases: phases:terms^))
+(define-mixed-unit terms@
+  (import)
   (export terms^)
-  
-  ;; abstract term
-  (define Val%  phases:Val%)
-  (define Atom% phases:Atom%)
-
+  (inherit [phases:terms@
+            [phases:AstEnv% AstEnv%]
+            [phases:Stxξ%   Stxξ%]
+            [phases:KApp%   KApp%]
+            [phases:SApp%   SApp%]
+            [phases:κ%      κ%]
+            [phases:ζ%      ζ%]
+            Val% Atom%
+            Var% Fun% App% If% VFun% LBind2% Bool% Num% Sym% Defs%
+            Stx%  Store% KIf% SIf% SSeq%
+            TVar% TStop% Σ% StoBind% 𝓁% Hole% InEval%])
   ;; add ph, maybe-scp, and ξ
   (define-term AstEnv   phases:AstEnv (ph maybe-scp ξ))
   ;; remove scps from those of phases
@@ -33,37 +40,8 @@
   ;; add Σ*
   (define-term κ        phases:κ      (Σ*))
   ;; Σ -> Σ*
-  (define-term ζ        phases:ζ      (Σ*) #:remove [Σ])
+  (define-term ζ        phases:ζ      (Σ*) #:remove [Σ]))
 
-  ;; same as common
-  (define-term Var     phases:Var     ())
-  (define-term Fun     phases:Fun     ())
-  (define-term App     phases:App     ())
-  (define-term If      phases:If      ())
-  (define-term VFun    phases:VFun    ())
-  (define-term LBind2  phases:LBind2  ())
-  (define-term Bool    phases:Bool    ())
-  (define-term Num     phases:Num     ())
-  (define-term Sym     phases:Sym     ())
-  (define-term Defs    phases:Defs    ())
-  (define-term Stx     phases:Stx     ())
-  (define-term Store   phases:Store   ())
-  (define-term KIf     phases:KIf     ())
-  (define-term SIf     phases:SIf     ())
-  (define-term SSeq    phases:SSeq    ())
-  (define-term TVar    phases:TVar    ())
-  (define-term TStop   phases:TStop   ())
-  (define-term Σ       phases:Σ       ())
-  (define-term StoBind phases:StoBind ())
-  (define-term 𝓁       phases:𝓁       ())
-  (define-term Hole    phases:Hole    ())
-  (define-term InEval  phases:InEval  ()))
-
-(define-compound-unit/infer terms@
-  (import) (export terms^)
-  (link
-   (([ct : phases:terms^]) phases:terms@)
-   (()                     terms-full@ ct)))
 
 (define-syntax #%term-forms
   (append '((AstEnv   ph ast env maybe-scp ξ)

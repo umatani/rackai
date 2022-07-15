@@ -6,8 +6,17 @@
 ;; Simple unit wrapper for mixins
 
 (define-syntax (define-mixed-unit stx)
+  (define-syntax-class member-spec
+    #:attributes [from to]
+    (pattern member:id
+             #:with from #'member
+             #:with to   #'member)
+    (pattern [to:id from:id]))
+
   (define-syntax-class inherit-spec
-    (pattern [uid:id member:id ...]))
+    (pattern [uid:id m:member-spec ...]
+             #:with (from ...) #'(m.from ...)
+             #:with (to ...)   #'(m.to ...)))
 
   (define-syntax-class import-spec
     #:attributes [name]
@@ -82,7 +91,7 @@
                                    (λ (m) (format-id p "~a~a" p m))
                                    ms))
                                 (stx-map prefix-id-of #'(pre ...))
-                                (syntax->list #'((ih.member ...) ...)))
+                                (syntax->list #'((ih.from ...) ...)))
      
      #:with (il ...)  (generate-temporaries #'(uid ...))
      #:with (il* ...) (attach-tag-to-link #'(pre ...) #'(il ...))
@@ -91,7 +100,7 @@
                      (define-unit tmp-unit
                        (import i ... pre ...)
                        (export e ...)
-                       (define ih.member from-m) ... ...
+                       (define ih.to from-m) ... ...
                        body ...)
                      (define-compound-unit/infer name
                        (import ii* ...)

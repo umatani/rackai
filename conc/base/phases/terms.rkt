@@ -1,59 +1,26 @@
 #lang racket
 (require
+ "../../../mix.rkt"
  (only-in "../../../term.rkt" define-term)
  (only-in "../core/terms.rkt"
-          [terms^ core:terms^]
-          [terms@ core:terms@]
+          [terms^       core:terms^]
+          [terms@       core:terms@]
           [#%term-forms core:#%term-forms]))
-(provide (all-defined-out))
+(provide terms^ terms@ #%term-forms)
 
-(define-signature terms^ extends core:terms^
-  ())
+(define-signature terms^ extends core:terms^ ())
 
-(define-unit terms-phases@
-  (import (prefix core: core:terms^))
+(define-mixed-unit terms@
+  (import)
   (export terms^)
-  
+  (inherit [core:terms@
+            [core:Stxξ% Stxξ%]
+            Val% Atom%
+            Var% Fun% App% If% VFun% LBind2% Bool% Num% Sym% Defs%
+            Stx% AstEnv% Store% KApp% KIf% SApp% SIf% SSeq%
+            TVar% TStop% Σ% StoBind% 𝓁% Hole% κ% InEval% ζ%])
   ;;; updated (ph scps
-  (define-term Stxξ    core:Stxξ    (ph scps))
-
-  ;; abstract term
-  (define Val%  core:Val%)
-  (define Atom% core:Atom%)
-
-  ;; same as common
-  (define-term Var     core:Var     ())
-  (define-term Fun     core:Fun     ())
-  (define-term App     core:App     ())
-  (define-term If      core:If      ())
-  (define-term VFun    core:VFun    ())
-  (define-term LBind2  core:LBind2  ())
-  (define-term Bool    core:Bool    ())
-  (define-term Num     core:Num     ())
-  (define-term Sym     core:Sym     ())
-  (define-term Defs    core:Defs    ())
-  (define-term Stx     core:Stx     ())
-  (define-term AstEnv  core:AstEnv  ())
-  (define-term Store   core:Store   ())
-  (define-term KApp    core:KApp    ())
-  (define-term KIf     core:KIf     ())
-  (define-term SApp    core:SApp    ())
-  (define-term SIf     core:SIf     ())
-  (define-term SSeq    core:SSeq    ())
-  (define-term TVar    core:TVar    ())
-  (define-term TStop   core:TStop   ())
-  (define-term Σ       core:Σ       ())
-  (define-term StoBind core:StoBind ())
-  (define-term 𝓁       core:𝓁       ())
-  (define-term Hole    core:Hole    ())
-  (define-term κ       core:κ       ())
-  (define-term InEval  core:InEval  ())
-  (define-term ζ       core:ζ       ()))
-
-(define-compound-unit/infer terms@
-  (import) (export terms^)
-  (link (([ct : core:terms^]) core:terms@)
-        (() terms-phases@ ct)))
+  (define-term Stxξ core:Stxξ (ph scps)))
 
 (define-syntax #%term-forms
   (append '((Stxξ ph stx ξ scps))
