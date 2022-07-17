@@ -39,7 +39,7 @@
 ; resolve : Ph Id Σ -> (SetM Nam)
 (define (resolve #:phase [ph #f] id Σ0)
   (match-let ([(Stx (Sym nam) ctx) id])
-    (let* ([sbss (filter set? (set->list (car (do (lookup-Σ Σ0 nam)))))]
+    (let* ([sbss (filter set? (set->list (results (do (lookup-Σ Σ0 nam)))))]
            [scpsss
             (map (λ (sbs) (set-map sbs (λ (sb) (StoBind-scps sb))))
                  sbss)]
@@ -60,4 +60,4 @@
 ; id=? : Ph Id Nam ξ Σ -> Boolean
 ;   ξ is non-#f only in full
 (define (id=? #:phase [ph #f] id nam #:ξ [ξ #f] Σ)
-  (subset? (set nam) (car (do (resolve #:phase ph id Σ)))))
+  (subset? (set nam) (results (do (resolve #:phase ph id Σ)))))

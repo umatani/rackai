@@ -15,12 +15,12 @@
 (export run^)
 
 (define (run form mode)
-  (cdr (do stx := (reader form)
-           #:failif (eq? mode 'read) stx
-           (cons stx2 Σ2) := (expander stx)
-           #:failif (eq? mode 'expand) stx2
-           ast := (parser stx2 Σ2)
-           #:failif (eq? mode 'parse) ast
-           ast2 := (evaluate ast)
-           #:failif (eq? mode 'eval) #;ast2 (printer ast2)
-           (error 'run "unknown mode: ~e" mode))))
+  (aborts (do stx := (reader form)
+              #:abort-if (eq? mode 'read) stx
+              (cons stx2 Σ2) := (expander stx)
+              #:abort-if (eq? mode 'expand) stx2
+              ast := (parser stx2 Σ2)
+              #:abort-if (eq? mode 'parse) ast
+              ast2 := (evaluate ast)
+              #:abort-if (eq? mode 'eval) #;ast2 (printer ast2)
+              (error 'run "unknown mode: ~e" mode))))

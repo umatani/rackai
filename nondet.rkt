@@ -1,7 +1,9 @@
 #lang racket
 (require "set.rkt"
          (for-syntax racket syntax/parse))
-(provide := <- pure lift do
+(provide := <-
+         pure lift results aborts
+         do
          (for-syntax assign elem))
 
 (define := (gensym ':=))
@@ -14,6 +16,10 @@
   (let ([r2 (set-map (car r) k)])
     (cons (apply set-union (set) (map car r2))
           (apply set-union (cdr r) (map cdr r2)))))
+
+(define (results m) (car m))
+(define (aborts m)  (cdr m))
+
 
 (define (gen-bind kind r k #:multi-values? [is-mv #f])
   (cond 
@@ -46,7 +52,7 @@
     [(do pat elem-id:elem e s1 s ...)
      #'(gen-bind elem-id e
                  (match-lambda [pat (do s1 s ...)]))]
-    [(do #:failif t e s ...)
+    [(do #:abort-if t e s ...)
      #'(if t
            (break e)
            (do s ...))]

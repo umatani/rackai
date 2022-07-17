@@ -16,10 +16,11 @@
 (define-reduction (--> delta ==> :=<1>)
   #:within-signatures [(only terms^
                              Var% Fun% App% If% VFun% Bool% Sym% Stx%
+                             Null% Pair% Prim%
                              KApp% KIf% SApp% SIf% AstEnv% TVar% TStop%
                              Defs% Stxξ% Σ% Σ*% 𝓁% ζ% InExpand%)
                        (only terms-extra^
-                             val? id? prim? stx-prim?)
+                             lst->list val? id?)
                        (only syntax^
                              add flip union prune)
                        (only env^
@@ -28,6 +29,8 @@
                              lookup-store update-store* alloc-loc*)
                        (only cont^
                              push-cont)
+                       (only delta^
+                             stx-prim?)
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
@@ -36,7 +39,8 @@
                              bind resolve)
                        (only parser^
                              parse)]
-  #:do [(use-terms Var Fun App If VFun Bool Sym Stx KApp KIf SApp SIf AstEnv
+  #:do [(use-terms Var Fun App If VFun Bool Sym Stx Null Pair Prim
+                   KApp KIf SApp SIf AstEnv
                    TVar TStop Defs Stxξ Σ Σ* 𝓁 ζ InExpand)
         ;; resolve* : Ph (Listof Id) Σ -> (Listof Nam))
         (define (resolve* ph val Σ)
@@ -149,7 +153,7 @@
 
   ;; local value
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(syntax-local-value ,(? id? id)) '())
+            `(,(Prim 'syntax-local-value) ,(? id? id)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    #:with nam :=<1> (resolve #:phase ph id Σ)
    `(,(lookup-ξ ξ nam) ,cont ,store ,Σ*_0)
@@ -162,7 +166,8 @@
   ;;   the provided definition contexts are not used to enrich id's
   ;;   lexical information.
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(syntax-local-value ,(? id? id) ,(Bool #f) ,(Defs scp_defs 𝓁)) '())
+            `(,(Prim syntax-local-value)
+              ,(? id? id) ,(Bool #f) ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    #:with ξ_defs :=    (def-ξ-lookup Σ 𝓁)
    #:with    nam :=<1> (resolve #:phase ph id Σ)
@@ -171,14 +176,14 @@
 
   ;; local binder
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(syntax-local-identifier-as-binding ,(? id? id)) '())
+            `(,(Prim 'syntax-local-identifier-as-binding) ,(? id? id)) '())
      ,cont ,store ,(and Σ*_0 (Σ* _ _ scps_u)))
    `(,(prune ph id scps_u) ,cont ,store ,Σ*_0)
    ev-lbinder]
 
   ;; create definition context
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(syntax-local-make-definition-context) '())
+            `(,(Prim 'syntax-local-make-definition-context)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
    #:with (values scp_defs Σ_2) := (alloc-scope 'defs Σ)
    #:with        (values 𝓁 Σ_3) := (alloc-def-ξ Σ_2)
@@ -190,8 +195,9 @@
 
   ;; create definition binding (for a variable)
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(syntax-local-bind-syntaxes
-              (,(? id? id_arg)) ,(Bool #f) ,(Defs scp_defs 𝓁)) '())
+            `(,(Prim 'syntax-local-bind-syntaxes)
+              ,(Pair (? id? id_arg) (Null))
+              ,(Bool #f) ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
    #:with              id_defs := (add ph
                                        (prune ph (flip ph id_arg maybe-scp_i)
@@ -202,13 +208,14 @@
    #:with               ξ_defs := (def-ξ-lookup Σ_2 𝓁)
    #:with                  Σ_3 := (def-ξ-update Σ_2 𝓁
                                      (extend-ξ ξ_defs nam_new (TVar id_defs)))
-   `((,id_defs) ,cont ,store ,(Σ* Σ_3 scps_p scps_u))
+   `(,(Pair id_defs (Null)) ,cont ,store ,(Σ* Σ_3 scps_p scps_u))
    ev-slbcv]
 
   ;; create macro definition binding
   [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
-            `(syntax-local-bind-syntaxes
-              (,(? id? id_arg)) ,(? Stx? stx_arg) ,(Defs scp_defs 𝓁)) '())
+            `(,(Prim 'syntax-local-bind-syntaxes)
+              ,(Pair (? id? id_arg) (Null))
+              ,(? Stx? stx_arg) ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
    #:with (values stx_arg2) := (add ph (flip ph stx_arg maybe-scp_i) scp_defs)
    (InExpand (ζ (Stxξ (add1 ph) stx_arg2 (init-ξ))
@@ -250,29 +257,30 @@
    #:with                 Σ*_4 := (Σ* (def-ξ-update Σ_3 𝓁
                                           (extend-ξ ξ_defs nam_new val_exp))
                                         scps_p scps_u)
-   `((,id_defs) ,cont ,store ,Σ*_4)
+   `(,(Pair id_defs (Null)) ,cont ,store ,Σ*_4)
    ev-slbcm3]
 
   ;; local expand
   [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
-            `(local-expand ,(? Stx? stx) ,val_contextv ,val_idstops) '())
+            `(,(Prim 'local-expand)
+              ,(? Stx? stx) ,val_contextv ,val_idstops) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    #:with ξ_unstops :=    (make-immutable-hash
                             (map (λ (p) (cons (car p) (unstop (cdr p))))
                                  (hash->list ξ)))
-   #:with nams_stop :=<1> (resolve* ph val_idstops Σ)
+   #:with nams_stop :=<1> (resolve* ph (lst->list val_idstops) Σ)
    #:with   ξ_stops :=    (extend-ξ*
                             ξ_unstops
                             (map (λ (n) (cons n (TStop (lookup-ξ ξ_unstops n))))
                                  nams_stop))
    (InExpand
     (ζ (Stxξ ph (flip ph stx maybe-scp_i) ξ_stops) '∘ '• Σ*_0)
-    `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) `())
+    `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) '())
       ,cont ,store ,Σ*_0))
    ev-lexpand]  
 
   [(InExpand (ζ stx_exp '• '• Σ*)
-             `(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) `())
+             `(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) '())
                ,cont ,store ,_))
    `(,(flip ph stx_exp maybe-scp_i) ,cont ,store ,Σ*)
    ev-lexpand2]
@@ -281,14 +289,14 @@
   ;; - similar to the basic local expand case, but adding the
   ;;   definition context's scope and using its environment
   [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
-            `(local-expand ,(? Stx? stx) ,val_contextv ,val_idstops
-                           ,(Defs scp_defs 𝓁)) '())
+            `(,(Prim 'local-expand)
+              ,(? Stx? stx) ,val_contextv ,val_idstops ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    #:with    ξ_defs :=    (def-ξ-lookup Σ 𝓁)
    #:with ξ_unstops :=    (make-immutable-hash
                             (map (λ (p) (cons (car p) (unstop (cdr p))))
                                  (hash->list ξ_defs)))
-   #:with nams_stop :=<1> (resolve* ph val_idstops Σ)
+   #:with nams_stop :=<1> (resolve* ph (lst->list val_idstops) Σ)
    #:with   ξ_stops :=    (extend-ξ*
                             ξ_unstops
                             (map (λ (n) (cons n (TStop (lookup-ξ ξ_unstops n))))
@@ -310,20 +318,22 @@
 
   ;; box
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(box ,val) '()) ,cont ,store ,(Σ* Σ scps_p scps_u))
+            `(,(Prim 'box) ,val) '()) ,cont ,store ,(Σ* Σ scps_p scps_u))
    #:with (values 𝓁 Σ_1) := (alloc-box Σ)
    `(,𝓁 ,cont ,store ,(Σ* (box-update Σ_1 𝓁 val) scps_p scps_u))
    ev-box]
 
   ;; unbox
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(unbox ,(? 𝓁? 𝓁)) '()) ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
+            `(,(Prim 'unbox)
+              ,(? 𝓁? 𝓁)) '()) ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    `(,(box-lookup Σ 𝓁) ,cont ,store ,Σ*_0)
    ev-unbox]
 
   ;; set-box!
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(set-box! ,(? 𝓁? 𝓁) ,val) '()) ,cont ,store ,(Σ* Σ scps_p scps_u))
+            `(,(Prim 'set-box!)
+              ,(? 𝓁? 𝓁) ,val) '()) ,cont ,store ,(Σ* Σ scps_p scps_u))
    `(,val ,cont ,store ,(Σ* (box-update Σ 𝓁 val) scps_p scps_u))
    ev-set-box!]
 
@@ -340,7 +350,8 @@
 
   ;; primitive application (except StxPrim)
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ) vals '()) ,cont ,store ,Σ*)
-   #:when (and (pair? vals) (prim? (car vals)) (not (stx-prim? (car vals))))
+   #:when (and (pair? vals) (Prim? (car vals))
+               (not (stx-prim? (Prim-nam (car vals)))))
    `(,(delta (car vals) (cdr vals)) ,cont ,store ,Σ*)
    ev-delta]
 

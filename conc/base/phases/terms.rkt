@@ -15,9 +15,9 @@
   (export terms^)
   (inherit [core:terms@
             [core:Stxξ% Stxξ%]
-            Val% Atom%
-            Var% Fun% App% If% VFun% LBind2% Bool% Num% Sym% Defs%
-            Stx% AstEnv% Store% KApp% KIf% SApp% SIf% SSeq%
+            Val% Atom% List%
+            Var% Fun% App% If% VFun% LBind2% Bool% Num% Sym% Prim% Null% Pair%
+            Stx% Defs% AstEnv% Store% KApp% KIf% SApp% SIf% SSeq%
             TVar% TStop% Σ% StoBind% 𝓁% Hole% κ% InEval% ζ%])
   ;;; updated (ph scps
   (define-term Stxξ core:Stxξ (ph scps)))

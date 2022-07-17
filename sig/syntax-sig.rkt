@@ -5,10 +5,8 @@ empty-ctx
 ;; ----------------------------------------
 ;; stx utils
 
-stl->seq ; Stl -> (Listof Stx)
 zip ; ProperStl ProperStl Ctx -> ProperStl
 unzip ; ProperStl -> (Values ProperStl ProperStl)
-snoc ; ProperStl Stx -> ProperStl
 
 in-hole ; Stl Stx -> Stl
 in-hole-stl ; Stl Stx -> Stl

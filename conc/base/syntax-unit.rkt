@@ -8,12 +8,12 @@
  (only-in "../../terms.rkt" terms^ #%term-forms))
 
 (import (only terms^
-              Stx% StoBind% Hole%)
+              Stx% Null% Pair% StoBind% Hole%)
         (only terms-extra^
               stx?))
 (export syntax^)
 
-(use-terms Stx StoBind Hole)
+(use-terms Stx Null Pair StoBind Hole)
 
 
 ;; ----------------------------------------
@@ -21,35 +21,22 @@
 
 (define (empty-ctx . args) (error "must not be used"))
 
-; stl->seq : Stl -> (Listof Stx)
-(define (stl->seq stl)
-  (match stl
-    ['() '()]
-    [(cons stx stl) (cons stx (stl->seq stl))]))
-
 ; zip : ProperStl ProperStl Ctx -> ProperStl
 (define (zip stl_1 stl_2 ctx)
   (match* (stl_1 stl_2)
-    [('() '()) '()]
-    [((cons stx_left stl_lefts) (cons stx_right stl_rights))
-     (cons (Stx `(,stx_left ,stx_right) ctx)
+    [((Null) (Null)) (Null)]
+    [((Pair stx_left stl_lefts) (Pair stx_right stl_rights))
+     (Pair (Stx (Pair stx_left (Pair stx_right (Null))) ctx)
            (zip stl_lefts stl_rights ctx))]))
 
 ; unzip : ∀ [A] ProperStl -> (Values ProperStl ProperStl)
 (define (unzip stl)
   (match stl
-    ['() (values '() '())]
-    [`(,(Stx `[,stx_left ,stx_right] _) ,stl_rest ...)
+    [(Null) (values (Null) (Null))]
+    [(Pair (Stx (Pair stx_left (Pair stx_right (Null))) _) stl_rest)
      (let-values ([(stl_lefts stl_rights) (unzip stl_rest)])
-       (values (cons stx_left  stl_lefts)
-               (cons stx_right stl_rights)))]))
-
-; snoc : ProperStl Stx -> ProperStl
-(define (snoc stl stx)
-  (cond
-    [(null? stl) (list stx)]
-    [(list? stl) (cons (car stl) (snoc (cdr stl) stx))]
-    [else (error "no such case")]))
+       (values (Pair stx_left  stl_lefts)
+               (Pair stx_right stl_rights)))]))
 
 ; in-hole : Stx Stx -> Stl
 (define (in-hole . args) (error "must not be used"))
@@ -57,9 +44,8 @@
 ; in-hole-stl : Stl Stx -> Stl
 (define (in-hole-stl in-hole stl v)
   (match stl
-    ['() '()]
     [(? stx? stx) (in-hole stx v)]
-    [(cons stx stl) (cons (in-hole stx v) (in-hole-stl in-hole stl v))]
+    [(Pair stx stl) (Pair (in-hole stx v) (in-hole-stl in-hole stl v))]
     [(Hole) v]
     [_ stl]))
 
@@ -74,10 +60,10 @@
 ; strip : Stl -> Val
 (define (strip stl)
   (match stl
-    ['() '()]
-    [(Stx (cons stx stl) _) (cons (strip stx) (strip stl))]
+    [(Null) (Null)]
+    [(Stx (Pair stx stl) _) (Pair (strip stx) (strip stl))]
     [(Stx x _) x]
-    [(cons stx stl) (cons (strip stx) (strip stl))]))
+    [(Pair stx stl) (Pair (strip stx) (strip stl))]))
 
 ; subtract : Scps Scps -> Scps
 (define (subtract scps1 scps2) (set-subtract scps1 scps2))

@@ -8,12 +8,27 @@
  (only-in "../terms.rkt" terms^ #%term-forms))
 
 (import (only terms^
-              Bool% Num% Sym% Stx%)
+              Atom% Bool% Num% Sym% Stx% Null% Pair% Prim%)
         (only terms-extra^
-              stx? atom?))
+              stx?))
 (export delta^)
 
-(use-terms Bool Num Sym Stx)
+(use-terms Atom Bool Num Sym Stx Null Pair Prim)
+
+
+(define (prim? x)
+  (or (member x '(syntax-e datum->syntax + - * / < = eq?
+                           cons car cdr list second third fourth
+                           printe ;; for debug
+                           ))
+      (stx-prim? x)))
+
+(define (stx-prim? x)
+  (member x '(syntax-local-value local-expand
+                                 syntax-local-identifier-as-binding
+                                 box unbox set-box!
+                                 syntax-local-make-definition-context
+                                 syntax-local-bind-syntaxes)))
 
 ;; ----------------------------------------
 ;; Implementation of primitives:
@@ -28,41 +43,57 @@
 
 ; delta : Prim (Listof Val) -> Val
 (define (delta p vs)
-  (match (cons p vs)
-    [`(+ ,(Num ns) ...)
+  (match* (p vs)
+    [((Prim '+) (list (Num ns) ...))
      (Num (apply plus ns))]
-    [`(- ,(Num n) ,(Num ns) ...)
+    [((Prim '-) (list (Num n) (Num ns) ...))
      (Num (apply minus n ns))]
-    [`(* ,(Num ns) ...)
+    [((Prim '*) (list (Num ns) ...))
      (Num (apply times ns))]
-    [`(/ ,(Num n) ,(Num ns) ...)
+    [((Prim '/) (list (Num n) (Num ns) ...))
      (Num (apply div n ns))]
-    [`(< ,(Num n1) ,(Num n2) ,(Num ns) ...)
+    [((Prim '<) (list (Num n1) (Num n2) (Num ns) ...))
      (Bool (apply less-than n1 n2 ns))]
-    [`(= ,(Num n1) ,(Num n2) ,(Num ns) ...)
+    [((Prim '=) (list (Num n1) (Num n2) (Num ns) ...))
      (Bool (apply num-eq n1 n2 ns))]
 
-    [`(eq? ,(Sym s1) ,(Sym s2))
+    [((Prim 'eq?) (list (Sym s1) (Sym s2)))
      (Bool (sym-eq s1 s2))]
 
-    [`(cons ,v1 ,v2) (cons v1 v2)]
-    [`(car ,(cons v1 _)) v1]
-    [`(cdr ,(cons _ v2)) v2]
+    [((Prim 'cons) (list v1 v2))
+     (Pair v1 v2)]
+    [((Prim 'car) (list (Pair v1 _)))
+     v1]
+    [((Prim 'cdr) (list (Pair _ v2)))
+     v2]
 
-    [`(list) '()]
-    [`(list ,v1 ,vs ...) (delta 'cons (list v1 (delta 'list vs)))]
-    [`(second (,_ ,v2 ,_ ...)) v2]
-    [`(third  (,_ ,_ ,v3 ,_ ...)) v3]
-    [`(fourth (,_ ,_ ,_ ,v4 ,_ ...)) v4]
+    [((Prim 'list) (list))
+     (Null)]
+    [((Prim 'list) (list v1 vs ...))
+     (delta (Prim 'cons) (list v1 (delta (Prim 'list) vs)))]
+    [((Prim 'second) (list (Pair _ (Pair v2 _))))
+     v2]
+    [((Prim 'third)  (list (Pair _ (Pair _ (Pair v3 _)))))
+     v3]
+    [((Prim 'fourth) (list (Pair _ (Pair _ (Pair _ (Pair v4 _))))))
+     v4]
 
     ;; for debug
-    [`(printe ,v1 ,v2) (println v1) v2]
+    [((Prim 'printe) (list v1 v2))
+     (println v1)
+     v2]
 
-    [`(syntax-e ,(Stx e _)) e]
-    [`(datum->syntax ,_ ,(? stx? stx)) stx]
-    [`(datum->syntax ,(and stx (Stx _ ctx_0)) (,v1 ,vs ...))
-     (Stx `(,(delta 'datum->syntax `(,stx ,v1))
-            ,@(delta 'syntax-e `(,(delta 'datum->syntax `(,stx ,vs)))))
+    [((Prim 'syntax-e) (list (Stx e _)))
+     e]
+    [((Prim 'datum->syntax) (list _ (? stx? stx)))
+     stx]
+    [((Prim 'datum->syntax) (list (Stx _ ctx) (Null)))
+     (Stx (Null) ctx)]
+    [((Prim 'datum->syntax) (list (and stx (Stx _ ctx_0))
+                                  (Pair v1 vs)))
+     (Stx (Pair (delta (Prim 'datum->syntax) (list stx v1))
+                (delta (Prim 'syntax-e)
+                       (list (delta (Prim 'datum->syntax) (list stx vs)))))
           ctx_0)]
-    [`(datum->syntax ,(Stx _ ctx) ,(? atom? atom))
+    [((Prim 'datum->syntax) (list (Stx _ ctx) (? Atom? atom)))
      (Stx atom ctx)]))

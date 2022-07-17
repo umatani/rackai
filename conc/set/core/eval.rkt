@@ -17,16 +17,18 @@
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta) #:super (base:--> delta <-)
   #:within-signatures [(only terms^
-                             Var% Fun% App% If% Bool% VFun% KApp% KIf%
-                             SApp% SIf% AstEnv%)
+                             Var% Fun% App% If% Bool% VFun% Prim%
+                             KApp% KIf% SApp% SIf% AstEnv%)
                        (only terms-extra^
-                             val? prim?)
+                             val?)
                        (only env^
                              lookup-env update-env)
                        (only store^
                              lookup-store update-store* alloc-loc*)
                        (only cont^
-                             push-cont)])
+                             push-cont)
+                       (only delta^
+                             prim?)])
 
 (define-unit-from-reduction red@ -->)
 

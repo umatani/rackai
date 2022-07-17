@@ -14,10 +14,10 @@
 (provide run)
 
 (define-values/invoke-unit
-  (compound-unit/infer
+  [compound-unit/infer
    (import) (export run^ debug^)
    (link terms@ terms-extra@ syntax@ env@ store@ cont@ delta@ eval@
-         menv@ mstore@ bind@ mcont@ parser@ expander@ io@ run@ debug@))
+         menv@ mstore@ bind@ mcont@ parser@ expander@ io@ run@ debug@)]
   (import) (export run^ debug^))
 
 ;; run example

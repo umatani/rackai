@@ -4,3 +4,5 @@
 ;; Implementation of primitives:
 
 delta
+prim?
+stx-prim?

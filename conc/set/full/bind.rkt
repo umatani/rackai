@@ -23,5 +23,5 @@
   (use-terms TStop)
 
   (define (id=? #:phase [ph #f] id nam #:ξ [ξ #f] Σ)
-    (let ([nam0 (car (do (resolve #:phase ph id Σ)))])
+    (let ([nam0 (results (do (resolve #:phase ph id Σ)))])
       (and (subset? (set nam) nam0) (not (TStop? (lookup-ξ ξ nam)))))))

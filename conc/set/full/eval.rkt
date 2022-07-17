@@ -17,11 +17,12 @@
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta ==>) #:super (base:--> delta ==> <-)
   #:within-signatures [(only terms^
-                             Var% Fun% App% If% Bool% VFun% Sym% Stx% AstEnv%
-                             Stxξ% Σ% Σ*% 𝓁% InExpand% ζ%
+                             Var% Fun% App% If% Bool% VFun% Sym% Stx%
+                             Null% Pair% Prim%
+                             AstEnv% Stxξ% Σ% Σ*% 𝓁% InExpand% ζ%
                              KApp% KIf% SApp% SIf% TVar% TStop% Defs%)
                        (only terms-extra^
-                             val? id? prim? stx-prim?)
+                             lst->list val? id?)
                        (only syntax^
                              add flip union prune)
                        (only env^
@@ -30,6 +31,8 @@
                              lookup-store update-store* alloc-loc*)
                        (only cont^
                              push-cont)
+                       (only delta^
+                             stx-prim?)
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^

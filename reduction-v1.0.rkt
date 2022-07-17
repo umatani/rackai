@@ -14,7 +14,7 @@
       [(b) #`((pure b))]
       [(#:when t b ...)
        (with-syntax ([(b2 ...) (make-match-body #'(b ...))])
-         #`(#:failif (not t) #f b2 ...))]
+         #`(#:abort-if (not t) #f b2 ...))]
       [(#:with x assign-id:assign e b ...)
        (with-syntax ([(b2 ...) (make-match-body #'(b ...))])
          #'(x assign-id e b2 ...))]
@@ -82,7 +82,8 @@
                                 (match #,s
                                   [p (set-union
                                       nexts
-                                      (car (do #,@(make-match-body #'(b ...)))))]
+                                      (results
+                                       (do #,@(make-match-body #'(b ...)))))]
                                   [_ nexts]))])
                          (cdr scs))))))])
       (if (null? cs)
@@ -96,7 +97,7 @@
                     (match #,s
                       [p (set-union
                           nexts
-                          (car (do #,@match-body)))]
+                          (results (do #,@match-body)))]
                       [_ nexts])))]))))))
 
 (define-syntax (define-parameterized-extended-reduction-relation stx)

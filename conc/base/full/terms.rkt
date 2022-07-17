@@ -21,9 +21,9 @@
             [phases:SApp%   SApp%]
             [phases:κ%      κ%]
             [phases:ζ%      ζ%]
-            Val% Atom%
-            Var% Fun% App% If% VFun% LBind2% Bool% Num% Sym% Defs%
-            Stx%  Store% KIf% SIf% SSeq%
+            Val% Atom% List%
+            Var% Fun% App% If% VFun% LBind2% Bool% Num% Sym% Prim% Null% Pair%
+            Stx% Defs% Store% KIf% SIf% SSeq%
             TVar% TStop% Σ% StoBind% 𝓁% Hole% InEval%])
   ;; add ph, maybe-scp, and ξ
   (define-term AstEnv   phases:AstEnv (ph maybe-scp ξ))

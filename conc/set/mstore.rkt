@@ -15,11 +15,11 @@
 
 (define-mixed-unit mstore@
   (import (only terms^
-                Sym% Stx% Σ%))
+                Σ%))
   (export mstore^)
   (inherit [base:mstore@ init-Σ alloc-name alloc-scope alloc-𝓁])
 
-  (use-terms Sym Stx Σ)
+  (use-terms Σ)
 
   ;; Set-based Σ
 

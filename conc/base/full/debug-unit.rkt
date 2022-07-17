@@ -35,17 +35,17 @@
 
 ; eval--> : Sexp -> (Setof State)
 (define (eval--> form)
-  (car (do ast <- (lift (run form 'parse))
-           (lift (-->f `(,(AstEnv 0 ast (init-env) 'no-scope (init-ξ))
-                         • ,(init-store) ,(Σ* (init-Σ) (set) (set))))))))
+  (results (do ast <- (lift (run form 'parse))
+               (lift (-->f `(,(AstEnv 0 ast (init-env) 'no-scope (init-ξ))
+                             • ,(init-store) ,(Σ* (init-Σ) (set) (set))))))))
 
 ; eval-->* : Sexp -> (Setof State)
 (define (eval-->* form #:steps [steps #f])
-  (car (do ast <- (lift (run form 'parse))
-           (lift (apply-reduction-relation*
-                  -->f `(,(AstEnv 0 ast (init-env) 'no-scope (init-ξ))
-                         • ,(init-store) ,(Σ* (init-Σ) (set) (set)))
-                  #:steps steps)))))
+  (results (do ast <- (lift (run form 'parse))
+               (lift (apply-reduction-relation*
+                      -->f `(,(AstEnv 0 ast (init-env) 'no-scope (init-ξ))
+                             • ,(init-store) ,(Σ* (init-Σ) (set) (set)))
+                      #:steps steps)))))
 
 ; expand==> : Sexp -> (Setof ζ)
 (define (expand==> form)

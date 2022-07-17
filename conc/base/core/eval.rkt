@@ -16,17 +16,17 @@
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta :=<1>)
   #:within-signatures [(only terms^
-                             Var% Fun% App% If% Bool% VFun% AstEnv%
+                             Var% Fun% App% If% Bool% Prim% VFun% AstEnv%
                              KIf% KApp% SIf% SApp%)
                        (only terms-extra^
-                             val? prim?)
+                             val?)
                        (only env^
                              lookup-env update-env)
                        (only store^
                              lookup-store alloc-loc* update-store*)
                        (only cont^
                              push-cont)]
-  #:do [(use-terms Var Fun App If Bool VFun AstEnv KApp KIf SApp SIf)]
+  #:do [(use-terms Var Fun App If Bool Prim VFun AstEnv KApp KIf SApp SIf)]
 
   ;; propagate env into subterms
   [`(,(AstEnv (If lbl ast_test ast_then ast_else) env) ,cont ,store)
@@ -74,7 +74,7 @@
   ;; β
   [`(,(SApp _lbl vals '()) ,cont ,store)
    #:when (and (pair? vals) (VFun? (car vals)))
-   #:with (values vars ast env vals) := (let ([f(car vals)])
+   #:with (values vars ast env vals) := (let ([f (car vals)])
                                           (values (VFun-vars f)
                                                   (VFun-ast f)
                                                   (VFun-env f)
@@ -88,7 +88,7 @@
 
   ;; primitive application
   [`(,(SApp _lbl vals '()) ,cont ,store)
-   #:when (and (pair? vals) (prim? (car vals)))
+   #:when (and (pair? vals) (Prim? (car vals)))
    `(,(delta (car vals) (cdr vals)) ,cont ,store)
    ev-delta]
 

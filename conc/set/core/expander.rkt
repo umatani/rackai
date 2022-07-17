@@ -3,10 +3,11 @@
  "../../../set.rkt"
  "../../../reduction.rkt"
  "../../../mix.rkt"
- (only-in "../../../term.rkt" use-terms)
+ (only-in "../../../term.rkt"  use-terms)
+ (only-in "../../../terms.rkt" use-lst-form)
 
  (only-in "../../../signatures.rkt"
-          terms-extra^ syntax^ env^ store^ eval^
+          terms-extra^ syntax^ env^ store^ delta^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^ expander^)
  (only-in "../../base/core/terms.rkt" terms^ #%term-forms)
 
@@ -18,16 +19,18 @@
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (base:==> --> <-)
   #:within-signatures [(only terms^
-                             App% Sym% Stx% AstEnv% TVar% κ% Stxξ%
-                             InEval% Hole% ζ%)
+                             App% Atom% Sym% Stx% List% Null% Pair% AstEnv%
+                             TVar% κ% Stxξ% InEval% Hole% ζ%)
                        (only terms-extra^
-                             stx? id? atom? val? proper-stl?)
+                             lst->list snoc stx? id? val? proper-stl?)
                        (only syntax^
-                             empty-ctx zip unzip snoc add flip in-hole)
+                             empty-ctx zip unzip add flip in-hole)
                        (only env^
                              init-env)
                        (only store^
                              init-store)
+                       (only delta^
+                             prim?)
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^

@@ -1,6 +1,11 @@
 #lang racket
-(require "term.rkt")
-(provide (all-defined-out))
+(require
+ (for-syntax syntax/parse)
+ "term.rkt"
+ (only-in "sig/delta-sig.rkt" delta^))
+(provide terms^ terms@ #%term-forms
+         use-lst-form
+         terms-extra^ terms-extra@)
 
 ;;;; Language
 
@@ -8,13 +13,14 @@
   (;;;; Language
    Var% Fun% App% If%
    ;; Value
-   Val% Atom% VFun% LBind2%
+   Val% Atom% List%
+   VFun% LBind2%
    ;; Literal values
-   Bool% Num% Sym%
-   ;; Defs is used only in full
-   Defs%
+   Bool% Num% Sym% Prim% Null% Pair%
    ;; Syntax objects (a subset of values)
    Stx%
+   ;; Defs is used only in full
+   Defs%
    ;; Eval-time continuation, environment, and store
    AstEnv% Store% KApp% KIf% SApp% SIf%
    ;; SSeq is used only in full
@@ -31,17 +37,19 @@
 (define-unit terms@
   (import) (export terms^)
 
-  (define-term Var     (nam))
-  (define-term Fun     (vars ast))
-  (define-term App     (lbl rator rands)) ; unique lbl is assigned at parse
-  (define-term If      (lbl tst thn els)) ; unique lbl is assigned at parse
+  (define-term Var        (nam))
+  (define-term Fun        (vars ast))
+  (define-term App        (lbl rator rands)) ; unique lbl is assigned at parse
+  (define-term If         (lbl tst thn els)) ; unique lbl is assigned at parse
 
   ;; Value
   ; abstract term
-  (define-term Val ())
-  (define-term Atom Val ())
+  (define-term Val        ())
+  (define-term Atom Val   ())
+  (define-term List Val   ())
 
-  (define-term VFun Val (vars ast env))
+  (define-term Prim Val  (nam))
+  (define-term VFun Val   (vars ast env))
   ;; LBind2 is used only in full
   (define-term LBind2 Val (scps_p scps_u))
 
@@ -49,6 +57,8 @@
   (define-term Bool Atom (b))
   (define-term Num  Atom (n))
   (define-term Sym  Atom (nam))
+  (define-term Null List ())
+  (define-term Pair List (a d))
 
   ;; Defs is used only in full
   (define-term Defs Atom (scp 𝓁))
@@ -93,9 +103,13 @@
     (LBind2  scps_p scps_u)
     (Val)
     (Atom)
+    (List)
     (Bool    b)
     (Num     n)
     (Sym     nam)
+    (Prim    nam)
+    (Null)
+    (Pair    a d)
     (Defs    scp 𝓁)
     (Stx     e ctx)
     (AstEnv  ast env)
@@ -116,78 +130,107 @@
     (InEval  state ξ)
     (ζ       stx ex? κ Σ)))
 
-;;;; Extra predicates
+;;;; Extra utils
+
+;; Lst patter/constructor
+(define-syntax-rule (use-lst-form Lst List? Null Pair lst->list)
+  (... (define-match-expander Lst
+         (λ (stx)
+           (syntax-case stx (... ...)
+             [(_ p (... ...)) #'(app lst->list (list p (... ...)))]
+             [p (syntax-parse #'p
+                  #:datum-literals [|.|]
+                  [(_) #'(Null)]
+                  [(_ p ps ...) #'(Pair p (Lst ps ...))]
+
+                  [(_ . x:id) #'(? List? x)]
+                  [(_ p ps ... . x:id) #'(Pair p (Lst ps ... . x))]
+
+                  [p (syntax-case #'p (... ...)
+                       [(_ p (... ...))
+                        #'(app lst->list (list p (... ...)))])])]))
+         (λ (stx) (syntax-parse stx
+                     [(_) #'(Null)]
+                     [(_ x xs ...) #'(Pair x (Lst xs ...))]
+
+                     [(_ . xs:id)  #'(and (List? xs) xs)]
+                     [(_ y ys ... . x:id)  #'(Pair y (Lst ys ... . x))])))))
+
 
 (define-signature terms-extra^
-  (id stx? stl? proper-stl? id? atom? prim?
-   stx-prim? val? nam? state? tm? cont? ser?))
+  (id lst->list list->lst snoc stx? stl? proper-stl? id? val? nam?
+   state? tm? cont? ser?))
 
 (define-unit terms-extra@
   (import (only terms^
-                Val% Atom% Sym% Stx% Stxξ% Hole% 𝓁% Defs% VFun% LBind2% Store%
-                KApp% KIf% AstEnv% SApp% SIf% SSeq%))
+                Val% Atom% Sym% Null% Pair% Stx% Stxξ% Hole% 𝓁% Defs%
+                VFun% LBind2% Store% KApp% KIf% AstEnv% SApp% SIf% SSeq%)
+          (only delta^
+                prim?))
   (export terms-extra^)
 
-  (use-terms Val Atom Sym Stx Stxξ Hole 𝓁 Defs VFun LBind2 Store KApp KIf
-             AstEnv SApp SIf SSeq)
+  (use-terms Val Atom Sym Null Pair Stx Stxξ Hole 𝓁 Defs VFun LBind2
+             Store KApp KIf AstEnv SApp SIf SSeq)
 
+  ;; Additional constructor
   (define (id nam ctx) (Stx (Sym nam) ctx))
 
+  ;; Additional matcher & List utils
+
+  (define (lst->list l)
+  (match l
+    [(Null) '()]
+    [(Pair a d) (cons a (lst->list d))]))
+
+  (define (list->lst l)
+    (match l
+      ['() (Null)]
+      [(cons a d) (Pair a (list->lst d))]))
+
+  ; snoc : ProperStl Stx -> ProperStl
+  (define (snoc stl stx)
+    (cond
+      [(Null? stl) (Pair stx (Null))]
+      [(Pair? stl) (Pair (Pair-a stl) (snoc (Pair-d stl) stx))]
+      [else (error "no such case")]))
+  
   ;; Additional predicates
   (define (val? x)
     (or (Val? x)
-        (atom? x)
-        (and (pair? x) (val? (car x)) (val? (cdr x)))
+        (and (Pair? x) (val? (Pair-a x)) (val? (Pair-d x)))
         (stx? x)))
 
   (define (stx? x)
-    (or (and (Stx? x) (atom? (Stx-e x)))
-        (and (Stx? x) (pair? (Stx-e x))
-             (stx? (car (Stx-e x)))
-             (stl? (cdr (Stx-e x))))
+    (or (and (Stx? x) (Atom? (Stx-e x)))
+        (and (Stx? x) (prim? (Stx-e x)))
+        (and (Stx? x) (Pair? (Stx-e x))
+             (stx? (Pair-a (Stx-e x)))
+             (stl? (Pair-d (Stx-e x))))
         (and (Stx? x) (proper-stl? (Stx-e x)))
         (Stxξ? x)
         (Hole? x)
         (and (Stx? x) (Hole? (Stx-e x)))))
 
   (define (stl? x)
-    (or (null? x)
-        (stx? x)
-        (and (pair? x) (stx? (car x)) (stl? (cdr x)))
+    (or (Null? x) (stx? x)
+        (and (Pair? x) (stx? (Pair-a x)) (stl? (Pair-d x)))
         (Hole? x)))
 
   (define (proper-stl? x)
-    (or (null? x)
-        (and (pair? x) (stx? (car x)) (proper-stl? (cdr x)))))
+    (or (Null? x)
+        (and (Pair? x) (stx? (Pair-a x)) (proper-stl? (Pair-d x)))))
 
-  (define (id? x) (and (Stx? x) (Sym? (Stx-e x))))
-
-  (define (atom? x)
-    (or (Atom? x)
-        (null? x)
-        (prim? x)))
-
-  (define (prim? x)
-    (or (member x '(syntax-e datum->syntax + - * / < = eq?
-                             cons car cdr list second third fourth
-                             printe ;; for debug
-                             ))
-        (stx-prim? x)))
-
-  (define (stx-prim? x)
-    (member x '(syntax-local-value local-expand
-                                   syntax-local-identifier-as-binding
-                                   box unbox set-box!
-                                   syntax-local-make-definition-context
-                                   syntax-local-bind-syntaxes)))
+  (define (id? x)
+    (match x
+      [(Stx (Sym _) _) #t]
+      [_ #f]))
 
   (define (nam? x) (symbol? x))
 
   (define (state? x)
-    (and (list? x) (= (length x) 3)
-         (tm? (first x))
-         (cont? (second x))
-         (Store? (third x))))
+    (match x
+      [(list (? tm?) (? cont?) (? Store?)) #t]
+      [_ #f]))
 
   (define (tm? x) (or (val? x) (ser? x)))
 
