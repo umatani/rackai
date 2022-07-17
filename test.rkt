@@ -1,17 +1,12 @@
 #lang racket
 (require
  "example.rkt"
-
- (only-in "conc/base/core/main.rkt" [run base:core:run])
+ (only-in "conc/base/core/main.rkt"   [run base:core:run])
  (only-in "conc/base/phases/main.rkt" [run base:phases:run])
- (only-in "conc/base/full/main.rkt" [run base:full:run])
-
- (only-in "conc/set/core/main.rkt"
-          [run set:core:run])
- (only-in "conc/set/phases/main.rkt"
-          [run set:phases:run])
- (only-in "conc/set/full/main.rkt"
-          [run set:full:run])
+ (only-in "conc/base/full/main.rkt"   [run base:full:run])
+ (only-in "conc/set/core/main.rkt"    [run set:core:run])
+ (only-in "conc/set/phases/main.rkt"  [run set:phases:run])
+ (only-in "conc/set/full/main.rkt"    [run set:full:run])
 
  ;; (only-in "abs/naive/core.rkt" [run naive:core:run])
  ;; (only-in "abs/naive/phases.rkt" [run naive:phases:run])

@@ -1,11 +1,10 @@
 #lang racket/unit
 (require
  racket/match
- (only-in "../term.rkt" use-terms)
+ (only-in "../../term.rkt" use-terms)
  
- (only-in "../signatures.rkt"
-          terms-extra^ delta^)
- (only-in "../terms.rkt" terms^ #%term-forms))
+ (only-in "../../signatures.rkt" terms-extra^ delta^)
+ (only-in "../../terms.rkt"      terms^ #%term-forms))
 
 (import (only terms^
               Atom% Bool% Num% Sym% Stx% Null% Pair% Prim%)
@@ -13,25 +12,10 @@
               stx?))
 (export delta^)
 
-(use-terms Atom Bool Num Sym Stx Null Pair Prim)
-
-
-(define (prim? x)
-  (or (member x '(syntax-e datum->syntax + - * / < = eq?
-                           cons car cdr list second third fourth
-                           printe ;; for debug
-                           ))
-      (stx-prim? x)))
-
-(define (stx-prim? x)
-  (member x '(syntax-local-value local-expand
-                                 syntax-local-identifier-as-binding
-                                 box unbox set-box!
-                                 syntax-local-make-definition-context
-                                 syntax-local-bind-syntaxes)))
-
 ;; ----------------------------------------
 ;; Implementation of primitives:
+
+(use-terms Atom Bool Num Sym Stx Null Pair Prim)
 
 (define (plus . ns) (apply + ns))
 (define (minus n . ns) (apply - n ns))

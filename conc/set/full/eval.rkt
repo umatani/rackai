@@ -4,6 +4,7 @@
  "../../../reduction.rkt"
  "../../../mix.rkt"
  (only-in "../../../term.rkt" use-terms)
+ (only-in "../../../prim.rkt" stx-prim?)
  (only-in "../../../dprint.rkt" dprint)
  
  (only-in "../../../signatures.rkt"
@@ -31,8 +32,6 @@
                              lookup-store update-store* alloc-loc*)
                        (only cont^
                              push-cont)
-                       (only delta^
-                             stx-prim?)
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^

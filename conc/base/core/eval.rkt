@@ -89,7 +89,8 @@
   ;; primitive application
   [`(,(SApp _lbl vals '()) ,cont ,store)
    #:when (and (pair? vals) (Prim? (car vals)))
-   `(,(delta (car vals) (cdr vals)) ,cont ,store)
+   #:with val :=<1> (delta (car vals) (cdr vals))
+   `(,val ,cont ,store)
    ev-delta]
 
   ;; if

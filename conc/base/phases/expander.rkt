@@ -5,9 +5,10 @@
  "../../../mix.rkt"
  (only-in "../../../term.rkt"  use-terms)
  (only-in "../../../terms.rkt" use-lst-form)
+ (only-in "../../../prim.rkt"  prim?)
 
  (only-in "../../../signatures.rkt"
-          terms-extra^ syntax^ env^ store^ delta^ eval^ menv^ mstore^
+          terms-extra^ syntax^ env^ store^ eval^ menv^ mstore^
           bind^ mcont^ parser^ expand^ expander^)
  (only-in "terms.rkt" terms^ #%term-forms))
 (provide ==> expander@ expander/expand@)
@@ -29,8 +30,6 @@
                              init-env)
                        (only store^
                              init-store)
-                       (only delta^
-                             prim?)
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^

@@ -4,7 +4,7 @@
  "../../../mix.rkt"
  (only-in "../../../term.rkt" use-terms)
 
- (only-in "../../../signatures.rkt" terms-extra^ syntax^ delta^)
+ (only-in "../../../signatures.rkt" terms-extra^ syntax^)
  (only-in "terms.rkt" terms^ #%term-forms)
 
  (only-in "../units.rkt"        [syntax@ super:syntax@])

@@ -3,7 +3,8 @@
  "../../../reduction.rkt"
  "../../../set.rkt"
  "../../../mix.rkt"
- (only-in "../../../term.rkt" use-terms)
+ (only-in "../../../term.rkt"   use-terms)
+ (only-in "../../../prim.rkt"   stx-prim?)
  (only-in "../../../dprint.rkt" dprint)
 
  (only-in "../../../signatures.rkt"
@@ -29,8 +30,6 @@
                              lookup-store update-store* alloc-loc*)
                        (only cont^
                              push-cont)
-                       (only delta^
-                             stx-prim?)
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
@@ -352,7 +351,8 @@
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ) vals '()) ,cont ,store ,Σ*)
    #:when (and (pair? vals) (Prim? (car vals))
                (not (stx-prim? (Prim-nam (car vals)))))
-   `(,(delta (car vals) (cdr vals)) ,cont ,store ,Σ*)
+   #:with val :=<1> (delta (car vals) (cdr vals))
+   `(,val ,cont ,store ,Σ*)
    ev-delta]
 
   ;; if

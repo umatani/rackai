@@ -26,9 +26,7 @@
                        (only store^
                              lookup-store update-store* alloc-loc*)
                        (only cont^
-                             push-cont)
-                       (only delta^
-                             prim?)])
+                             push-cont)])
 
 (define-unit-from-reduction red@ -->)
 

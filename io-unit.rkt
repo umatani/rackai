@@ -2,9 +2,9 @@
 (require
  racket/match
  (only-in "term.rkt" use-terms)
- 
- (only-in "signatures.rkt"
-          terms-extra^ syntax^ delta^ io^)
+
+ (only-in "prim.rkt" prim?)
+ (only-in "signatures.rkt" terms-extra^ syntax^ io^)
  (only-in "terms.rkt" terms^ #%term-forms))
 
 ;;;; reader & printer
@@ -15,9 +15,7 @@
         (only terms-extra^
               stx?)
         (only syntax^
-              empty-ctx)
-        (only delta^
-              prim?))
+              empty-ctx))
 (export io^)
 
 (use-terms Var VFun Atom Stx Bool Num Sym Null Pair Defs 𝓁)
@@ -60,7 +58,6 @@
   (match val
     [(Null) '()]
     [(? Atom? atom) (print-atom atom)]
-    ;[(? (λ (v) (or (null? v) (prim? v) (real? v)))) val]
     [(Pair v1 v2) (cons (printer v1) (printer v2))]
     [(VFun `(,(Var nams) ...) ast env) `(VFun ,@nams)]
     [(Stx a c) (vector 'stx (printer a))]))

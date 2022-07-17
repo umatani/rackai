@@ -4,8 +4,9 @@
  "../../../set.rkt"
  "../../../mix.rkt"
  (only-in "../../../term.rkt" use-terms)
+ (only-in "../../../prim.rkt" prim?)
 
- (only-in "../../../signatures.rkt" terms-extra^ syntax^ delta^)
+ (only-in "../../../signatures.rkt" terms-extra^ syntax^)
  (only-in "terms.rkt" terms^ #%term-forms)
 
  (only-in "../units.rkt" [syntax@ super:syntax@]))
@@ -14,9 +15,7 @@
 
 (define-mixed-unit syntax@
   (import (only terms^
-                Atom% Stx% Null% Pair% Stxξ% Hole%)
-          (only delta^
-                prim?))
+                Atom% Stx% Null% Pair% Stxξ% Hole%))
   (export syntax^)
   (inherit [super:syntax@ addremove strip subtract union in-hole-stl
                           binding-lookup biggest-subset zip unzip])

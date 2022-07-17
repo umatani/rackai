@@ -1,8 +1,8 @@
 #lang racket
 (require
  (for-syntax syntax/parse)
- "term.rkt"
- (only-in "sig/delta-sig.rkt" delta^))
+ (only-in "term.rkt" define-term use-terms)
+ (only-in "prim.rkt" prim?))
 (provide terms^ terms@ #%term-forms
          use-lst-form
          terms-extra^ terms-extra@)
@@ -158,15 +158,12 @@
 
 
 (define-signature terms-extra^
-  (id lst->list list->lst snoc stx? stl? proper-stl? id? val? nam?
-   state? tm? cont? ser?))
+  (id lst->list list->lst snoc stx? stl? proper-stl? id? val?))
 
 (define-unit terms-extra@
   (import (only terms^
                 Val% Atom% Sym% Null% Pair% Stx% Stxξ% Hole% 𝓁% Defs%
-                VFun% LBind2% Store% KApp% KIf% AstEnv% SApp% SIf% SSeq%)
-          (only delta^
-                prim?))
+                VFun% LBind2% Store% KApp% KIf% AstEnv% SApp% SIf% SSeq%))
   (export terms-extra^)
 
   (use-terms Val Atom Sym Null Pair Stx Stxξ Hole 𝓁 Defs VFun LBind2
@@ -225,15 +222,13 @@
       [(Stx (Sym _) _) #t]
       [_ #f]))
 
-  (define (nam? x) (symbol? x))
 
+  ;;;; not in use
+  (define (nam? x) (symbol? x))
   (define (state? x)
     (match x
       [(list (? tm?) (? cont?) (? Store?)) #t]
       [_ #f]))
-
   (define (tm? x) (or (val? x) (ser? x)))
-
   (define (cont? x) (or (eq? x '•) (KApp? x) (KIf? x)))
-
   (define (ser? x) (or (AstEnv? x) (SApp? x) (SIf? x) (SSeq? x))))

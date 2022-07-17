@@ -7,8 +7,7 @@
 
  ;;;; Units
  (only-in "../../../units.rkt" terms-extra@ env@ menv@ io@)
- (only-in "../../units.rkt"    delta@)
- (only-in "../units.rkt"       cont@ store@ mstore@ mcont@ run@)
+ (only-in "../units.rkt"       cont@ store@ delta@ mstore@ mcont@ run@)
  (only-in "units.rkt"          terms@ syntax@ eval@ bind@ parser@
                                expander@ debug@))
 (provide run)
