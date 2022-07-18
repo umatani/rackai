@@ -6,7 +6,7 @@
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt"
-          terms-extra^ env^ store^ cont^ delta^ eval^)
+          terms-extra^ env^ store^ cont^ domain^ eval^)
  (only-in "../../base/core/terms.rkt" terms^ #%term-forms)
 
  (only-in "../../base/core/eval.rkt" [--> base:-->]))
@@ -39,7 +39,7 @@
                 init-env)
           (only store^
                 init-store)
-          (only delta^
+          (only domain^
                 delta))
   (export eval^)
   (inherit [red@ reducer])

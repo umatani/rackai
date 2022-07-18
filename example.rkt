@@ -9,41 +9,32 @@
 
 (define fail-count (make-parameter -1))
 
-(define (ex-runner run example mode)
-  (printf "~a: " (car example))
+(define (runner run example mode α ≤a)
   (println
    (case mode
-     [(raw) (first (call-with-values (λ () (r:eval (cadr example)))
+     [(raw) (first (call-with-values (λ () (r:eval example))
                                      (λ args args)))]
      [(check)
       (fail-count (if (< (fail-count) 0) 0 (fail-count)))
-      (let* ([r1 (run (cadr example) 'eval)]
-             [r2 (first (call-with-values
-                         (λ () (r:eval (cadr example)))
-                         (λ args args)))]
-             [result (subset? (set r2) r1)])
+      (let* ([c (first (call-with-values
+                        (λ () (r:eval example))
+                        (λ args args)))]
+             [a (run example 'eval)]
+             [result (≤a (α c) a)])
         (unless result
           (fail-count (+ (fail-count) 1)))
         result)]
-     [else (run (cadr example) mode)])))
+     [else (run example mode)])))
 
-(define (run-ex run examples name [mode 'check])
+(define (run-example run examples name [mode 'check] [α set] [≤a subset?])
   (let ([example (assoc name examples)])
-    (when example (ex-runner run example mode))))
+    (when example
+      (runner run (cadr example) mode α ≤a))))
 
-(define (run-examples run examples [mode 'check])
+(define (run-examples run examples [mode 'check] [α set] [≤a subset?])
   (for ([example (in-list examples)])
-    (ex-runner run example mode)))
-
-(define ((run-all-examples all-runs all-examples) [mode 'check])
-  (parameterize ([fail-count (if (eq? mode 'check) 0 -1)])
-    (for ([run-info (in-list all-runs)])
-      (printf "[~a]\n" (car run-info))
-      (for ([i (in-range (cadr run-info))]
-            [examples (in-list all-examples)])
-        (run-examples (caddr run-info) examples mode)))
-    (when (>= (fail-count) 0)
-      (printf "\nfail-count: ~a\n" (fail-count)))))
+    (printf "~a: " (car example))
+    (runner run (cadr example) mode α ≤a)))
 
 ;; ----------------------------------------
 ;; Core Examples:

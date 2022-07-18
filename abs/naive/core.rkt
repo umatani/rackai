@@ -7,15 +7,16 @@
 
  ;;;; Units
  ;; reused
- (only-in "../../units.rkt"                terms-extra@ env@ menv@ io@)
- (only-in "../../conc/units.rkt"           delta@)
+ (only-in "../../units.rkt"                env@ menv@ io@)
  (only-in "../../conc/base/units.rkt"      cont@ mcont@)
- (only-in "../../conc/base/core/units.rkt" terms@ syntax@ debug@)
+ (only-in "../../conc/base/core/units.rkt" syntax@ debug@)
  (only-in "../../conc/set/units.rkt"       #;store@ #;mstore@ bind@ run@)
  (only-in "../../conc/set/core/units.rkt"  eval@ parser@ expander@)
  ;; new
  (only-in "core-store.rkt"  store@)
- (only-in "core-mstore.rkt" mstore@))
+ (only-in "core-mstore.rkt" mstore@)
+ (only-in "core-terms.rkt"  terms@ terms-extra@)
+ (only-in "delta-unit.rkt"  delta@))
 (provide run)
 
 (define-values/invoke-unit

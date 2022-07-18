@@ -1,6 +1,8 @@
 #lang racket/signature
 
 ;; ----------------------------------------
-;; Implementation of primitives:
+;; Implementation of Domains:
 
 delta
+α
+≤a

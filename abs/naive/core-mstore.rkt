@@ -9,17 +9,18 @@
 
  ;;;; Units
  ;; reused
- (only-in "../../units.rkt"                terms-extra@ env@ menv@ io@)
- (only-in "../../conc/units.rkt"           delta@)
+ (only-in "../../units.rkt"                env@ menv@ io@)
  (only-in "../../conc/base/units.rkt"      cont@ mcont@)
- (only-in "../../conc/base/core/units.rkt" terms@ syntax@ debug@)
+ (only-in "../../conc/base/core/units.rkt" syntax@ debug@)
  (only-in "../../conc/set/units.rkt"       store@ #;mstore@ bind@ run@)
  (only-in "../../conc/set/core/units.rkt"  eval@ parser@ expander@)
 
  ;; overridden
  (only-in "../../conc/set/units.rkt"       [mstore@ super:mstore@])
  ;; new
- (only-in "alloc.rkt" fin-alloc/mstore@))
+ (only-in "alloc.rkt" fin-alloc/mstore@)
+ (only-in "core-terms.rkt" terms@ terms-extra@)
+ (only-in "delta-unit.rkt" delta@))
 (provide run mstore@)
 
 

@@ -2,7 +2,7 @@
 (require
  (only-in "bind-unit.rkt"   bind@)
  (only-in "cont-unit.rkt"   cont@)
- (only-in "delta-unit.rkt"  delta@)
+ (only-in "domain-unit.rkt" domain@)
  (only-in "mcont-unit.rkt"  mcont@)
  (only-in "mstore-unit.rkt" mstore@)
  (only-in "parse-unit.rkt"  parse@)
@@ -12,7 +12,7 @@
 
 (provide bind@
          cont@
-         delta@
+         domain@
          mcont@
          mstore@
          parse@

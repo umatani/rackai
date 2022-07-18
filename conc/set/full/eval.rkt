@@ -8,7 +8,7 @@
  (only-in "../../../dprint.rkt" dprint)
  
  (only-in "../../../signatures.rkt"
-          terms-extra^ syntax^ env^ store^ cont^ delta^ eval^
+          terms-extra^ syntax^ env^ store^ cont^ domain^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^)
  (only-in "../../base/full/terms.rkt" terms^ #%term-forms)
 
@@ -61,7 +61,7 @@
                 init-env)
           (only store^
                 init-store)
-          (only delta^
+          (only domain^
                 delta)
           (only menv^
                 init-ξ)

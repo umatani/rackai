@@ -6,7 +6,7 @@
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt"
-          terms-extra^ env^ store^ cont^ delta^ eval^)
+          terms-extra^ env^ store^ cont^ domain^ eval^)
  (only-in "terms.rkt" terms^ #%term-forms))
 (provide --> eval@)
 
@@ -117,11 +117,11 @@
 (define-unit-from-reduction red@ -->)
 
 (define-mixed-unit eval@
-  (import (only terms^ AstEnv%)
+  (import (only terms^       AstEnv%)
           (only terms-extra^ val?)
-          (only env^ init-env)
-          (only store^ init-store)
-          (only delta^ delta))
+          (only env^         init-env)
+          (only store^       init-store)
+          (only domain^      delta))
   (export eval^)
   (inherit [red@ reducer])
 

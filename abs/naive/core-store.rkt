@@ -19,7 +19,7 @@
  ;; new
  (only-in "alloc.rkt"      fin-alloc/store@)
  (only-in "core-terms.rkt" terms@ terms-extra@)
- (only-in "delta.rkt" delta@))
+ (only-in "delta-unit.rkt" delta@))
 (provide run store@)
 
 (define-mixed-unit store@
