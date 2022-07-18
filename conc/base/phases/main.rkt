@@ -11,7 +11,7 @@
  (only-in "../units.rkt"       cont@ store@ domain@ mstore@ mcont@ bind@ run@)
  (only-in "../core/units.rkt"  eval@)
  (only-in "units.rkt"          config@ syntax@ parser@ expander@ debug@))
-(provide run α ≤a)
+(provide run delta α ≤a)
 
 (define-values/invoke-unit
   (compound-unit/infer

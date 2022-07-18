@@ -13,13 +13,13 @@
         (only eval^     evaluate))
 (export run^)
 
-(define (run form mode)
+(define (run delta form mode)
   (aborts (do stx := (reader form)
               #:abort-if (eq? mode 'read) stx
-              (cons stx2 Σ2) <- (lift (expander stx))
+              (cons stx2 Σ2) <- (lift (expander delta stx))
               #:abort-if (eq? mode 'expand) stx2
               ast <- (parser stx2 Σ2)
               #:abort-if (eq? mode 'parse) ast
-              ast2 <- (lift (evaluate ast))
+              ast2 <- (lift (evaluate delta ast))
               #:abort-if (eq? mode 'eval) (printer ast2)
               (error 'run "unknown mode: ~e" mode))))

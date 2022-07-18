@@ -10,7 +10,7 @@
  (only-in "../../../units.rkt" terms-extra@ env@ menv@ io@)
  (only-in "../units.rkt"       cont@ domain@ mstore@ mcont@ bind@ run@ store@)
  (only-in "units.rkt"          config@ syntax@ eval@ parser@ expander@ debug@))
-(provide run α ≤a)
+(provide run delta α ≤a)
 
 (define-values/invoke-unit
   (compound-unit/infer

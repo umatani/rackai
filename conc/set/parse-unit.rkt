@@ -4,17 +4,16 @@
  "../../set.rkt"
  "../../nondet.rkt"
  (only-in "../../term.rkt"  use-terms)
- (only-in "../../terms.rkt" use-lst-form)
- (only-in "../../prim.rkt"  prim?)
 
  (only-in "../../signatures.rkt"
           terms-extra^ syntax^ menv^ bind^ parse^)
- (only-in "../../terms.rkt" terms^ #%term-forms))
+ (only-in "../../terms.rkt"
+          Var% Fun% App% If% Atom% Stx% List% Null% Pair% Prim%
+          lst->list id? prim?
+          use-lst-form #%term-forms))
 
-(import (only terms^
-              Var% Fun% App% If% Atom% Stx% List% Null% Pair% Prim%)
-        (only terms-extra^
-              lst->list id? proper-stl?)
+(import (only terms-extra^
+              proper-stl?)
         (only syntax^
               unzip strip)
         (only menv^

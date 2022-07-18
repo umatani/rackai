@@ -7,19 +7,17 @@
 
  (only-in "../../../signatures.rkt"
           syntax^ menv^ mstore^ bind^)
- (only-in "../../base/full/terms.rkt" terms^ #%term-forms)
-
+ (only-in "../../base/full/config.rkt" config^ #%term-forms)
  (only-in "../units.rkt" [bind@ super:bind@]))
 (provide bind@)
 
 (define-mixed-unit bind@
-  (import (only terms^
+  (import (only config^
                 TStop%)
           (only menv^
                 lookup-ξ))
   (export bind^)
   (inherit [super:bind@ bind resolve])
-
   (use-terms TStop)
 
   (define (id=? #:phase [ph #f] id nam #:ξ [ξ #f] Σ)

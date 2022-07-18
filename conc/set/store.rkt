@@ -7,14 +7,13 @@
  (only-in "../../term.rkt" use-terms)
 
  (only-in "../../signatures.rkt" store^)
- (only-in "../../terms.rkt" terms^ #%term-forms)
 
- ;; partially reused from conc/base/core
+ (only-in "../../config.rkt" config^ #%term-forms)
  (rename-in "../base/units.rkt" [store@ base:store@]))
 (provide store@)
 
 (define-mixed-unit store@
-  (import (only terms^
+  (import (only config^
                 Store%))
   (export store^)
   (inherit [base:store@ init-store alloc-loc alloc-loc*])

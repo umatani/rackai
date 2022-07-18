@@ -6,15 +6,14 @@
  
  (only-in "../../term.rkt" use-terms)
  
- (only-in "../../signatures.rkt" syntax^ menv^ mstore^)
- (only-in "../base/core/terms.rkt" terms^ #%term-forms)
-
+ (only-in "../../signatures.rkt" config^ syntax^ menv^ mstore^)
+ (only-in "../../config.rkt" config^ #%term-forms)
  ;; partially reused from conc/base
  (rename-in "../base/units.rkt" [mstore@ base:mstore@]))
 (provide mstore@)
 
 (define-mixed-unit mstore@
-  (import (only terms^
+  (import (only config^
                 Σ%))
   (export mstore^)
   (inherit [base:mstore@ init-Σ alloc-name alloc-scope alloc-𝓁])

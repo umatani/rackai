@@ -4,7 +4,6 @@
 
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ menv^ bind^ parse^ parser^)
- (only-in "../../base/core/terms.rkt" terms^)
 
  (only-in "../units.rkt" parse@))
 (provide parser@)

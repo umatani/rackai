@@ -4,14 +4,15 @@
  "../../../reduction.rkt"
  "../../../mix.rkt"
  (only-in "../../../term.rkt"  use-terms)
- (only-in "../../../terms.rkt" use-lst-form)
- (only-in "../../../prim.rkt"  prim?)
 
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ env^ store^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^ expander^)
- (only-in "../../base/core/terms.rkt" terms^ #%term-forms)
-
+ (only-in "../../../terms.rkt"
+          App% Atom% Sym% Stx% List% Null% Pair% Hole%
+          lst->list snoc id? prim?
+          use-lst-form)
+ (only-in "../../base/core/config.rkt" config^ #%term-forms)
  (only-in "../../base/core/expander.rkt" [==> base:==>] expander/expand@))
 (provide ==> expander@)
 
@@ -19,11 +20,10 @@
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (base:==> --> <-)
-  #:within-signatures [(only terms^
-                             App% Atom% Sym% Stx% List% Null% Pair% AstEnv%
-                             TVar% κ% Stxξ% InEval% Hole% ζ%)
+  #:within-signatures [(only config^
+                             AstEnv% TVar% ζ% Stxξ% κ% InEval%)
                        (only terms-extra^
-                             lst->list snoc stx? id? val? proper-stl?)
+                             val? stx? proper-stl?)
                        (only syntax^
                              empty-ctx zip unzip add flip in-hole)
                        (only env^
@@ -44,7 +44,7 @@
 (define-unit-from-reduction red@ ==>)
 
 (define-mixed-unit expander@
-  (import (only terms^
+  (import (only config^
                 Stxξ% ζ%)
           (only eval^
                 -->))
@@ -54,11 +54,12 @@
 
   (use-terms Stxξ ζ)
 
-  (define ==> (reducer -->))
+  (define (==> delta) (reducer (--> delta)))
 
   ; expand : Stx ξ Σ -> (Setof (Cons Stx Σ))
-  (define (expand stx0 ξ Σ)
+  (define (expand delta stx0 ξ Σ)
+    (define ==>d (==> delta))
     (let ([init-ζ (ζ (Stxξ stx0 ξ) '∘ '• Σ)])
       (match-let ([(set (ζ stx_new '• '• Σ_new) ...)
-                   (apply-reduction-relation* ==> init-ζ)])
+                   (apply-reduction-relation* ==>d init-ζ)])
         (list->set (map cons stx_new Σ_new)))))  )

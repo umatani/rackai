@@ -6,13 +6,12 @@
 
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ menv^ bind^ parse^ parser^)
- (only-in "../../base/full/terms.rkt" terms^ #%term-forms)
-
+ (only-in "../../base/full/config.rkt" config^ #%term-forms)
  (only-in "../units.rkt" parse@))
 (provide parser@)
 
 (define-mixed-unit parser@
-  (import (only terms^
+  (import (only config^
                 Σ*%))
   (export parser^)
   (inherit [parse@ parse])
