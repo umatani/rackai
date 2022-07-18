@@ -3,18 +3,15 @@
  racket/match
  (only-in "term.rkt" use-terms)
 
- (only-in "prim.rkt" prim?)
- (only-in "signatures.rkt" terms-extra^ syntax^ io^)
- (only-in "terms.rkt" terms^ #%term-forms))
+ (only-in "signatures.rkt" syntax^ io^)
+ (only-in "terms.rkt"
+          Var% VFun% Atom% Bool% Num% Sym% Stx% Null% Pair% Defs% 𝓁%
+          prim?
+          #%term-forms))
 
 ;;;; reader & printer
 
-(import (only terms^
-              Var% VFun% Atom% Stx% Bool% Num% Sym% Null% Pair%
-              Defs% 𝓁%)
-        (only terms-extra^
-              stx?)
-        (only syntax^
+(import (only syntax^
               empty-ctx))
 (export io^)
 
@@ -35,7 +32,7 @@
                (match stl
                  [(Null)       (Stx (Null) (empty-ctx))]
                  [(Pair a d)   (Stx (Pair a d) (empty-ctx))]
-                 [(? stx? stx) stx]))]
+                 [(? Stx? stx) stx]))]
             [_ (error 'reader "not supported: ~a" x)]))]
        [read-stl
         (λ (xs)

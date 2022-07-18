@@ -6,27 +6,33 @@
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt"
-          terms-extra^ env^ store^ cont^ domain^ eval^)
- (only-in "terms.rkt" terms^ #%term-forms))
+          terms-extra^ env^ store^ cont^ eval^)
+ (only-in "../../../terms.rkt"
+          Var% Fun% App% If% Bool% VFun% Prim%
+          [#%term-forms tm:#%term-forms])
+ (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms]))
 (provide --> eval@)
+
+(define-syntax #%term-forms
+  (append (syntax-local-value #'tm:#%term-forms)
+          (syntax-local-value #'cfg:#%term-forms)))
 
 ;; ----------------------------------------
 ;; Evaluating AST:
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta :=<1>)
-  #:within-signatures [(only terms^
-                             Var% Fun% App% If% Bool% Prim% VFun% AstEnv%
-                             KIf% KApp% SIf% SApp%)
-                       (only terms-extra^
+  #:within-signatures [(only terms-extra^
                              val?)
+                       (only config^
+                             AstEnv% KApp% KIf% SApp% SIf%)
                        (only env^
                              lookup-env update-env)
                        (only store^
                              lookup-store alloc-loc* update-store*)
                        (only cont^
                              push-cont)]
-  #:do [(use-terms Var Fun App If Bool Prim VFun AstEnv KApp KIf SApp SIf)]
+  #:do [(use-terms Var Fun App If Bool VFun Prim AstEnv KApp KIf SApp SIf)]
 
   ;; propagate env into subterms
   [`(,(AstEnv (If lbl ast_test ast_then ast_else) env) ,cont ,store)
@@ -117,21 +123,21 @@
 (define-unit-from-reduction red@ -->)
 
 (define-mixed-unit eval@
-  (import (only terms^       AstEnv%)
-          (only terms-extra^ val?)
+  (import (only terms-extra^ val?)
+          (only config^      AstEnv%)
           (only env^         init-env)
-          (only store^       init-store)
-          (only domain^      delta))
+          (only store^       init-store))
   (export eval^)
   (inherit [red@ reducer])
 
   (use-terms AstEnv)
 
-  (define --> (reducer delta :=))
+  (define (--> delta) (reducer delta :=))
 
   ; evaluate : Ast -> Val
-  (define (evaluate ast)
+  (define (evaluate delta ast)
+    (define -->d (--> delta))
     (match-let ([(set `(,(? val? val) • ,_store))
                  (apply-reduction-relation*
-                  --> `(,(AstEnv ast (init-env)) • ,(init-store)))])
+                  -->d `(,(AstEnv ast (init-env)) • ,(init-store)))])
       val)))

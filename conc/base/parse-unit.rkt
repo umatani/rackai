@@ -2,23 +2,23 @@
 (require
  racket/match
  (only-in "../../term.rkt"  use-terms)
- (only-in "../../terms.rkt" use-lst-form)
- (only-in "../../prim.rkt"  prim?)
  
- (only-in "../../signatures.rkt"
-          terms-extra^ syntax^ menv^ bind^ parse^)
- (only-in "../../terms.rkt" terms^ #%term-forms))
+ (only-in "../../signatures.rkt" terms-extra^ syntax^ menv^ bind^ parse^)
+ (only-in "../../terms.rkt"
+          Var% Fun% App% If% Atom% Bool% Num% Sym% Stx% Null% Pair% Prim%
+          use-lst-form #%term-forms
+          lst->list id? prim?))
 
 (import
- (only terms^
-       Var% Fun% App% If% Atom% Bool% Num% Sym% Stx% Null% Pair% Prim%)
  (only terms-extra^
-       lst->list id? proper-stl?)
- (only syntax^ strip unzip)
+       proper-stl?)
+ (only syntax^
+       strip unzip)
  (only menv^
        init-ξ)
  (rename (only bind^
-               resolve id=?) [b:id=? id=?]))
+               resolve id=?)
+         [b:id=? id=?]))
 (export parse^)
 
 (use-terms Var Fun App If Atom Bool Num Sym Stx Null Pair Prim)

@@ -1,20 +1,28 @@
 #lang racket/unit
 (require
  racket/match
+ (for-syntax racket)
  "../../set.rkt"
  (only-in "../../term.rkt" use-terms)
 
- (only-in "../../signatures.rkt" syntax^ menv^ mstore^)
- (only-in "../../terms.rkt" terms^ #%term-forms))
+ (only-in "../../signatures.rkt" config^ syntax^ menv^ mstore^)
+ (only-in "../../terms.rkt"
+          Sym% Stx% 𝓁%
+          [#%term-forms tm:#%term-forms])
+ (only-in "../../config.rkt" [#%term-forms cfg:#%term-forms]))
 
-(import (only terms^
-              Sym% Stx% 𝓁% Σ%)
-        (only syntax^
-              add biggest-subset binding-lookup)
-        (only menv^
-              extend-ξ))
+(import
+ (only config^
+       Σ%)
+ (only syntax^
+       add biggest-subset binding-lookup)
+ (only menv^
+       extend-ξ))
 (export mstore^)
 
+(define-syntax #%term-forms
+  (append (syntax-local-value #'tm:#%term-forms)
+          (syntax-local-value #'cfg:#%term-forms)))
 (use-terms Sym Stx 𝓁 Σ)
 
 ;; ----------------------------------------

@@ -5,22 +5,28 @@
  (only-in "../../../term.rkt" use-terms)
 
  (only-in "../../../signatures.rkt" terms-extra^ syntax^)
- (only-in "terms.rkt" terms^ #%term-forms)
-
+ (only-in "../../../terms.rkt"
+          Stx% Pair% Hole%
+          [#%term-forms tm:#%term-forms])
+ (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms])
  (only-in "../units.rkt"        [syntax@ super:syntax@])
  (only-in "../phases/units.rkt" [syntax@ phases:syntax@]))
 (provide syntax@)
 
+(define-syntax #%term-forms
+  (append (syntax-local-value #'tm:#%term-forms)
+          (syntax-local-value #'cfg:#%term-forms)))
+
 (define-mixed-unit syntax@
-  (import (only terms^
-                Stx% Pair% Stxξ% Hole%))
+  (import (only config^
+                Stxξ%))
   (export syntax^)
   (inherit [super:syntax@  zip unzip in-hole-stl
                            addremove strip subtract union
                            binding-lookup biggest-subset]
            [phases:syntax@ empty-ctx add add-stl flip flip-stl
                            at-phase update-ctx prune])
-  (use-terms Stx Pair Stxξ Hole)
+  (use-terms Stx Pair Hole Stxξ)
 
   ; in-hole : Stx Stx -> Stx
   (define (in-hole stx v)

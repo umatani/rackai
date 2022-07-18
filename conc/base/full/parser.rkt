@@ -5,8 +5,7 @@
 
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ menv^ bind^ parse^ parser^)
- (only-in "terms.rkt" terms^ #%term-forms)
-
+ (only-in "config.rkt" config^ #%term-forms)
  (only-in "../units.rkt" parse@))
 (provide parser@)
 
@@ -14,7 +13,7 @@
 ;; Simple parsing of already-expanded code
 
 (define-mixed-unit parser@
-  (import (only terms^
+  (import (only config^
                 Σ*%))
   (export parser^)
   (inherit [parse@ parse])

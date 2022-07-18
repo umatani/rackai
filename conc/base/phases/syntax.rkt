@@ -4,23 +4,29 @@
  "../../../set.rkt"
  "../../../mix.rkt"
  (only-in "../../../term.rkt" use-terms)
- (only-in "../../../prim.rkt" prim?)
 
  (only-in "../../../signatures.rkt" terms-extra^ syntax^)
- (only-in "terms.rkt" terms^ #%term-forms)
 
+ (only-in "../../../terms.rkt"
+          Atom% Stx% Null% Pair% Hole%
+          prim?
+          [#%term-forms tm:#%term-forms])
+ (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms])
  (only-in "../units.rkt" [syntax@ super:syntax@]))
 (provide syntax@)
 
+(define-syntax #%term-forms
+  (append (syntax-local-value #'tm:#%term-forms)
+          (syntax-local-value #'cfg:#%term-forms)))
 
 (define-mixed-unit syntax@
-  (import (only terms^
-                Atom% Stx% Null% Pair% Stxξ% Hole%))
+  (import (only config^
+                Stxξ%))
   (export syntax^)
   (inherit [super:syntax@ addremove strip subtract union in-hole-stl
                           binding-lookup biggest-subset zip unzip])
 
-  (use-terms Atom Stx Null Pair Stxξ Hole)
+  (use-terms Atom Stx Null Pair Hole Stxξ)
 
   (define (empty-ctx) (make-immutable-hash))
 

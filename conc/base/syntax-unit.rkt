@@ -1,19 +1,27 @@
 #lang racket/unit
 (require
  (except-in racket set)
+ (for-syntax racket)
  "../../set.rkt"
  (only-in "../../term.rkt" use-terms)
  
- (only-in "../../signatures.rkt" terms-extra^ syntax^)
- (only-in "../../terms.rkt" terms^ #%term-forms))
+ (only-in "../../signatures.rkt" terms-extra^ config^ syntax^)
+ (only-in "../../terms.rkt"
+          Stx% Null% Pair% Hole%
+          [#%term-forms tm:#%term-forms])
+ (only-in "../../config.rkt" [#%term-forms cfg:#%term-forms]))
 
-(import (only terms^
-              Stx% Null% Pair% StoBind% Hole%)
-        (only terms-extra^
-              stx?))
+(import
+ (only terms-extra^
+       stx?)
+ (only config^
+       StoBind%))
 (export syntax^)
 
-(use-terms Stx Null Pair StoBind Hole)
+(define-syntax #%term-forms
+  (append (syntax-local-value #'tm:#%term-forms)
+          (syntax-local-value #'cfg:#%term-forms)))
+(use-terms Stx Null Pair Hole StoBind)
 
 
 ;; ----------------------------------------

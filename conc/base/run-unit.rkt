@@ -1,6 +1,6 @@
 #lang racket/unit
 (require
- (rename-in (except-in racket do))
+ (except-in racket do)
  "../../nondet.rkt"
 
  (only-in "../../signatures.rkt"
@@ -14,13 +14,13 @@
         (only io^ reader printer))
 (export run^)
 
-(define (run form mode)
+(define (run delta form mode)
   (aborts (do stx := (reader form)
               #:abort-if (eq? mode 'read) stx
-              (cons stx2 Σ2) := (expander stx)
+              (cons stx2 Σ2) := (expander delta stx)
               #:abort-if (eq? mode 'expand) stx2
               ast := (parser stx2 Σ2)
               #:abort-if (eq? mode 'parse) ast
-              ast2 := (evaluate ast)
+              ast2 := (evaluate delta ast)
               #:abort-if (eq? mode 'eval) (printer ast2) 
               (error 'run "unknown mode: ~e" mode))))

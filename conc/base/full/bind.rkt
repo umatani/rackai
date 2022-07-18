@@ -6,13 +6,14 @@
 
  (only-in "../../../signatures.rkt"
           syntax^ menv^ mstore^ bind^)
- (only-in "terms.rkt" terms^ #%term-forms)
 
- (only-in "../units.rkt" [bind@ super:bind@]))
+ (only-in "../units.rkt" [bind@ super:bind@])
+ (only-in "config.rkt" config^ #%term-forms))
 (provide bind@)
 
+
 (define-mixed-unit bind@
-  (import (only terms^
+  (import (only config^
                 TStop%)
           (only menv^
                 lookup-ξ))

@@ -3,11 +3,10 @@
  racket/match
  (only-in "../../term.rkt" use-terms)
 
- (only-in "../../signatures.rkt" store^)
- (only-in "../../terms.rkt" terms^ #%term-forms))
+ (only-in "../../signatures.rkt" config^ store^)
+ (only-in "../../config.rkt" #%term-forms))
 
-(import (only terms^
-              Store%))
+(import (only config^ Store%))
 (export store^)
 
 (use-terms Store)

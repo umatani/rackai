@@ -4,13 +4,12 @@
  "../../set.rkt"
  (only-in "../../term.rkt" use-terms)
  
- (only-in "../../signatures.rkt" terms-extra^ domain^)
- (only-in "../../terms.rkt"      terms^ #%term-forms))
+ (only-in "../../signatures.rkt" domain^)
+ (only-in "../../terms.rkt"
+          Atom% Bool% Num% Sym% Stx% Null% Pair% Prim%
+          #%term-forms))
 
-(import (only terms^
-              Atom% Bool% Num% Sym% Stx% Null% Pair% Prim%)
-        (only terms-extra^
-              stx?))
+(import)
 (export domain^)
 
 ;; ----------------------------------------
@@ -73,7 +72,7 @@
 
     [((Prim 'syntax-e) (list (Stx e _)))
      e]
-    [((Prim 'datum->syntax) (list _ (? stx? stx)))
+    [((Prim 'datum->syntax) (list _ (? Stx? stx)))
      stx]
     [((Prim 'datum->syntax) (list (Stx _ ctx) (Null)))
      (Stx (Null) ctx)]

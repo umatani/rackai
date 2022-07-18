@@ -4,10 +4,11 @@
  (only-in "../../term.rkt" use-terms)
 
  (only-in "../../signatures.rkt" mstore^ mcont^)
- (only-in "../../terms.rkt" terms^ #%term-forms))
+ (only-in "../../terms.rkt"
+          𝓁%
+          #%term-forms))
 
-(import (only terms^  𝓁%)
-        (only mstore^ update-Σ alloc-𝓁))
+(import (only mstore^ update-Σ alloc-𝓁))
 (export mcont^)
 
 (use-terms 𝓁)

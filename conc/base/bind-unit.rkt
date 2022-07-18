@@ -1,23 +1,30 @@
 #lang racket/unit
 (require
  racket/match
+ (for-syntax racket)
  "../../set.rkt"
  (only-in "../../term.rkt" use-terms)
 
  (only-in "../../signatures.rkt"
-          syntax^ mstore^ bind^)
- (only-in "../../terms.rkt" terms^ #%term-forms))
+          config^ syntax^ mstore^ bind^)
+ (only-in "../../terms.rkt"
+          Sym% Stx% [#%term-forms tm:#%term-forms])
+ (only-in "../../config.rkt" [#%term-forms cfg:#%term-forms]))
 
 (import
- (only terms^
-       Sym% Stx% Σ% StoBind%)
+ (only config^
+       Σ% StoBind%)
  (only syntax^
        binding-lookup biggest-subset at-phase)
  (only mstore^
        lookup-Σ))
 (export bind^)
 
+(define-syntax #%term-forms
+  (append (syntax-local-value #'tm:#%term-forms)
+          (syntax-local-value #'cfg:#%term-forms)))
 (use-terms Sym Stx Σ StoBind)
+
 
 ;; Like one-phase `bind`, but extracts scopes at a given phase of
 ;; the identifier

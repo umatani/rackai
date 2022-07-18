@@ -4,24 +4,29 @@
  "../../../set.rkt"
  "../../../mix.rkt"
  (only-in "../../../term.rkt"   use-terms)
- (only-in "../../../prim.rkt"   stx-prim?)
  (only-in "../../../dprint.rkt" dprint)
 
  (only-in "../../../signatures.rkt"
-          terms-extra^ syntax^ env^ store^ cont^ domain^ eval^
+          terms-extra^ syntax^ env^ store^ cont^ eval^
           menv^ mstore^ bind^ parser^ expand^)
- (only-in "terms.rkt" terms^ #%term-forms))
+ (only-in "../../../terms.rkt"
+          Var% Fun% App% If% VFun% Bool% Sym% Stx% Null% Pair% Prim% Defs% 𝓁%
+          lst->list id? stx-prim?
+          [#%term-forms tm:#%term-forms])
+ (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms]))
 (provide --> eval@)
+
+(define-syntax #%term-forms
+  (append (syntax-local-value #'tm:#%term-forms)
+          (syntax-local-value #'cfg:#%term-forms)))
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta ==> :=<1>)
-  #:within-signatures [(only terms^
-                             Var% Fun% App% If% VFun% Bool% Sym% Stx%
-                             Null% Pair% Prim%
+  #:within-signatures [(only config^
                              KApp% KIf% SApp% SIf% AstEnv% TVar% TStop%
-                             Defs% Stxξ% Σ% Σ*% 𝓁% ζ% InExpand%)
+                             Stxξ% Σ% Σ*% ζ% InExpand%)
                        (only terms-extra^
-                             lst->list val? id?)
+                             val?)
                        (only syntax^
                              add flip union prune)
                        (only env^
@@ -38,9 +43,8 @@
                              bind resolve)
                        (only parser^
                              parse)]
-  #:do [(use-terms Var Fun App If VFun Bool Sym Stx Null Pair Prim
-                   KApp KIf SApp SIf AstEnv
-                   TVar TStop Defs Stxξ Σ Σ* 𝓁 ζ InExpand)
+  #:do [(use-terms Var Fun App If VFun Bool Sym Stx Null Pair Prim Defs 𝓁
+                   KApp KIf SApp SIf AstEnv TVar TStop Stxξ Σ Σ* ζ InExpand)
         ;; resolve* : Ph (Listof Id) Σ -> (Listof Nam))
         (define (resolve* ph val Σ)
           (match val
@@ -385,7 +389,7 @@
 (define-unit-from-reduction red@ -->)
 
 (define-mixed-unit eval@
-  (import (only terms^
+  (import (only config^
                 AstEnv% Σ*%)
           (only terms-extra^
                 val?)
@@ -393,8 +397,6 @@
                 init-env)
           (only store^
                 init-store)
-          (only domain^
-                delta)
           (only menv^
                 init-ξ)
           (only mstore^
@@ -406,18 +408,19 @@
 
   (use-terms AstEnv Σ*)
 
-  (define --> (λ () (reducer delta ==> :=)))
+  (define (--> delta) (λ () (reducer delta (==> delta) :=)))
 
   ; eval : Ph Ast MaybeScp ξ Σ* -> (Values Val Σ*)
-  (define (eval ph ast maybe-scp_i ξ Σ*)
+  (define (eval delta ph ast maybe-scp_i ξ Σ*)
+    (define -->d (--> delta))
     (match-let ([(set `(,(? val? val) • ,_store ,Σ*_2))
                  (apply-reduction-relation*
-                  (-->) `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
-                          • ,(init-store) ,Σ*))])
+                  (-->d) `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
+                           • ,(init-store) ,Σ*))])
       (values val Σ*_2)))
 
   ; evaluate : Ast -> Val
-  (define (evaluate ast)
+  (define (evaluate delta ast)
     (call-with-values
-     (λ () (eval 0 ast 'no-scope (init-ξ) (Σ* (init-Σ) (set) (set))))
+     (λ () (eval delta 0 ast 'no-scope (init-ξ) (Σ* (init-Σ) (set) (set))))
      (λ (val Σ*) val))))

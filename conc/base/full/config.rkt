@@ -2,29 +2,26 @@
 (require
  "../../../mix.rkt"
  (only-in "../../../term.rkt" define-term)
- (only-in "../phases/terms.rkt"
-          [terms^       phases:terms^]
-          [terms@       phases:terms@]
+ (only-in "../phases/config.rkt"
+          [config^      phases:config^]
+          [config@      phases:config@]
           [#%term-forms phases:#%term-forms]))
-(provide terms^ terms@ #%term-forms)
+(provide config^ config@ #%term-forms)
 
-(define-signature terms^ extends phases:terms^
+(define-signature config^ extends phases:config^
   (Σ*% InExpand%))
 
-(define-mixed-unit terms@
+(define-mixed-unit config@
   (import)
-  (export terms^)
-  (inherit [phases:terms@
+  (export config^)
+  (inherit [phases:config@
             [phases:AstEnv% AstEnv%]
             [phases:Stxξ%   Stxξ%]
             [phases:KApp%   KApp%]
             [phases:SApp%   SApp%]
             [phases:κ%      κ%]
             [phases:ζ%      ζ%]
-            Val% Atom% List%
-            Var% Fun% App% If% VFun% LBind2% Bool% Num% Sym% Prim% Null% Pair%
-            Stx% Defs% Store% KIf% SIf% SSeq%
-            TVar% TStop% Σ% StoBind% 𝓁% Hole% InEval%])
+            Store% KIf% SIf% SSeq% TVar% TStop% Σ% StoBind% InEval%])
   ;; add ph, maybe-scp, and ξ
   (define-term AstEnv   phases:AstEnv (ph maybe-scp ξ))
   ;; remove scps from those of phases

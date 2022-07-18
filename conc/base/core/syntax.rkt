@@ -3,17 +3,18 @@
  "../../../set.rkt"
  "../../../mix.rkt"
  (only-in "../../../term.rkt" use-terms)
- (only-in "../../../prim.rkt" prim?)
  
  (only-in "../../../signatures.rkt" terms-extra^ syntax^)
- (only-in "terms.rkt" terms^ #%term-forms)
-
- (only-in "../units.rkt" [syntax@ super:syntax@]))
+ (only-in "../../../terms.rkt"
+          Atom% Stx% Null% Pair% Hole%
+          prim?
+          #%term-forms)
+ (only-in "../units.rkt" [syntax@ super:syntax@])
+ (only-in "config.rkt" config^))
 (provide syntax@)
 
 (define-mixed-unit syntax@
-  (import (only terms^
-                Atom% Stx% Null% Pair% Hole%))
+  (import)
   (export syntax^)
   (inherit [super:syntax@
             zip unzip in-hole-stl addremove

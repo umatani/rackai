@@ -4,9 +4,9 @@
              racket/syntax
              syntax/parse syntax/stx syntax/id-set)
  (only-in "../../../mix.rkt" define-mixed-unit)
+
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ menv^ bind^ parse^ parser^)
- (only-in "../../../terms.rkt" terms^ #%term-forms)
 
  (only-in "../units.rkt" parse@ bind@ run@))
 (provide parser@)

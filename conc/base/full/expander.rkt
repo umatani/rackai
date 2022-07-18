@@ -4,23 +4,27 @@
  "../../../reduction.rkt"
  "../../../mix.rkt"
  (only-in "../../../term.rkt"  use-terms)
- (only-in "../../../terms.rkt" use-lst-form)
- (only-in "../../../prim.rkt"  prim?)
 
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ env^ store^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^ expander^)
- (only-in "terms.rkt" terms^ #%term-forms))
+ (only-in "../../../terms.rkt"
+          App% Atom% Sym% Stx% List% Null% Pair% Hole%
+          lst->list snoc id? prim?
+          use-lst-form [#%term-forms tm:#%term-forms])
+ (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms]))
 (provide ==> expander@ expander/expand@)
+
+(define-syntax #%term-forms
+  (append (syntax-local-value #'tm:#%term-forms)
+          (syntax-local-value #'cfg:#%term-forms)))
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> --> :=<1>)
-  #:within-signatures [(only terms^
-                             App% Atom% Sym% Stx% List% Null% Pair%
-                             AstEnv% Stxξ% TVar% TStop% κ% Σ*% ζ%
-                             InEval% Hole%)
+  #:within-signatures [(only config^
+                             AstEnv% Stxξ% κ% ζ% Σ*% TVar% TStop% InEval%)
                        (only terms-extra^
-                             lst->list snoc id? val? proper-stl?)
+                             val? proper-stl?)
                        (only syntax^
                              empty-ctx zip unzip add flip union in-hole
                              prune at-phase)
@@ -39,8 +43,8 @@
                        (only parser^
                              parse)]
 
-  #:do [(use-terms App Atom Sym Stx List Null Pair AstEnv Stxξ κ ζ Σ*
-                   TVar TStop Hole InEval)
+  #:do [(use-terms App Atom Sym Stx List Null Pair Hole
+                   AstEnv Stxξ κ ζ Σ* TVar TStop InEval)
         (use-lst-form Lst List? Null Pair lst->list)
         
         ;; Constants:
@@ -424,36 +428,36 @@
 (define-unit-from-reduction red@ ==>)
 
 (define-unit expander/expand@
-  (import (only terms^
+  (import (only config^
                 Σ*%)
           (only menv^
                 init-ξ)
           (only mstore^
                 init-Σ)
-          expand^)
+          (only expand^
+                expand))
   (export expander^)
-
   (use-terms Σ*)
 
-  (define (expander stx)
-    (expand 0 stx (init-ξ) (Σ* (init-Σ) (set) (set)))))
+  (define (expander delta stx)
+    (expand delta 0 stx (init-ξ) (Σ* (init-Σ) (set) (set)))))
 
 (define-mixed-unit expander@
-  (import (only terms^
+  (import (only config^
                 ζ% Stxξ%)
           (only eval^
                 -->))
   (export expand^ expander^)
   (inherit [red@ reducer]
            [expander/expand@ expander])
-
   (use-terms ζ Stxξ)
   
-  (define ==> (λ () (reducer --> :=)))
+  (define (==> delta) (λ () (reducer (--> delta) :=)))
 
   ; expand : Ph Stx ξ Σ* -> (Cons Stx Σ*)
-  (define (expand ph stx ξ Σ*)
+  (define (expand delta ph stx ξ Σ*)
+    (define ==>d (==> delta))
     (let ([init-ζ (ζ (Stxξ ph stx ξ) '∘ '• Σ*)])
       (match-let ([(set (ζ stx_new '• '• Σ*_new))
-                   (apply-reduction-relation* (==>) init-ζ)])
+                   (apply-reduction-relation* (==>d) init-ζ)])
         (cons stx_new Σ*_new)))))
