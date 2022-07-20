@@ -15,9 +15,7 @@
  (only config^
        Σ%)
  (only syntax^
-       add biggest-subset binding-lookup)
- (only menv^
-       extend-ξ))
+       add biggest-subset binding-lookup))
 (export mstore^)
 
 (define-syntax #%term-forms

@@ -482,6 +482,36 @@ ASTの定義として
 そこで，手書きのstructではなく，class定義を生成する
 オリジナルのdefine-languageを準備．
 
+## nondet monad との柔軟な組み合わせが可能
+
+例として，expand の ex-app
+
+```racket
+  ;; application
+  [(ζ (Stxξ (and stx (Stx (Lst stx_fun . stl_args) ctx)) ξ) '∘ κ0 Σ)
+   #:when (id? stx_fun)
+   #:with name :=<1> (resolve stx_fun Σ)
+   #:with   at :=    (lookup-ξ ξ name)
+   #:when (or (TVar? at)
+              (and (eq? 'not-found at)
+                   (not (member name
+                                '(lambda let quote syntax let-syntax if
+                                   #%app #%kont #%seq #%ls-kont #%snoc)))))
+   #:with             id_app := (Stx (Sym '#%app) ctx)
+   #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
+   (ζ (Stxξ (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '∘
+       (κ (Stx (Pair id_app (Hole)) ctx) '• 𝓁_new)
+       Σ_1)
+   ex-app]
+```
+ふつうなら
+```racket
+   #:with   at :=    (lookup-ξ ξ name)
+```
+を :=<1> にして set バージョンでは <- に切り替えるだけで良いが，
+今回の場合「集合として空かどうか」で動作の切り替えが必要．
+非決定的実行が組込まれている Redex ではこれは不可能．
+
 
 ## 評価
 
