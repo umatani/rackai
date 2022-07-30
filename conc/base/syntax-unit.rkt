@@ -25,7 +25,7 @@
 
 
 ;; ----------------------------------------
-;; stx utils
+;; Syntax-object operations:
 
 (define (empty-ctx . args) (error "must not be used"))
 
@@ -57,12 +57,8 @@
     [(Hole) v]
     [_ stl]))
 
-;; Adds or cancels a scope
-; addremove : Scp Scps -> Scps
-(define (addremove scp scps)
-  (if (set-member? scps scp)
-      (set-remove scps scp)
-      (set-add scps scp)))
+; alloc-scope : Symbol -> Scp
+(define (alloc-scope s) (gensym s))
 
 ;; Recursively strips lexical context from a syntax object
 ; strip : Stl -> Val
@@ -72,6 +68,13 @@
     [(Stx (Pair stx stl) _) (Pair (strip stx) (strip stl))]
     [(Stx x _) x]
     [(Pair stx stl) (Pair (strip stx) (strip stl))]))
+
+;; Adds or cancels a scope
+; addremove : Scp Scps -> Scps
+(define (addremove scp scps)
+  (if (set-member? scps scp)
+      (set-remove scps scp)
+      (set-add scps scp)))
 
 ; subtract : Scps Scps -> Scps
 (define (subtract scps1 scps2) (set-subtract scps1 scps2))
@@ -104,9 +107,6 @@
                    (rest sorted)))
         (set)
         (first sorted))))
-
-;; ----------------------------------------
-;; Syntax-object operations:
 
 (define (add . args)        (error "must not be used"))
 (define (add-stl . args)    (error "must not be used"))

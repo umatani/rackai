@@ -17,7 +17,7 @@
 (define-term Atom Val   ())
 (define-term List Val   ())
 
-(define-term Prim Val  (nam))
+(define-term Prim Val  (nam stx))
 (define-term VFun Val   (vars ast env))
 ;; LBind2 is used only in full
 (define-term LBind2 Val (scps_p scps_u))
@@ -53,7 +53,7 @@
     (Bool    b)
     (Num     n)
     (Sym     nam)
-    (Prim    nam)
+    (Prim    nam stx)
     (Null)
     (Pair    a d)
     (Defs    scp 𝓁)
@@ -68,7 +68,8 @@
   (... (define-match-expander Lst
          (λ (stx)
            (syntax-case stx (... ...)
-             [(_ p (... ...)) #'(app lst->list (list p (... ...)))]
+             [(_ p (... ...))
+              #'(? List? (app lst->list (list p (... ...))))]
              [p (syntax-parse #'p
                   #:datum-literals [|.|]
                   [(_) #'(Null)]
@@ -79,7 +80,7 @@
 
                   [p (syntax-case #'p (... ...)
                        [(_ p (... ...))
-                        #'(app lst->list (list p (... ...)))])])]))
+                        #'(? List? (app lst->list (list p (... ...))))])])]))
          (λ (stx) (syntax-parse stx
                      [(_) #'(Null)]
                      [(_ x xs ...) #'(Pair x (Lst xs ...))]
@@ -88,7 +89,7 @@
                      [(_ y ys ... . x:id)  #'(Pair y (Lst ys ... . x))])))))
 
 
-(use-terms Val Atom Sym Null Pair Stx Hole)
+(use-terms Val Atom Sym List Null Pair Stx Hole)
 
 ;; Additional constructor
 (define (id nam ctx) (Stx (Sym nam) ctx))

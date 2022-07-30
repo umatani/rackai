@@ -68,4 +68,4 @@
 ; id=? : Ph Id Nam ξ Σ -> Boolean
 ;   ξ is non-#f only in full
 (define (id=? #:phase [ph #f] id nam #:ξ [ξ #f] Σ)
-  (subset? (set nam) (results (do (resolve #:phase ph id Σ)))))
+  (subset? (set nam) (results (resolve #:phase ph id Σ))))

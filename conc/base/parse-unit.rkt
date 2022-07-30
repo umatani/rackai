@@ -55,7 +55,7 @@
     [(Stx (Lst (? id? (? (id=? 'quote))) stx) _)
      (let ([datum (strip stx)])
        (if (prim? datum)
-           (Prim datum)
+           (Prim datum stx) ;; stx is used for alloc-box, alloc-def-ξ
            datum))]
 
     ; (syntax stx)

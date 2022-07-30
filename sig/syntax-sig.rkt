@@ -1,15 +1,17 @@
 #lang racket/signature
 
-empty-ctx
-
 ;; ----------------------------------------
-;; stx utils
+;; Syntax-object operations:
+
+empty-ctx
 
 zip ; ProperStl ProperStl Ctx -> ProperStl
 unzip ; ProperStl -> (Values ProperStl ProperStl)
 
 in-hole ; Stl Stx -> Stl
 in-hole-stl ; Stl Stx -> Stl
+
+alloc-scope ; Symbol -> Scp
 
 ;; Adds or cancels a scope
 addremove ; Scp Scps -> Scps
@@ -23,9 +25,6 @@ union ; Scps Scps -> Scps
 
 binding-lookup ; (Setof StoBind) Scps -> (Option Nam)
 biggest-subset ; Scps (Listof Scps) -> Scps
-
-;; ----------------------------------------
-;; Syntax-object operations:
 
 ;; Simply pushes scopes down through a syntax object
 add ; Stx Scp -> Stx

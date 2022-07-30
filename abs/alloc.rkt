@@ -1,19 +1,19 @@
 #lang racket
 (require
  (only-in "../term.rkt" use-terms)
- (only-in "../signatures.rkt" store^ mstore^)
+ (only-in "../signatures.rkt" syntax^ store^ mstore^)
  (only-in "../terms.rkt"
           Sym% Stx% 𝓁%
           [#%term-forms tm:#%term-forms])
  (only-in "../config.rkt" config^ [#%term-forms cfg:#%term-forms]))
-(provide fin-alloc/store@ fin-alloc/mstore@)
+(provide store::fin-alloc@ mstore::fin-alloc@ syntax::fin-alloc@)
 
 (define-syntax #%term-forms
   (append (syntax-local-value #'tm:#%term-forms)
           (syntax-local-value #'cfg:#%term-forms)))
 
 
-(define-unit fin-alloc/store@
+(define-unit store::fin-alloc@
   (import)
   (export store^)
 
@@ -48,8 +48,7 @@
                (set-add! all-loc loc))
            (values (cons loc locs) st)))])))
 
-
-(define-unit fin-alloc/mstore@
+(define-unit mstore::fin-alloc@
   (import (only config^
                 Σ%))
   (export mstore^)
@@ -79,14 +78,6 @@
           (values (string->symbol (format "~a:~a" nam size))
                   (Σ (add1 size) tbl)))))
 
-  ; alloc-scope : Symbol Σ -> (Values Scp Σ)
-  (define (alloc-scope s Σ)
-    (let ([scp (string->symbol (format "~a::" s))])
-      (if (set-member? all-scope scp)
-          (printf "duplicate scope: ~a\n" scp)
-          (set-add! all-scope scp))
-      (values scp Σ)))
-
   ; alloc-𝓁 : Stx Σ -> (Values 𝓁 Σ)
   ;   - called only from push-κ
   ;   - stx is used in abs for ensuring finiteness of the domain
@@ -96,3 +87,29 @@
         (set-add! all-scope stx))
     (values ;(𝓁 (string->symbol (format "𝓁:~a:~a" stx size)))
      (𝓁 stx) Σ)))
+
+(define-unit syntax::fin-alloc@
+  (import)
+  (export syntax^)
+
+  (define (empty-ctx      . args) (error "to be implemented"))
+  (define (zip            . args) (error "to be implemented"))
+  (define (unzip          . args) (error "to be implemented"))
+  (define (in-hole        . args) (error "to be implemented"))
+  (define (in-hole-stl    . args) (error "to be implemented"))
+  (define (addremove      . args) (error "to be implemented"))
+  (define (strip          . args) (error "to be implemented"))
+  (define (add            . args) (error "to be implemented"))
+  (define (add-stl        . args) (error "to be implemented"))
+  (define (flip           . args) (error "to be implemented"))
+  (define (flip-stl       . args) (error "to be implemented"))
+  (define (subtract       . args) (error "to be implemented"))
+  (define (prune          . args) (error "to be implemented"))
+  (define (union          . args) (error "to be implemented"))
+  (define (at-phase       . args) (error "to be implemented"))
+  (define (update-ctx     . args) (error "to be implemented"))
+  (define (binding-lookup . args) (error "to be implemented"))
+  (define (biggest-subset . args) (error "to be implemented"))
+
+  ; alloc-scope : Symbol -> Scp
+  (define (alloc-scope s) #;(gensym s) s))

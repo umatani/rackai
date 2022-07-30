@@ -24,7 +24,7 @@
                 Stxξ%))
   (export syntax^)
   (inherit [super:syntax@ addremove strip subtract union in-hole-stl
-                          binding-lookup biggest-subset zip unzip])
+                          alloc-scope binding-lookup biggest-subset zip unzip])
 
   (use-terms Atom Stx Null Pair Hole Stxξ)
 

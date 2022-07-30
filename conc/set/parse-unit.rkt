@@ -64,7 +64,7 @@
     [(Stx (Lst (? id? (? (id=? 'quote))) stx) _)
      (pure (let ([datum (strip stx)])
              (if (prim? datum)
-                 (Prim datum)
+                 (Prim datum stx)
                  datum)))]
 
     ; (syntax stx)

@@ -7,8 +7,8 @@
  (only-in "../../../signatures.rkt" run^ domain^ debug^)
  
  ;;;; Units
- (only-in "../../../units.rkt"        terms-extra@ env@ menv@ io@)
- (only-in "../units.rkt"              store@ domain@ mstore@ bind@ run@)
+ (only-in "../../../units.rkt"        terms-extra@ env@ io@)
+ (only-in "../units.rkt"              store@ domain@ menv@ mstore@ bind@ run@)
  (only-in "../../base/units.rkt"      cont@ mcont@)
  (only-in "../../base/core/units.rkt" config@ syntax@ debug@)
  (only-in "units.rkt"                 eval@ parser@ expander@))

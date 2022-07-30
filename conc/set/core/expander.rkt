@@ -25,7 +25,7 @@
                        (only terms-extra^
                              val? stx? proper-stl?)
                        (only syntax^
-                             empty-ctx zip unzip add flip in-hole)
+                             empty-ctx zip unzip alloc-scope add flip in-hole)
                        (only env^
                              init-env)
                        (only store^
@@ -33,13 +33,42 @@
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
-                             lookup-Σ alloc-name alloc-scope)
+                             lookup-Σ alloc-name)
                        (only bind^
                              bind resolve id=?)
                        (only mcont^
                              push-κ)
                        (only parser^
-                             parse)])
+                             parse)]
+
+  ;; application (free var-ref)
+  [(ζ (Stxξ (and stx (Stx (Lst stx_fun . stl_args) ctx)) ξ) '∘ κ0 Σ)
+   #:when (id? stx_fun)
+   #:with name <- (resolve stx_fun Σ)
+   #:with   at := (results (lookup-ξ ξ name))
+   #:when (and (set-empty? at)
+               (not (member name
+                            '(lambda let quote syntax let-syntax if
+                               #%app #%kont #%seq #%ls-kont #%snoc))))
+   #:with             id_app := (Stx (Sym '#%app) ctx)
+   #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
+   (ζ (Stxξ (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '∘
+       (κ (Stx (Pair id_app (Hole)) ctx) '• 𝓁_new)
+       Σ_1)
+   ex-app-free-var]
+
+  ;; reference
+  [(ζ (Stxξ (and id (Stx (Sym nam) ctx)) ξ) '∘ κ Σ)
+   #:with    nam <- (resolve id Σ)
+   #:with    at  := (results (lookup-ξ ξ nam))
+   #:with id_new <- (if (set-empty? at)
+                        (error '==> "unbound identifier: ~a" nam)
+                        (do v <- (lift at)
+                            (match v
+                              [(TVar id_new) (pure id_new)]
+                              [_ (error '==> "unbound identifier: ~a" nam)])))
+   (ζ id_new '• κ Σ)
+   ex-var])
 
 (define-unit-from-reduction red@ ==>)
 

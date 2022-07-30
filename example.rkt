@@ -55,6 +55,10 @@
   '[let-x
     (let ([x 1]) (+ x 2))])
 
+(define ex-call-bound
+  '[call-bound
+    (let ([f +]) (f 1 2))])
+
 (define ex-if-#t
   '[if-#t
     (if (< 0 1) 'foo 'bar)])
@@ -154,6 +158,7 @@
         ex-eq?
         ex-lam
         ex-let
+        ex-call-bound
         ex-if-#t ex-if-#f
         ex-simple
         ex-reftrans
@@ -266,6 +271,34 @@
                         (second (syntax-e (cdr stx2)))))])
       (x (q)))))
 
+;; 以下はlocal-expand時にundefined identifierエラー
+#;
+(define ex-local-expand-undef
+  '[local-expand-undef
+    ((let-syntax ([q (lambda (stx)
+                       (let ([body (local-expand
+                                    #'x
+                                    'expression
+                                    (list))])
+                         (datum->syntax
+                          #'here
+                          (list 'lambda
+                                (list #'x)
+                                body))))])
+       (q)) 100)])
+#;
+(define (raw-local-expand-undef)
+  ((let-syntax ([q (lambda (stx)
+                     (let ([body (local-expand
+                                  #'x
+                                  'expression
+                                  (list))])
+                       (datum->syntax
+                        #'here
+                        (list 'lambda
+                              (list #'x)
+                              body))))])
+     (q)) 100))
 
 (define ex-local-expand-stop
   '[local-expand-stop

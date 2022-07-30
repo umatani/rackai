@@ -29,17 +29,19 @@
 ; init-Σ : -> Σ
 (define (init-Σ) (Σ 0 (make-immutable-hash)))
 
-;; lookup-Σ : Σ Nam -> (U (Setof StoBind) Val ξ κ)
-(define (lookup-Σ Σ0 nam)
-  (hash-ref (Σ-tbl Σ0) nam (λ () (set))))
+; lookup-Σ : Σ Nam -> (Setof StoBind)
+;          : Σ 𝓁   -> (U Val ξ κ)
+(define (lookup-Σ Σ0 k)
+  (hash-ref (Σ-tbl Σ0) k (λ () (set))))
 
-; update-Σ : Σ Nam (U (Setof StoBind) Val ξ κ) -> Σ
-(define (update-Σ Σ0 nam u)
+; update-Σ : Σ Nam (Setof StoBind) -> Σ
+;          : Σ 𝓁   (U Val ξ κ)     -> Σ
+(define (update-Σ Σ0 k v)
   (Σ (Σ-size Σ0)
-    (hash-set (Σ-tbl Σ0) nam u)))
+    (hash-set (Σ-tbl Σ0) k v)))
 
 ;; ----------------------------------------
-;; Alloc name & scope helpers for expander:
+;; Alloc name & 𝓁 helpers for expander:
 
 ; alloc-name : Id Σ -> (Values Nam Σ)
 (define (alloc-name id Σ0)
@@ -48,14 +50,9 @@
     (values (string->symbol (format "~a:~a" nam size))
             (Σ (add1 size) tbl))))
 
-; alloc-scope : Symbol Σ -> (Values Scp Σ)
-(define (alloc-scope s Σ0)
-  (match-let ([(Σ size tbl) Σ0])
-    (values (string->symbol (format "~a::~a" s size))
-            (Σ (add1 size) tbl))))
-
 ; alloc-𝓁 : Stx Σ -> (Values 𝓁 Σ)
-;   - called only from push-κ
+;   - called from push-κ
+;   - called from alloc-def-ξ and alloc-box (full)
 ;   - stx is used in abs for ensuring finiteness of the domain
 (define (alloc-𝓁 stx Σ0)
   (match-let ([(Σ size tbl) Σ0])

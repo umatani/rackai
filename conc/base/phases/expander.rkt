@@ -30,7 +30,7 @@
                              val? proper-stl?)
                        (only syntax^
                              empty-ctx zip unzip add flip union in-hole
-                             prune at-phase)
+                             alloc-scope prune at-phase)
                        (only env^
                              init-env)
                        (only store^
@@ -38,7 +38,7 @@
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
-                             lookup-Σ alloc-name alloc-scope)
+                             lookup-Σ alloc-name)
                        (only bind^
                              bind resolve id=?)
                        (only mcont^
@@ -75,15 +75,15 @@
                                     stx_body) ctx))
               ξ scps_p) '∘ κ0 Σ)
    #:when (id=? #:phase ph id_lam 'lambda Σ)
-   #:with         (values scp_new Σ_1) := (alloc-scope 'lam Σ)
-   #:with (values stl_args2 ξ_new Σ_2) := (regist-vars ph scp_new
-                                                         stl_args ξ Σ_1)
-   #:with           (values 𝓁_new Σ_3) := (push-κ Σ_2 stx κ0)
+   #:with                      scp_new := (alloc-scope 'lam)
+   #:with (values stl_args2 ξ_new Σ_1) := (regist-vars ph scp_new
+                                                         stl_args ξ Σ)
+   #:with           (values 𝓁_new Σ_2) := (push-κ Σ_1 stx κ0)
    (ζ (Stxξ ph (add ph stx_body scp_new) ξ_new (union (set scp_new) scps_p))
        '∘
        (κ (Stx (Lst id_lam (Stx stl_args2 ctx_0)
                      (Hole)) ctx)
-           '• 𝓁_new) Σ_3)
+           '• 𝓁_new) Σ_2)
    ex-lam-body]
 
   ;; let
@@ -93,10 +93,10 @@
                                ctx)) ξ scps_p) '∘ κ0 Σ)
    #:when (id=? #:phase ph id_let 'let Σ)
    #:with    (values stl_vars stl_rhs) := (unzip stl_binds)
-   #:with         (values scp_new Σ_1) := (alloc-scope 'let Σ)
-   #:with (values stl_vars2 ξ_new Σ_2) := (regist-vars ph scp_new
-                                                         stl_vars ξ Σ_1)
-   #:with           (values 𝓁_new Σ_3) := (push-κ Σ_2 stx κ0)
+   #:with                      scp_new := (alloc-scope 'let)
+   #:with (values stl_vars2 ξ_new Σ_1) := (regist-vars ph scp_new
+                                                         stl_vars ξ Σ)
+   #:with           (values 𝓁_new Σ_2) := (push-κ Σ_1 stx κ0)
    (ζ (Stxξ ph (add ph stx_body scp_new) ξ_new (union (set scp_new) scps_p))
        '∘
        (κ (Stx (Lst id-kont
@@ -105,7 +105,7 @@
                                          (Stx stl_rhs ctx_1))
                                     ctx_1) ξ scps_p)
                      (Hole))
-                ctx) '∘ 𝓁_new) Σ_3)
+                ctx) '∘ 𝓁_new) Σ_2)
    ex-let-body]
 
   [(ζ (and stx (Stx (Lst (? id? id_kont)
@@ -175,10 +175,10 @@
                           (Stxξ ph stx_body ξ scps_p)) ctx)) '∘ κ0 Σ)
    #:when (id=? #:phase ph id_ls 'let-syntax Σ)
    #:with (values nam_new Σ_1) := (alloc-name id Σ) 
-   #:with (values scp_new Σ_2) := (alloc-scope 'ls Σ_1)
+   #:with              scp_new := (alloc-scope 'ls)
    #:with               id_new := (add ph id scp_new)
-   #:with                  Σ_3 := (bind #:phase ph Σ_2 id_new nam_new)
-   #:with   (values 𝓁_new Σ_4) := (push-κ Σ_3 stx κ0)
+   #:with                  Σ_2 := (bind #:phase ph Σ_1 id_new nam_new)
+   #:with   (values 𝓁_new Σ_3) := (push-κ Σ_2 stx κ0)
    #:with            stx_body2 := (add ph stx_body scp_new)
    #:with              scps_p2 := (union (set scp_new) scps_p)
    (ζ (Stxξ (add1 ph) stx_rhs (init-ξ) (set))
@@ -188,7 +188,7 @@
                      (Stx (Lst (Stx (Lst id_new (Hole)) ctx_0)) ctx_1)
                      (Stxξ ph stx_body2 ξ scps_p2))
                 ctx) '∘ 𝓁_new)
-       Σ_4)
+       Σ_3)
    ex-ls-push-rhs]
 
   [(ζ (Stx (Lst (? id? id_kont)
@@ -219,18 +219,18 @@
   [(ζ (Stxξ ph (and stx_macapp (Stx (Lst (? id? id_mac) _ ...)
                                       ctx)) ξ scps_p)
        '∘ κ0 Σ)
-   #:with            nam_mac :=<1> (resolve #:phase ph id_mac Σ)
-   #:with                val :=    (lookup-ξ ξ nam_mac)
+   #:with    nam_mac :=<1> (resolve #:phase ph id_mac Σ)
+   #:with        val :=<1> (lookup-ξ ξ nam_mac)
    #:when (val? val)
-   #:with (values scp_u Σ_1) :=    (alloc-scope 'u Σ)
-   #:with (values scp_i Σ_2) :=    (alloc-scope 'i Σ_1)
+   #:with      scp_u :=    (alloc-scope 'u)
+   #:with      scp_i :=    (alloc-scope 'i)
    (InEval
     (list (AstEnv (App (gensym 'mapp) ;; TODO: OK?
                        val (list (flip ph (add ph stx_macapp scp_u) scp_i)))
                   (init-env))
           '• (init-store))
     (ζ (Stxξ ph (Stx #f (list (cons ph (set scp_i))))
-               ξ (union (set scp_u) scps_p)) '∘ κ0 Σ_2))
+               ξ (union (set scp_u) scps_p)) '∘ κ0 Σ))
    ex-macapp-eval]
 
   [(InEval (list (? Stx? stx_exp) '• store_0)
@@ -290,25 +290,38 @@
        Σ_1)
    ex-#%app2]
 
-  ;; application
+  ;; application (bound var-ref)
   [(ζ (Stxξ ph (and stx (Stx (Lst stx_fun . stl_args)
                                ctx)) ξ scps_p) '∘ κ0 Σ)
    #:when (id? stx_fun)
    #:with name :=<1> (resolve #:phase ph stx_fun Σ)
-   #:with   at :=    (lookup-ξ ξ name)
-   #:when (or (TVar? at)
-              (and (eq? 'not-found at)
-                   (not (member name
-                                '(lambda let quote syntax let-syntax if
-                                   #%app #%kont #%seq #%ls-kont #%snoc)))))
+   #:with   at :=<1> (lookup-ξ ξ name)
+   #:when (TVar? at)
    #:with             id_app := (Stx (Sym '#%app) ctx)
    #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args)
                       ctx) ξ scps_p) '∘
        (κ (Stx (Pair id_app (Hole)) ctx) '• 𝓁_new) Σ_1)
-   ex-app]
+   ex-app-bound-var]
 
-  ;; primitive application
+  ;; application (free var-ref)
+  [(ζ (Stxξ ph (and stx (Stx (Lst stx_fun . stl_args)
+                               ctx)) ξ scps_p) '∘ κ0 Σ)
+   #:when (id? stx_fun)
+   #:with name := (resolve #:phase ph stx_fun Σ)
+   #:with   at := (lookup-ξ ξ name)
+   #:when (and (eq? 'not-found at)
+               (not (member name
+                            '(lambda let quote syntax let-syntax if
+                               #%app #%kont #%seq #%ls-kont #%snoc))))
+   #:with             id_app := (Stx (Sym '#%app) ctx)
+   #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
+   (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args)
+                      ctx) ξ scps_p) '∘
+       (κ (Stx (Pair id_app (Hole)) ctx) '• 𝓁_new) Σ_1)
+   ex-app-free-var]
+
+  ;; application (primitive or lambda)
   [(ζ (Stxξ ph (and stx (Stx (Lst stx_fun . stl_args)
                                ctx)) ξ scps_p) '∘ κ0 Σ)
    #:when (not (id? stx_fun))
@@ -317,12 +330,12 @@
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args)
                       ctx) ξ scps_p) '∘
        (κ (Stx (Pair id_app (Hole)) ctx) '• 𝓁_new) Σ_1)
-   ex-prim-app]
+   ex-app-prim-lambda]
 
   ;; reference
   [(ζ (Stxξ ph (and id (Stx (Sym nam) ctx)) ξ scps_p) '∘ κ0 Σ)
-   #:with           nam :=<1> (resolve #:phase ph id Σ)
-   #:with all-transform :=    (lookup-ξ ξ nam)
+   #:with           nam := (resolve #:phase ph id Σ)
+   #:with all-transform := (lookup-ξ ξ nam)
    (match all-transform
      [(TVar id_new) (ζ id_new '• κ0 Σ)]
      [_ (error '==>p "unbound identifier: ~a" nam)])

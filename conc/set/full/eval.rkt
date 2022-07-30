@@ -24,7 +24,7 @@
                        (only terms-extra^
                              val?)
                        (only syntax^
-                             add flip union prune)
+                             add flip union alloc-scope prune)
                        (only env^
                              init-env lookup-env update-env)
                        (only store^
@@ -34,19 +34,31 @@
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
-                             alloc-name alloc-scope)
+                             alloc-name alloc-𝓁 lookup-Σ update-Σ)
                        (only bind^
                              bind resolve)
                        (only parser^
                              parse)]
   #:do [; resolve* : Ph (Listof Id) Σ -> (SetM (Listof Nam))
-        (define (resolve* ph val Σ)
-          (match val
+        (define (resolve* ph ids Σ)
+          (match ids
             ['() (pure '())]
-            [(cons id val2)
+            [(cons id ids*)
              (do nam  <- (resolve #:phase ph id Σ)
-                 nams <- (resolve* ph val2 Σ)
-                 (pure (cons nam nams)))]))])
+                 nams <- (resolve* ph ids* Σ)
+                 (pure (cons nam nams)))]))
+
+        ;; lookup-ξ* : ξ (Listof Nam) -> (SetM (Listof AllTransform))
+        (define (lookup-ξ* ξ ns)
+          (match ns
+            ['() (pure '())]
+            [(cons n ns*)
+             (do  a <- (let ([as (lookup-ξ  ξ n)])
+                         (if (set-empty? (results as))
+                             (pure 'not-found)
+                             as))
+                 as <- (lookup-ξ* ξ ns*)
+                 (pure (cons a as)))]))])
 
 (define-unit-from-reduction red@ -->)
 

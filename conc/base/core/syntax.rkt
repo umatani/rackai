@@ -16,9 +16,9 @@
 (define-mixed-unit syntax@
   (import)
   (export syntax^)
-  (inherit [super:syntax@
-            zip unzip in-hole-stl addremove
-            strip subtract union binding-lookup biggest-subset])
+  (inherit [super:syntax@ zip unzip in-hole-stl
+            alloc-scope addremove strip subtract union
+            binding-lookup biggest-subset])
 
   (use-terms Atom Stx Null Pair Hole)
 

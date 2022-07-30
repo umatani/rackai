@@ -7,8 +7,8 @@
  (only-in "../../../signatures.rkt" run^ domain^ debug^)
 
  ;; Units
- (only-in "../../../units.rkt"        terms-extra@ env@ menv@ io@)
- (only-in "../units.rkt"              store@ domain@ mstore@ run@)
+ (only-in "../../../units.rkt"        terms-extra@ env@ io@)
+ (only-in "../units.rkt"              store@ domain@ menv@ mstore@ run@)
  (only-in "../../base/units.rkt"      cont@ mcont@)
  (only-in "../../base/full/units.rkt" config@ syntax@ debug@)
  (only-in "units.rkt"                 eval@ bind@ parser@ expander@))
@@ -25,7 +25,7 @@
   (import) (export domain^))
 
 (define (main [mode 'check])
-  (run-examples run delta core:examples   mode α set=? #;≤a)
-  (run-examples run delta phases:examples mode α set=? #;≤a)
+  (run-examples run delta core:examples   mode α ≤a)
+  (run-examples run delta phases:examples mode α ≤a)
   (run-examples run delta (append local:examples defs:examples)
-                mode α set=? #;≤a))
+                mode α ≤a))

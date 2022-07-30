@@ -4,7 +4,6 @@
  "../../../set.rkt"
  "../../../mix.rkt"
  (only-in "../../../term.rkt"   use-terms)
- (only-in "../../../dprint.rkt" dprint)
 
  (only-in "../../../signatures.rkt"
           terms-extra^ syntax^ env^ store^ cont^ eval^
@@ -28,7 +27,7 @@
                        (only terms-extra^
                              val?)
                        (only syntax^
-                             add flip union prune)
+                             alloc-scope add flip union prune)
                        (only env^
                              init-env lookup-env update-env)
                        (only store^
@@ -38,7 +37,7 @@
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
-                             alloc-name alloc-scope)
+                             alloc-name alloc-𝓁 lookup-Σ update-Σ)
                        (only bind^
                              bind resolve)
                        (only parser^
@@ -46,17 +45,23 @@
   #:do [(use-terms Var Fun App If VFun Bool Sym Stx Null Pair Prim Defs 𝓁
                    KApp KIf SApp SIf AstEnv TVar TStop Stxξ Σ Σ* ζ InExpand)
         ;; resolve* : Ph (Listof Id) Σ -> (Listof Nam))
-        (define (resolve* ph val Σ)
-          (match val
+        (define (resolve* ph ids Σ)
+          (match ids
             ['() '()]
-            [(cons id val2) (cons (resolve #:phase ph id Σ)
-                                  (resolve* ph val2 Σ))]))
+            [(cons id ids*) (cons (resolve #:phase ph id Σ)
+                                  (resolve* ph ids* Σ))]))
+
+        ;; lookup-ξ* : ξ (Listof Nam) -> (Listof AllTransform)
+        (define (lookup-ξ* ξ ns)
+          (match ns
+            ['() '()]
+            [(cons n ns*) (cons (lookup-ξ ξ n) (lookup-ξ* ξ ns*))]))
 
         ;; extend-ξ* : ξ (Listof (Pairof Nam AllTransform)) -> ξ
         (define (extend-ξ* ξ nas)
-          (if (null? nas)
-              ξ
-              (hash-set (extend-ξ* ξ (cdr nas)) (caar nas) (cdar nas))))
+          (match nas
+            ['() ξ]
+            [(cons (cons n a) nas*) (extend-ξ (extend-ξ* ξ nas*) n a)]))
 
         ;; unstop : AllTransform -> AllTransform
         (define (unstop all-transform)
@@ -67,44 +72,22 @@
         ;; ----------------------------------------
         ;; Definition-context environment allocations and updates:
 
-        ;; alloc-def-ξ : Σ -> (Values 𝓁 Σ)
-        (define (alloc-def-ξ Σ0)
-          (dprint 'full 'alloc-def-ξ "")
-          (match-let ([(Σ size tbl) Σ0])
-            (values (𝓁 (string->symbol (format "ξ:~a" size)))
-                    (Σ (add1 size) tbl))))
-
+        ;; alloc-def-ξ : Stx Σ -> (Values 𝓁 Σ)
+        (define (alloc-def-ξ stx Σ) (alloc-𝓁 stx Σ))
         ;; def-ξ-lookup : Σ 𝓁 -> ξ
-        (define (def-ξ-lookup Σ0 𝓁)
-          (dprint 'full 'def-ξ-lookup "")
-          (hash-ref (Σ-tbl Σ0) 𝓁))
-
+        (define (def-ξ-lookup Σ 𝓁) (lookup-Σ Σ 𝓁))
         ;; def-ξ-update : Σ 𝓁 ξ -> Σ
-        (define (def-ξ-update Σ0 𝓁 ξ)
-          (dprint 'full 'def-ξ-update "")
-          (match-let ([(Σ size tbl) Σ0])
-            (Σ size (hash-set tbl 𝓁 ξ))))
+        (define (def-ξ-update Σ 𝓁 ξ) (update-Σ Σ 𝓁 ξ))
 
         ;; ----------------------------------------
         ;; Box allocations and updates:
 
-        ;; alloc-box : Σ -> (Values 𝓁 Σ)
-        (define (alloc-box Σ0)
-          (dprint 'full 'alloc-box "")
-          (match-let ([(Σ size tbl) Σ0])
-            (values (𝓁 (string->symbol (format "b:~a" size)))
-                    (Σ (add1 size) tbl))))
-
+        ;; alloc-box : Stx Σ -> (Values 𝓁 Σ)
+        (define (alloc-box stx Σ) (alloc-𝓁 stx Σ))
         ;; box-lookup : Σ 𝓁 -> Val
-        (define (box-lookup Σ 𝓁)
-          (dprint 'full 'box-lookup "")
-          (hash-ref (Σ-tbl Σ) 𝓁))
-
+        (define (box-lookup Σ 𝓁) (lookup-Σ Σ 𝓁))
         ;; box-update : Σ 𝓁 Val -> Σ
-        (define (box-update Σ0 𝓁0 val)
-          (dprint 'full 'box-update "")
-          (match-let ([(Σ size binds) Σ0])
-            (Σ size (hash-set binds 𝓁0 val))))]
+        (define (box-update Σ 𝓁 val) (update-Σ Σ 𝓁 val))]
 
   ;; propagate env into subterms
   [`(,(AstEnv ph (If lbl ast_test ast_then ast_else) env maybe-scp_i ξ)
@@ -156,10 +139,11 @@
 
   ;; local value
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(,(Prim 'syntax-local-value) ,(? id? id)) '())
+            `(,(Prim 'syntax-local-value _) ,(? id? id)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    #:with nam :=<1> (resolve #:phase ph id Σ)
-   `(,(lookup-ξ ξ nam) ,cont ,store ,Σ*_0)
+   #:with val :=<1> (lookup-ξ ξ nam)
+   `(,val ,cont ,store ,Σ*_0)
    ev-lval]
 
   ;; local value with definition context
@@ -169,36 +153,37 @@
   ;;   the provided definition contexts are not used to enrich id's
   ;;   lexical information.
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(,(Prim syntax-local-value)
+            `(,(Prim syntax-local-value _)
               ,(? id? id) ,(Bool #f) ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
-   #:with ξ_defs :=    (def-ξ-lookup Σ 𝓁)
+   #:with ξ_defs :=<1> (def-ξ-lookup Σ 𝓁)
    #:with    nam :=<1> (resolve #:phase ph id Σ)
-   `(,(lookup-ξ ξ_defs nam) ,cont ,store ,Σ*_0)
+   #:with    val :=<1> (lookup-ξ ξ_defs nam)
+   `(,val ,cont ,store ,Σ*_0)
    ev-lval-defs]
 
   ;; local binder
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(,(Prim 'syntax-local-identifier-as-binding) ,(? id? id)) '())
+            `(,(Prim 'syntax-local-identifier-as-binding _) ,(? id? id)) '())
      ,cont ,store ,(and Σ*_0 (Σ* _ _ scps_u)))
    `(,(prune ph id scps_u) ,cont ,store ,Σ*_0)
    ev-lbinder]
 
   ;; create definition context
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(,(Prim 'syntax-local-make-definition-context)) '())
+            `(,(Prim 'syntax-local-make-definition-context stx)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
-   #:with (values scp_defs Σ_2) := (alloc-scope 'defs Σ)
-   #:with        (values 𝓁 Σ_3) := (alloc-def-ξ Σ_2)
-   #:with                  Σ*_3 := (Σ* (def-ξ-update Σ_3 𝓁 ξ)
+   #:with              scp_defs := (alloc-scope 'defs)
+   #:with        (values 𝓁 Σ_1) := (alloc-def-ξ stx Σ)
+   #:with                  Σ*_1 := (Σ* (def-ξ-update Σ_1 𝓁 ξ)
                                          (union (set scp_defs) scps_p)
                                          scps_u)
-   `(,(Defs scp_defs 𝓁) ,cont ,store ,Σ*_3)
+   `(,(Defs scp_defs 𝓁) ,cont ,store ,Σ*_1)
    ev-slmdc]
 
   ;; create definition binding (for a variable)
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(,(Prim 'syntax-local-bind-syntaxes)
+            `(,(Prim 'syntax-local-bind-syntaxes _)
               ,(Pair (? id? id_arg) (Null))
               ,(Bool #f) ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
@@ -206,17 +191,18 @@
                                        (prune ph (flip ph id_arg maybe-scp_i)
                                               scps_u)
                                        scp_defs)
-   #:with (values nam_new Σ_1) := (alloc-name id_defs Σ)
-   #:with                  Σ_2 := (bind #:phase ph Σ_1 id_defs nam_new)
-   #:with               ξ_defs := (def-ξ-lookup Σ_2 𝓁)
-   #:with                  Σ_3 := (def-ξ-update Σ_2 𝓁
-                                     (extend-ξ ξ_defs nam_new (TVar id_defs)))
+   #:with (values nam_new Σ_1) :=    (alloc-name id_defs Σ)
+   #:with                  Σ_2 :=    (bind #:phase ph Σ_1 id_defs nam_new)
+   #:with               ξ_defs :=<1> (def-ξ-lookup Σ_2 𝓁)
+   #:with                  Σ_3 :=    (def-ξ-update Σ_2 𝓁
+                                        (extend-ξ ξ_defs nam_new
+                                                   (TVar id_defs)))
    `(,(Pair id_defs (Null)) ,cont ,store ,(Σ* Σ_3 scps_p scps_u))
    ev-slbcv]
 
   ;; create macro definition binding
   [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
-            `(,(Prim 'syntax-local-bind-syntaxes)
+            `(,(Prim 'syntax-local-bind-syntaxes _)
               ,(Pair (? id? id_arg) (Null))
               ,(? Stx? stx_arg) ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
@@ -251,31 +237,34 @@
                     `((0 . ,scps_p) (1 . ,scps_u)))
               (,(? id? id_arg)) ,(Defs scp_defs 𝓁) ,val_exp) '())
      ,cont ,store ,(Σ* Σ _ _))
-   #:with               ξ_defs := (def-ξ-lookup Σ 𝓁)
-   #:with              id_defs := (add ph (prune ph (flip ph id_arg maybe-scp_i)
+   #:with               ξ_defs :=<1> (def-ξ-lookup Σ 𝓁)
+   #:with              id_defs :=    (add ph
+                                          (prune ph (flip ph id_arg maybe-scp_i)
                                                  scps_u)
-                                       scp_defs)
-   #:with (values nam_new Σ_2) := (alloc-name id_defs Σ)
-   #:with                  Σ_3 := (bind #:phase ph Σ_2 id_defs nam_new)
-   #:with                 Σ*_4 := (Σ* (def-ξ-update Σ_3 𝓁
-                                          (extend-ξ ξ_defs nam_new val_exp))
-                                        scps_p scps_u)
+                                          scp_defs)
+   #:with (values nam_new Σ_2) :=    (alloc-name id_defs Σ)
+   #:with                  Σ_3 :=    (bind #:phase ph Σ_2 id_defs nam_new)
+   #:with                 Σ*_4 :=    (Σ* (def-ξ-update Σ_3 𝓁
+                                             (extend-ξ ξ_defs nam_new val_exp))
+                                           scps_p scps_u)
    `(,(Pair id_defs (Null)) ,cont ,store ,Σ*_4)
    ev-slbcm3]
 
   ;; local expand
   [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
-            `(,(Prim 'local-expand)
+            `(,(Prim 'local-expand _)
               ,(? Stx? stx) ,val_contextv ,val_idstops) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    #:with ξ_unstops :=    (make-immutable-hash
                             (map (λ (p) (cons (car p) (unstop (cdr p))))
                                  (hash->list ξ)))
    #:with nams_stop :=<1> (resolve* ph (lst->list val_idstops) Σ)
+   #:with  ats_stop :=<1> (lookup-ξ* ξ_unstops nams_stop)
    #:with   ξ_stops :=    (extend-ξ*
                             ξ_unstops
-                            (map (λ (n) (cons n (TStop (lookup-ξ ξ_unstops n))))
-                                 nams_stop))
+                            (map (λ (n at) (cons n (TStop at)))
+                                 nams_stop
+                                 ats_stop))
    (InExpand
     (ζ (Stxξ ph (flip ph stx maybe-scp_i) ξ_stops) '∘ '• Σ*_0)
     `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) '())
@@ -292,18 +281,20 @@
   ;; - similar to the basic local expand case, but adding the
   ;;   definition context's scope and using its environment
   [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
-            `(,(Prim 'local-expand)
+            `(,(Prim 'local-expand _)
               ,(? Stx? stx) ,val_contextv ,val_idstops ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
-   #:with    ξ_defs :=    (def-ξ-lookup Σ 𝓁)
+   #:with    ξ_defs :=<1> (def-ξ-lookup Σ 𝓁)
    #:with ξ_unstops :=    (make-immutable-hash
                             (map (λ (p) (cons (car p) (unstop (cdr p))))
                                  (hash->list ξ_defs)))
    #:with nams_stop :=<1> (resolve* ph (lst->list val_idstops) Σ)
+   #:with  ats_stop :=<1> (lookup-ξ* ξ_unstops nams_stop)
    #:with   ξ_stops :=    (extend-ξ*
                             ξ_unstops
-                            (map (λ (n) (cons n (TStop (lookup-ξ ξ_unstops n))))
-                                 nams_stop))
+                            (map (λ (n at) (cons n (TStop at)))
+                                 nams_stop
+                                 ats_stop))
    ; TODO?: (flip ph stx scp_i)は間違い？？しかしdefsを使わない場合にも
    ; これはある．．．これがあると，少なくともunit-4が通らない．
    ; しかし，flipないとdefs-begin-with-defnの挙動が実際の処理系と異なってしまう．
@@ -321,21 +312,22 @@
 
   ;; box
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(,(Prim 'box) ,val) '()) ,cont ,store ,(Σ* Σ scps_p scps_u))
-   #:with (values 𝓁 Σ_1) := (alloc-box Σ)
+            `(,(Prim 'box stx) ,val) '()) ,cont ,store ,(Σ* Σ scps_p scps_u))
+   #:with (values 𝓁 Σ_1) := (alloc-box stx Σ)
    `(,𝓁 ,cont ,store ,(Σ* (box-update Σ_1 𝓁 val) scps_p scps_u))
    ev-box]
 
   ;; unbox
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(,(Prim 'unbox)
+            `(,(Prim 'unbox _)
               ,(? 𝓁? 𝓁)) '()) ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
-   `(,(box-lookup Σ 𝓁) ,cont ,store ,Σ*_0)
+   #:with val :=<1> (box-lookup Σ 𝓁)
+   `(,val ,cont ,store ,Σ*_0)
    ev-unbox]
 
   ;; set-box!
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(,(Prim 'set-box!)
+            `(,(Prim 'set-box! _)
               ,(? 𝓁? 𝓁) ,val) '()) ,cont ,store ,(Σ* Σ scps_p scps_u))
    `(,val ,cont ,store ,(Σ* (box-update Σ 𝓁 val) scps_p scps_u))
    ev-set-box!]

@@ -7,8 +7,9 @@
  (only-in "../../../signatures.rkt" run^ domain^ debug^)
 
  ;;;; Units
- (only-in "../../../units.rkt" terms-extra@ env@ menv@ io@)
- (only-in "../units.rkt"       cont@ store@ domain@ mstore@ mcont@ bind@ run@)
+ (only-in "../../../units.rkt" terms-extra@ env@ io@)
+ (only-in "../units.rkt"       cont@ store@ domain@ menv@ mstore@ mcont@ bind@
+                               run@)
  (only-in "../core/units.rkt"  eval@)
  (only-in "units.rkt"          config@ syntax@ parser@ expander@ debug@))
 (provide run delta α ≤a)

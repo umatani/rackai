@@ -5,13 +5,15 @@
 ;; ----------------------------------------
 ;; Expand-time store operations:
 
-init-Σ ; -> Σ
-lookup-Σ ; Σ Nam -> (U (Setof StoBind) Val ξ κ)
-update-Σ ; Σ Nam (U (Setof StoBind) Val ξ) -> Σ
+init-Σ   ; -> Σ
+lookup-Σ ; Σ Nam -> (Setof StoBind)
+         ; Σ 𝓁   -> (U Val ξ κ)
+update-Σ ; Σ Nam (Setof StoBind) -> Σ
+         ; Σ 𝓁   (U Val ξ κ)     -> Σ
 
 ;; ----------------------------------------
-;; Alloc name & scope helpers for expander:
+;; Alloc name & 𝓁 helpers for expander:
 
-alloc-name  ; Id Σ -> (Values Nam Σ)
-alloc-scope ; Symbol Σ -> (Values Scp Σ)
-alloc-𝓁     ; Σ -> (Values 𝓁 Σ)
+alloc-name  ; Id  Σ -> (Values Nam Σ)
+alloc-𝓁     ; Stx Σ -> (Values 𝓁   Σ)
+
