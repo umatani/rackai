@@ -1,0 +1,22 @@
+(** @canonical ITSA.Abs *)
+module Abs = ITSA__Abs
+
+
+(** @canonical ITSA.Conc *)
+module Conc = ITSA__Conc
+
+
+(** @canonical ITSA.Dom *)
+module Dom = ITSA__Dom
+
+
+(** @canonical ITSA.Dom_cst *)
+module Dom_cst = ITSA__Dom_cst
+
+
+(** @canonical ITSA.Dom_sign *)
+module Dom_sign = ITSA__Dom_sign
+
+
+(** @canonical ITSA.Syntax *)
+module Syntax = ITSA__Syntax

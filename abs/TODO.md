@@ -88,4 +88,4 @@ bind-syntaxesを含んでいる．これを素直に抽象解釈しようと
   いずれにしろ衝突への根本的対処が必要である．
 
 7. exampleの拡充．
-  - macros that work togetherの例．
+  - Macros that Work Together (model-together) の例を example に追加

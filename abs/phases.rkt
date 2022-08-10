@@ -4,23 +4,23 @@
  "../reduction.rkt"
  "../mix.rkt"
  (only-in "../term.rkt" use-terms)
- "../example.rkt"
+ "../example/suites.rkt"
 
  (only-in "../signatures.rkt" terms-extra^ syntax^ env^ store^ domain^
           menv^ mstore^ mcont^ bind^ eval^ parser^ expand^ expander^
           run^ debug^)
- (only-in "../conc/base/phases/config.rkt" config^ #%term-forms)
+ (only-in "../interp-base/phases/config.rkt" config^ #%term-forms)
  (only-in "../terms.rkt"
           App% List% Pair% Null% Atom% Sym% Stx% Hole%
-          use-lst-form snoc lst->list id? prim?)
+          Lst snoc lst->list id? prim?)
 
  (only-in "../units.rkt"                    terms-extra@ io@)
- (only-in "../conc/base/units.rkt"          cont@ mcont@)
- (only-in "../conc/base/phases/units.rkt"
+ (only-in "../interp-base/units.rkt"          cont@ mcont@)
+ (only-in "../interp-base/phases/units.rkt"
           config@ debug@ [syntax@ super:syntax@] expander@)
- (only-in "../conc/set/units.rkt"           env@ domain@ menv@ run@)
- (only-in "../conc/set/phases/units.rkt"    parser@ expand/red@)
- (only-in "../conc/set/phases/expander.rkt" [==> set:==>])
+ (only-in "../interp-set/units.rkt"           env@ domain@ menv@ run@)
+ (only-in "../interp-set/phases/units.rkt"    parser@ expand/red@)
+ (only-in "../interp-set/phases/expander.rkt" [==> set:==>])
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@)
  (only-in "core.rkt" eval@))
 (provide syntax@ run delta α ≤a)
@@ -90,8 +90,8 @@
 
 ;; run example
 (define (main [mode 'check])
-  (run-examples run delta core:examples   mode α ≤a)
-  (run-examples run delta phases:examples mode α ≤a))
+  (run-suite run delta (suite 'core)   mode α ≤a)
+  (run-suite run delta (suite 'phases) mode α ≤a))
 
 (module+ test1
   (run delta '(let ([z 1])

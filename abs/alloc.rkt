@@ -9,8 +9,8 @@
           [#%term-forms tm:#%term-forms])
  (only-in "../config.rkt" config^ [#%term-forms cfg:#%term-forms])
 
- (only-in "../conc/set/store.rkt" [store@ super:store@])
- (only-in "../conc/set/units.rkt"
+ (only-in "../interp-set/store.rkt" [store@ super:store@])
+ (only-in "../interp-set/units.rkt"
           [mstore@ super:mstore@]
           [bind@   super:bind@]))
 (provide store::fin-alloc@  store@

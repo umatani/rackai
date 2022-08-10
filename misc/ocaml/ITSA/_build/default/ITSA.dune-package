@@ -1,0 +1,4 @@
+(lang dune 3.0)
+(name ITSA)
+(sections (lib .) (bin ../../bin))
+(files (lib (META dune-package opam)) (bin (ITSAmain)))

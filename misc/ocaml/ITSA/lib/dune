@@ -1,0 +1,4 @@
+(library
+  (name ITSA)
+  (modules syntax conc dom dom_sign dom_cst abs)
+  (libraries base core))

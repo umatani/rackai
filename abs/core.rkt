@@ -4,25 +4,25 @@
  "../reduction.rkt"
  "../mix.rkt"
  (only-in "../term.rkt" use-terms)
- "../example.rkt"
+ "../example/suites.rkt"
 
  (only-in "../signatures.rkt"
           terms-extra^ syntax^ env^ store^ cont^ domain^ eval^
           menv^ mstore^ mcont^ bind^ parser^ expand^ expander^ run^ debug^)
- (only-in "../conc/base/core/config.rkt"
+ (only-in "../interp-base/core/config.rkt"
           config^ #%term-forms)
 
  (only-in "../terms.rkt"
           Var% Fun% App% If% VFun% List% Null% Pair% Atom% Bool% Sym%
           Stx% Prim% Hole%
-          use-lst-form id? lst->list snoc prim?)
+          Lst id? lst->list snoc prim?)
  (only-in "../units.rkt"                  terms-extra@ io@)
- (only-in "../conc/base/units.rkt"        cont@ mcont@)
- (only-in "../conc/base/core/units.rkt"   config@ debug@
+ (only-in "../interp-base/units.rkt"      cont@ mcont@)
+ (only-in "../interp-base/core/units.rkt" config@ debug@
           [syntax@ super:syntax@] expander@)
- (only-in "../conc/set/units.rkt"         domain@ env@ menv@ run@)
- (only-in "../conc/set/core/units.rkt"    [eval@ set:eval@] parser@ expand/red@)
- (only-in "../conc/set/core/expander.rkt" [==> set:==>])
+ (only-in "../interp-set/units.rkt"       domain@ env@ menv@ run@)
+ (only-in "../interp-set/core/units.rkt" [eval@ set:eval@] parser@ expand/red@)
+ (only-in "../interp-set/core/expander.rkt" [==> set:==>])
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
 (provide syntax@ eval@ run delta α ≤a)
 
@@ -121,7 +121,7 @@
 
 ;; run example
 (define (main [mode 'check])
-  (run-examples run delta core:examples mode α ≤a))
+  (run-suite run delta (suite 'core) mode α ≤a))
 
 
 ;; alloc-nameのduplicate(衝突)への対策

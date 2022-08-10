@@ -1,0 +1,4 @@
+# dune init project ITSA
+# OCAMLPARAM: unset
+# Shared cache: disabled
+# Workspace root: /Users/umatani/Dropbox/paper/umatani/aplas2022/src/ocaml

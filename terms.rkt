@@ -80,30 +80,28 @@
 ;;;; Extra utils
 
 ;; Lst patter/constructor
-(define-syntax-rule (use-lst-form Lst List? Null Pair lst->list)
-  (... (define-match-expander Lst
-         (λ (stx)
-           (syntax-case stx (... ...)
-             [(_ p (... ...))
-              #'(? List? (app lst->list (list p (... ...))))]
-             [p (syntax-parse #'p
-                  #:datum-literals [|.|]
-                  [(_) #'(Null)]
-                  [(_ p ps ...) #'(Pair p (Lst ps ...))]
+(define-match-expander Lst
+  (λ (stx)
+    (syntax-case stx (... ...)
+      [(_ p (... ...))
+       #'(? List? (app lst->list (list p (... ...))))]
+      [p (syntax-parse #'p
+           #:datum-literals [|.|]
+           [(_) #'(Null)]
+           [(_ p ps ...) #'(Pair p (Lst ps ...))]
 
-                  [(_ . x:id) #'(? List? x)]
-                  [(_ p ps ... . x:id) #'(Pair p (Lst ps ... . x))]
+           [(_ . x:id) #'(? List? x)]
+           [(_ p ps ... . x:id) #'(Pair p (Lst ps ... . x))]
 
-                  [p (syntax-case #'p (... ...)
-                       [(_ p (... ...))
-                        #'(? List? (app lst->list (list p (... ...))))])])]))
-         (λ (stx) (syntax-parse stx
-                     [(_) #'(Null)]
-                     [(_ x xs ...) #'(Pair x (Lst xs ...))]
+           [p (syntax-case #'p (... ...)
+                [(_ p (... ...))
+                 #'(? List? (app lst->list (list p (... ...))))])])]))
+  (λ (stx) (syntax-parse stx
+              [(_) #'(Null)]
+              [(_ x xs ...) #'(Pair x (Lst xs ...))]
 
-                     [(_ . xs:id)  #'(and (List? xs) xs)]
-                     [(_ y ys ... . x:id)  #'(Pair y (Lst ys ... . x))])))))
-
+              [(_ . xs:id)  #'(and (List? xs) xs)]
+              [(_ y ys ... . x:id)  #'(Pair y (Lst ys ... . x))])))
 
 (use-terms Val Atom Sym List Null Pair Stx Hole)
 
