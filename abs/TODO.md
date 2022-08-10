@@ -61,69 +61,6 @@ bind-syntaxesを含んでいる．これを素直に抽象解釈しようと
   さらに，parse時のresolveにより不整合なASTが生成される．それらの大半は
   evalがstuckするので，evaluateの書き換えによる結果からの除去で対処．
 
-## ここまでで，以下のとおりfull.rktまで正常にtestできるようになった．
-ただし，時間が遅い．全部に20分程度？
-ここで一旦止めておき，改善ということで下の5,6をすることで探索空間の削除
-による効果を見てみる．(もしかしたらStxの有限化と組み合わせないと効果ないかも？)
-
-full.rkt> (time (main))
-<: expand: 1 1
-#t
-eq?: expand: 1 1
-#t
-lam: expand: 1 1
-#t
-fxx: expand: 1 1
-#t
-let-x: expand: 1 1
-#t
-call-bound: expand: 1 1
-#t
-if-#t: expand: 1 1
-#t
-if-#f: expand: 1 1
-#t
-simple: expand: 1 1
-#t
-reftrans: expand: 2 2
-#t
-hyg: expand: 2 2
-#t
-thunk: expand: 2 2
-#t
-get-identity: expand: 2 2
-#t
-prune: expand: 1 1
-#t
-gen: expand: 1 1
-#t
-local-value: expand: 1 1
-#t
-local-expand: expand: 4 2
-#t
-local-expand-stop: expand: 18 6
-#t
-nested-local-expand: expand: 132 24
-#t
-local-binder: expand: 32 2
-#t
-box: expand: 1 1
-#t
-set-box: expand: 2 2
-#t
-defs-shadow: expand: 174 12
-#t
-defs-shadow2: expand: 3216 48
-#t
-defs-local-macro: expand: 672 24
-#t
-defs-begin-with-defn: expand: 8 2
-#t
-cpu time: 1085116 real time: 1302458 gc time: 6424
-full.rkt> 
-
-
-
 
 4. 値の有限化
   個々のドメインの抽象化を実装する前にまずは有限ではないせいで解析が停止
@@ -137,20 +74,8 @@ full.rkt>
     + スコープセットはPROのとおり
 
 5. evalとexpandの引数(3.で有限済み)による結果のメモ化
-   - 問題点1：nested-local-expandが停止しない．もっと単純に
-     ```
-     (run delta '(let-syntax ([z 1])
-                (let-syntax ([a (lambda (stx)
-                                  stx)])
-                  (let-syntax ([b (lambda (stx)
-                                    stx)])
-                    2))) 'expand)
-     ```
-     でも停止しない．bのlambdaのparse結果がstxの曖昧さのため不正確なものを含む．
-     ．．．にしても，InEvalで不正確なVFunがbに束縛されておしまいでは？
-     何故無限に繰り返す？
-   - fullの相互再帰への対応
-
+   - fullにおいて eval と expand が相互再帰．これで無限ループになるような
+     例を書けるか？
 
 6. (Var nam)のnamを(Stx Id ctx)にしてenvはIdのeq?によるハッシュにする．
   2.の env の有限化で2つのzが混ざるのは (Var nam) の nam が同じなため．
@@ -161,3 +86,6 @@ full.rkt>
   ただし，これらの改良は 5. までの停止性を保証してから．この改善では
   ある程度のサイズのソースコードに対し有限上の衝突を「回避」する方法であり，
   いずれにしろ衝突への根本的対処が必要である．
+
+7. exampleの拡充．
+  - macros that work togetherの例．

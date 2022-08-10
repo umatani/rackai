@@ -37,6 +37,6 @@
            [set:full    3 ,s:f:run ,s:f:delta ,s:f:α ,s:f:≤a]
            [abs:core    1 ,a:c:run ,a:c:delta ,a:c:α ,s:c:≤a]
            [abs:phases  2 ,a:p:run ,a:p:delta ,a:p:α ,s:p:≤a]
-           ;[abs:full    3 ,a:f:run ,a:f:delta ,a:f:α ,s:f:≤a]
+           [abs:full    3 ,a:f:run ,a:f:delta ,a:f:α ,s:f:≤a]
            )])
     (run-all-examples all-examples all-runs)))

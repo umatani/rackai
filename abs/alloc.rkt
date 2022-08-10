@@ -85,14 +85,11 @@
   (define (alloc-name id Σ0)
     (match-let ([(Stx (Sym nam) _) id]
                 [(Σ size tbl) Σ0])
-      (if (or (eq? nam 'z) (eq? nam 'a))
-          (let ([nam (string->symbol (format "~a:" nam))])
-            (if (set-member? all-name nam)
-                (void) ;(printf "duplicate name: ~a\n" nam)
-                (set-add! all-name nam))
-            (values nam Σ0))
-          (values (string->symbol (format "~a:~a" nam size))
-                  (Σ (add1 size) tbl)))))
+      (let ([nam (string->symbol (format "~a:" nam))])
+        (if (set-member? all-name nam)
+            (void) ;(printf "duplicate name: ~a\n" nam)
+            (set-add! all-name nam))
+        (values nam Σ0))))
 
   ; alloc-𝓁 : Stx Σ -> (Values 𝓁 Σ)
   ;   - called only from push-κ
