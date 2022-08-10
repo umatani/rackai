@@ -16,7 +16,7 @@
           use-lst-form lst->list snoc id? prim?
           [#%term-forms tm:#%term-forms])
  (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms]))
-(provide ==> expander@ expander/expand@)
+(provide ==> red@ expand/red@ expand@ expander@)
 
 (define-syntax #%term-forms
   (append (syntax-local-value #'tm:#%term-forms)
@@ -387,27 +387,15 @@
 
 (define-unit-from-reduction red@ ==>)
 
-(define-unit expander/expand@
-  (import (only menv^
-                init-ξ)
-          (only mstore^
-                init-Σ)
-          (only expand^
-                expand))
-  (export expander^)
-
-  (define (expander delta stx)
-    (expand delta stx (init-ξ) (init-Σ))))
-
-(define-mixed-unit expander@
+(define-mixed-unit expand/red@
   (import (only config^
                 Stxξ% ζ%)
           (only eval^
-                -->))
-  (export expand^ expander^)
-  (inherit [red@ reducer]
-           [expander/expand@ expander])
-
+                -->)
+          (only red^
+                reducer))
+  (export expand^)
+  (inherit)
   (use-terms Stxξ ζ)
 
   (define (==> delta) (reducer (--> delta) :=))
@@ -419,3 +407,21 @@
       (match-let ([(set (ζ stx_new '• '• Σ_new))
                    (apply-reduction-relation* ==>d init-ζ)])
         (cons stx_new Σ_new)))))
+
+(define-compound-unit/infer expand@
+  (import terms-extra^ config^ syntax^ env^ store^ eval^ menv^ mstore^
+          mcont^ bind^ parser^)
+  (export expand^)
+  (link expand/red@ red@))
+
+(define-unit expander@
+  (import (only menv^
+                init-ξ)
+          (only mstore^
+                init-Σ)
+          (only expand^
+                expand))
+  (export expander^)
+
+  (define (expander delta stx)
+    (expand delta stx (init-ξ) (init-Σ))))

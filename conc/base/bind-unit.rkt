@@ -28,7 +28,7 @@
 
 ;; Like one-phase `bind`, but extracts scopes at a given phase of
 ;; the identifier
-;(: bind : Ph Σ Id Nam -> Σ)
+;bind : Ph Σ Id Nam -> Σ
 (define (bind #:phase [ph #f] Σ0 id nam)
   (match-let ([(Σ size tbl) Σ0]
               [(Stx (Sym nam_1) ctx_1) id])

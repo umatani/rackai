@@ -1,9 +1,7 @@
 #lang racket
 (require
- (only-in "env-unit.rkt"    env@)
- (only-in "io-unit.rkt"     io@)
- (only-in "terms-extra.rkt" terms-extra@))
+ (only-in "io-unit.rkt"          io@)
+ (only-in "terms-extra-unit.rkt" terms-extra@))
 
-(provide env@
-         io@
+(provide io@
          terms-extra@)

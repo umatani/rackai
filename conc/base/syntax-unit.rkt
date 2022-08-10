@@ -82,15 +82,9 @@
 ; union : Scps Scps -> Scps
 (define (union scps1 scps2) (set-union scps1 scps2))
 
-; binding-lookup : (Setof StoBind) Scps -> (Option Nam)
-(define (binding-lookup sbs scps)
-  (let ([r (member scps (set->list sbs)
-                   (λ (scps sb)
-                     (set=? scps (StoBind-scps sb))))])
-    (and r (StoBind-nam (first r)))))
-
 ; biggest-subset : Scps (Listof Scps) -> Scps
 (define (biggest-subset scps_ref scpss)
+  ;(printf "[biggest-subset] ~a ~a\n" scps_ref scpss)
   (let* ([matching (filter (λ (scps_bind)
                              (subset? scps_bind scps_ref))
                            scpss)]
@@ -107,6 +101,15 @@
                    (rest sorted)))
         (set)
         (first sorted))))
+
+; binding-lookup : (Setof StoBind) Scps -> (Option Nam)
+(define (binding-lookup sbs scps)
+  ;(printf "[binding-lookup] ~a ~a\n" sbs scps)
+  (let ([r (member scps (set->list sbs)
+                   (λ (scps sb)
+                     (set=? scps (StoBind-scps sb))))])
+    (and r (StoBind-nam (first r)))))
+
 
 (define (add . args)        (error "must not be used"))
 (define (add-stl . args)    (error "must not be used"))

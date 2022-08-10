@@ -6,7 +6,11 @@
  (prefix-in b:f: "conc/base/full/main.rkt")
  (prefix-in s:c: "conc/set/core/main.rkt")
  (prefix-in s:p: "conc/set/phases/main.rkt")
- (prefix-in s:f: "conc/set/full/main.rkt"))
+ (prefix-in s:f: "conc/set/full/main.rkt")
+ (prefix-in a:c: "abs/core.rkt")
+ (prefix-in a:p: "abs/phases.rkt")
+ (prefix-in a:f: "abs/full.rkt")
+ )
 
 (define ((run-all-examples all-examples all-runs) [mode 'check])
   (parameterize ([fail-count (if (eq? mode 'check) 0 -1)])
@@ -31,5 +35,8 @@
            [set:core    1 ,s:c:run ,s:c:delta ,s:c:α ,s:c:≤a]
            [set:phases  2 ,s:p:run ,s:p:delta ,s:p:α ,s:p:≤a]
            [set:full    3 ,s:f:run ,s:f:delta ,s:f:α ,s:f:≤a]
+           [abs:core    1 ,a:c:run ,a:c:delta ,a:c:α ,s:c:≤a]
+           [abs:phases  2 ,a:p:run ,a:p:delta ,a:p:α ,s:p:≤a]
+           ;[abs:full    3 ,a:f:run ,a:f:delta ,a:f:α ,s:f:≤a]
            )])
     (run-all-examples all-examples all-runs)))

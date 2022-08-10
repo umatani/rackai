@@ -51,6 +51,12 @@
   '[lam
     ((lambda (lambda) lambda) 'foo)])
 
+(define ex-fxx
+  '[fxx
+    ((lambda (f x) (f x))
+     (lambda (x) x)
+     100)])
+
 (define ex-let
   '[let-x
     (let ([x 1]) (+ x 2))])
@@ -157,6 +163,7 @@
   (list ex-<
         ex-eq?
         ex-lam
+        ex-fxx
         ex-let
         ex-call-bound
         ex-if-#t ex-if-#f
@@ -347,7 +354,7 @@
   (let-syntax ([z (lambda (stx) #''0)])
     (let-syntax ([a (lambda (stx)
                       ;; When `b' forces `a', then `a'
-                      ;; drops `z' form the stop list, so it
+                      ;; drops `z' from the stop list, so it
                       ;; should expand to 0
                       (local-expand (second (syntax-e stx))
                                     'expression
@@ -507,13 +514,14 @@
                                (list (syntax-local-identifier-as-binding 
                                       (second
                                        (syntax-e
-                                        (local-expand (datum->syntax
-                                                       #'here
-                                                       (list #'quote
-                                                             (second (syntax-e stx))))
-                                                      'expression
-                                                      '()
-                                                      defs))))))
+                                        (local-expand
+                                         (datum->syntax
+                                          #'here
+                                          (list #'quote
+                                                (second (syntax-e stx))))
+                                         'expression
+                                         '()
+                                         defs))))))
                               (local-expand (third (syntax-e stx))
                                             'expression
                                             (list #'call)

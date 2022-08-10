@@ -20,7 +20,7 @@
   (define (lookup-ξ ξ nam)
     (lift (hash-ref ξ nam (λ () (set)))))
 
-  ; update-ξ : ξ Nam AllTransform -> ξ
+  ; extend-ξ : ξ Nam AllTransform -> ξ
   (define (extend-ξ ξ nam all-transform)
     (hash-update ξ nam
                  (λ (old) (set-add old all-transform)) (set))))

@@ -7,18 +7,18 @@
  (only-in "../../../signatures.rkt" run^ domain^ debug^)
 
  ;;;; Units
- (only-in "../../../units.rkt" terms-extra@ env@ io@)
- (only-in "../units.rkt"       cont@ store@ domain@ menv@ mstore@ mcont@ bind@
-                               run@)
+ (only-in "../../../units.rkt" terms-extra@ io@)
+ (only-in "../units.rkt"       env@ store@ cont@ domain@ menv@ mstore@ mcont@
+                               bind@ run@)
  (only-in "../core/units.rkt"  eval@)
- (only-in "units.rkt"          config@ syntax@ parser@ expander@ debug@))
+ (only-in "units.rkt"          config@ syntax@ parser@ expand@ expander@ debug@))
 (provide run delta α ≤a)
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
    (link config@ terms-extra@ syntax@ env@ store@ cont@ eval@
-         menv@ mstore@ bind@ mcont@ parser@ expander@ io@ run@ debug@))
+         menv@ mstore@ bind@ mcont@ parser@ expand@ expander@ io@ run@ debug@))
   (import) (export run^ debug^))
 
 (define-values/invoke-unit domain@

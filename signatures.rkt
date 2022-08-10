@@ -22,6 +22,7 @@
  (only-in "config.rkt"              config^))
 
 (provide bind^
+         config^
          cont^
          debug^
          domain^
@@ -38,6 +39,4 @@
          run^
          store^
          syntax^
-         terms-extra^
-
-         config^)
+         terms-extra^)

@@ -9,19 +9,14 @@
 (define-signature config^
   (;; Eval-time continuation, environment, and store
    AstEnv% Store% KApp% KIf% SApp% SIf%
-
    ;; SSeq is used only in full
    SSeq%
-
    ;; Expand-time environment
    TVar% TStop%
-
    ;; Expand-time store
    Σ% StoBind%
-
    ;; Expand-time continuation
    Stxξ% κ%
-
    ;; Expand-time state (configuration)
    InEval% ζ%))
 

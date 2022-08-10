@@ -13,7 +13,7 @@
           lst->list snoc id? prim?
           use-lst-form [#%term-forms tm:#%term-forms])
  (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms]))
-(provide ==> expander@ expander/expand@)
+(provide ==> expand/red@ expand@ expander@)
 
 (define-syntax #%term-forms
   (append (syntax-local-value #'tm:#%term-forms)
@@ -185,6 +185,7 @@
                       ctx) ξ) '∘
        κ (and Σ*_0 (Σ* Σ _ _)))
    #:when (id=? #:phase ph id_ls 'let-syntax #:ξ ξ Σ)
+   ;(printf "start ls: ~a\n" id)
    (ζ (Stx (Lst id_ls
                  (Stx (Lst (Stx (Lst id stx_rhs) ctx_0)) ctx_1)
                  (Stxξ ph stx_body ξ))
@@ -198,6 +199,7 @@
                      ctx)) '∘
        κ0 (and Σ*_0 (Σ* Σ _ _)))
    #:when (id=? #:phase ph id_ls 'let-syntax #:ξ ξ Σ)
+   ;(printf "start2 ls: ~a\n" stx_body)
    #:with (values nam_new Σ_1) := (alloc-name id Σ)
    #:with              scp_new := (alloc-scope 'ls)
    #:with               id_new := (add ph id scp_new)
@@ -222,7 +224,10 @@
             ctx) '∘ κ (Σ* Σ scps_p _))
    #:when (and (id=? #:phase ph id_kont '#%kont     #:ξ ξ Σ)
                (id=? #:phase ph id_ls   'let-syntax #:ξ ξ Σ))
+   ;(printf "before resolve: ~a\n" (results(resolve #:phase ph id_new Σ)))
    #:with nam_new :=<1> (resolve #:phase ph id_new Σ)
+   ;(printf "before parse: ~a\n" (results (parse #:phase (add1 ph) stx_exp Σ)))
+   ;(printf "    stx_body: ~a\n" stx_body)
    #:with ast_exp :=<1> (parse #:phase (add1 ph) stx_exp Σ)
    (InEval (list (AstEnv ph ast_exp (init-env) 'no-scope ξ)
                  '• (init-store) (Σ* Σ scps_p (set)))
@@ -238,9 +243,11 @@
                          (Stxξ ph stx_body ξ)
                          (Stx #f ctx_new))
                     _) '∘ κ (Σ* _ scps_p _)))
+   ;(printf "after eval: ~a\n" val)
    #:with scp_new   := (car (set->list (at-phase ctx_new ph)))
    #:with ξ_new     := (extend-ξ ξ nam_new val)
    #:with stx_body2 := (add ph stx_body scp_new)
+   ;(printf "    stx_body2: ~a\n" stx_body2)
    (ζ (Stxξ ph stx_body2 ξ_new) '∘
        κ (Σ* Σ (union (set scp_new) scps_p) (set)))
    ex-ls-ξ]
@@ -383,6 +390,11 @@
 
   ;; pop κ (merge Σ*)
   [(ζ stx '• (κ stx_c ex? (Σ* _ scps_p scps_u) 𝓁) (Σ* Σ _ _))
+   #;
+   (let ([ks (results (lookup-Σ Σ 𝓁))])
+     (for ([k (in-set ks)]
+           #:when (not (eq? k '•)))
+       (printf "pop κ: ~a\n" (κ-stx k))))
    #:with κ0 :=<1> (lookup-Σ Σ 𝓁)
    (ζ (in-hole stx_c stx) ex? κ0 (Σ* Σ scps_p scps_u))
    ex-pop-κ]
@@ -441,7 +453,34 @@
 
 (define-unit-from-reduction red@ ==>)
 
-(define-unit expander/expand@
+(define-mixed-unit expand/red@
+  (import (only config^
+                ζ% Stxξ%)
+          (only eval^
+                -->)
+          (only red^
+                reducer))
+  (export expand^)
+  (inherit)
+  (use-terms ζ Stxξ)
+  
+  (define (==> delta) (λ () (reducer (--> delta) :=)))
+
+  ; expand : Ph Stx ξ Σ* -> (Cons Stx Σ*)
+  (define (expand delta ph stx ξ Σ*)
+    (define ==>d (==> delta))
+    (let ([init-ζ (ζ (Stxξ ph stx ξ) '∘ '• Σ*)])
+      (match-let ([(set (ζ stx_new '• '• Σ*_new))
+                   (apply-reduction-relation* (==>d) init-ζ)])
+        (cons stx_new Σ*_new)))))
+
+(define-compound-unit/infer expand@
+  (import terms-extra^ config^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^
+          bind^ parser^)
+  (export expand^)
+  (link expand/red@ red@))
+
+(define-unit expander@
   (import (only config^
                 Σ*%)
           (only menv^
@@ -455,23 +494,3 @@
 
   (define (expander delta stx)
     (expand delta 0 stx (init-ξ) (Σ* (init-Σ) (set) (set)))))
-
-(define-mixed-unit expander@
-  (import (only config^
-                ζ% Stxξ%)
-          (only eval^
-                -->))
-  (export expand^ expander^)
-  (inherit [red@ reducer]
-           [expander/expand@ expander])
-  (use-terms ζ Stxξ)
-  
-  (define (==> delta) (λ () (reducer (--> delta) :=)))
-
-  ; expand : Ph Stx ξ Σ* -> (Cons Stx Σ*)
-  (define (expand delta ph stx ξ Σ*)
-    (define ==>d (==> delta))
-    (let ([init-ζ (ζ (Stxξ ph stx ξ) '∘ '• Σ*)])
-      (match-let ([(set (ζ stx_new '• '• Σ*_new))
-                   (apply-reduction-relation* (==>d) init-ζ)])
-        (cons stx_new Σ*_new)))))

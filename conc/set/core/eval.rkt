@@ -11,7 +11,7 @@
           Var% Fun% App% If% Bool% VFun% Prim%)
  (only-in "../../base/core/config.rkt" config^ #%term-forms)
  (only-in "../../base/core/eval.rkt" [--> base:-->]))
-(provide --> eval@)
+(provide --> eval@ red@)
 
 ;; Revised reduction rules
 
@@ -22,7 +22,7 @@
                        (only terms-extra^
                              val?)
                        (only env^
-                             lookup-env update-env)
+                             lookup-env extend-env)
                        (only store^
                              lookup-store update-store* alloc-loc*)
                        (only cont^

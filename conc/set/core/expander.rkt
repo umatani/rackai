@@ -13,8 +13,8 @@
           lst->list snoc id? prim?
           use-lst-form)
  (only-in "../../base/core/config.rkt" config^ #%term-forms)
- (only-in "../../base/core/expander.rkt" [==> base:==>] expander/expand@))
-(provide ==> expander@)
+ (only-in "../../base/core/expander.rkt" [==> base:==>] expander@))
+(provide ==> red@ expand/red@ expand@)
 
 ;; Revised reduction rules
 
@@ -72,14 +72,15 @@
 
 (define-unit-from-reduction red@ ==>)
 
-(define-mixed-unit expander@
+(define-mixed-unit expand/red@
   (import (only config^
                 Stxξ% ζ%)
           (only eval^
-                -->))
-  (export expand^ expander^)
-  (inherit [red@ reducer]
-           [expander/expand@ expander])
+                -->)
+          (only red^
+                reducer))
+  (export expand^)
+  (inherit)
 
   (use-terms Stxξ ζ)
 
@@ -92,3 +93,9 @@
       (match-let ([(set (ζ stx_new '• '• Σ_new) ...)
                    (apply-reduction-relation* ==>d init-ζ)])
         (list->set (map cons stx_new Σ_new)))))  )
+
+(define-compound-unit/infer expand@
+  (import terms-extra^ config^ syntax^ env^ store^ eval^ menv^ mstore^
+          mcont^ bind^ parser^)
+  (export expand^)
+  (link expand/red@ red@))

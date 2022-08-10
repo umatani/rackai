@@ -31,7 +31,18 @@
 
 ;; Defs, 𝓁 is used only in full
 (define-term Defs Atom (scp 𝓁))
-(define-term 𝓁    Atom (nam))
+
+;(define-term 𝓁    Atom (nam))
+(define 𝓁% (class* Atom% (equal<%>)
+             (inspect #f)
+             (init-field nam)
+             (super-new)
+             (define/public (equal-to? other recur)
+               (eq? nam (get-field nam other)))
+             (define/public (equal-hash-code-of hash-code)
+               (eq-hash-code nam))
+             (define/public (equal-secondary-hash-code-of hash-code)
+               (eq-hash-code nam))))
 
 ;; Syntax objects (a subset of values)
 (define-term Stx       (e ctx))
@@ -39,6 +50,11 @@
 ;; Expand-time continuation
 (define-term Hole      ())
 
+
+(module+ test
+  (use-terms Var Fun App If Val Atom List Prim VFun LBind2
+             Bool Num Sym Null Pair Defs 𝓁 Stx Hole)
+)
 
 (define-syntax #%term-forms
   '((Var     nam)
@@ -132,3 +148,4 @@
                                  box unbox set-box!
                                  syntax-local-make-definition-context
                                  syntax-local-bind-syntaxes)))
+

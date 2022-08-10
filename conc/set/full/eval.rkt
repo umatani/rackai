@@ -14,7 +14,7 @@
           lst->list id? stx-prim?)
  (only-in "../../base/full/config.rkt" config^ #%term-forms)
  (only-in "../../base/full/eval.rkt" [--> base:-->]))
-(provide --> eval@)
+(provide --> red@ eval@)
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta ==>) #:super (base:--> delta ==> <-)
@@ -26,7 +26,7 @@
                        (only syntax^
                              add flip union alloc-scope prune)
                        (only env^
-                             init-env lookup-env update-env)
+                             init-env lookup-env extend-env)
                        (only store^
                              lookup-store update-store* alloc-loc*)
                        (only cont^
@@ -94,7 +94,6 @@
 
   ; evaluate : Ast -> (Setof Val)
   (define (evaluate delta ast)
-    (for/set ([val+Σ*
-               (in-set (eval delta 0 ast 'no-scope (init-ξ)
-                             (Σ* (init-Σ) (set) (set))))])
+    (for/set ([val+Σ* (in-set (eval delta 0 ast 'no-scope (init-ξ)
+                                     (Σ* (init-Σ) (set) (set))))])
       (car val+Σ*))))

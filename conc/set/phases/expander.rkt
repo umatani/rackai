@@ -14,8 +14,8 @@
           lst->list snoc id? prim?
           use-lst-form)
  (only-in "../../base/phases/config.rkt" config^ #%term-forms)
- (only-in "../../base/phases/expander.rkt" [==> base:==>] expander/expand@))
-(provide ==> expander@)
+ (only-in "../../base/phases/expander.rkt" [==> base:==>] expander@))
+(provide ==> expand/red@ expand@)
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (base:==> <- -->)
@@ -73,14 +73,15 @@
 
 (define-unit-from-reduction red@ ==>)
 
-(define-mixed-unit expander@
+(define-mixed-unit expand/red@
   (import (only config^
                 Stxξ% ζ%)
           (only eval^
-                -->))
-  (export expand^ expander^)
-  (inherit [red@ reducer]
-           [expander/expand@ expander])
+                -->)
+          (only red^
+                reducer))
+  (export expand^)
+  (inherit)
   (use-terms Stxξ ζ)
   
   (define (==> delta) (reducer (--> delta)))
@@ -92,3 +93,9 @@
       (match-let ([(set (ζ stx_new '• '• Σ_new) ...)
                    (apply-reduction-relation* ==>d init-ζ)])
         (list->set (map cons stx_new Σ_new))))))
+
+(define-compound-unit/infer expand@
+  (import terms-extra^ config^ syntax^ env^ store^ eval^ menv^ mstore^
+          mcont^ bind^ parser^)
+  (export expand^)
+  (link expand/red@ red@))

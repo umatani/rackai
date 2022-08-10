@@ -13,8 +13,8 @@
           lst->list snoc id? prim?
           use-lst-form)
  (only-in "../../base/full/config.rkt" config^ #%term-forms)
- (only-in "../../base/full/expander.rkt" [==> base:==>] expander/expand@))
-(provide ==> expander@)
+ (only-in "../../base/full/expander.rkt" [==> base:==>]))
+(provide ==> expand/red@ expand@)
 
 (define-reduction (==> -->) #:super (base:==> --> <-)
   #:within-signatures [(only config^
@@ -56,28 +56,30 @@
        (Σ* Σ_1 scps_p (set)))
    ex-app-free-var]
 
-  ;; reference (same as phases)
+  ;; reference
+  ;; set-basedにすることにより，bind-syntaxesがbinding storeに多重化をもたらし，
+  ;; 名前の解決が正しくできなくなる．その場合(atがempty)が生じたら
+  ;; unbound errorで停止するのではなく，探索候補から削除する．
   [(ζ (Stxξ ph (and id (Stx (Sym nam) ctx)) ξ) '∘
        κ (and Σ*_0 (Σ* Σ _ _)))
    #:with nam <- (resolve #:phase ph id Σ)
-   #:with  ats := (results (lookup-ξ ξ nam))
-   ;(printf "ats: ~a\n" ats)
-   #:with at <- (lift ats)
+   #:with  at <- (lookup-ξ ξ nam)
    #:when (TVar? at)
    (ζ (TVar-id at) '• κ Σ*_0)
    ex-var])
 
 (define-unit-from-reduction red@ ==>)
 
-(define-mixed-unit expander@
+(define-mixed-unit expand/red@
   (import (only config^
-                Stxξ% Σ*% ζ% InEval%)
+                Stxξ% Σ*% ζ% InEval% InExpand%)
           (only eval^
-                -->))
-  (export expand^ expander^)
-  (inherit [red@ reducer]
-           [expander/expand@ expander])
-  (use-terms Stxξ Σ* ζ InEval)
+                -->)
+          (only red^
+                reducer))
+  (export expand^)
+  (inherit)
+  (use-terms Stxξ Σ* ζ InEval InExpand)
 
   (define (==> delta) (λ () (reducer (--> delta))))
   
@@ -86,6 +88,9 @@
     (define ==>d (==> delta))
     (let ([init-ζ (ζ (Stxξ ph stx ξ) '∘ '• Σ*)])
       (define ζs (apply-reduction-relation* (==>d) init-ζ))
+      ;; set-baseにすることで stuck が生じる．
+      ;; stuckの原因は，set-box!とbind-syntaxesがstoreへのassignmentで
+      ;; あることによりstore中の値の多重化が生じること．
       (define succs (filter (λ (ζ0)
                               (and (not (InEval? ζ0))
                                    (eq? (ζ-ex? ζ0) '•)))
@@ -93,3 +98,9 @@
       (printf "expand: ~a ~a\n" (set-count ζs) (length succs))
       (match-let ([(list (ζ stx_new '• '• Σ*_new) ...) succs])
         (list->set (map cons stx_new Σ*_new))))))
+
+(define-compound-unit/infer expand@
+  (import terms-extra^ config^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^
+          bind^ parser^)
+  (export expand^)
+  (link expand/red@ red@))
