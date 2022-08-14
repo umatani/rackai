@@ -4,7 +4,7 @@
  "../reduction.rkt"
  "../mix.rkt"
  (only-in "../term.rkt" use-terms)
- "../example/suites.rkt"
+ "../test/suites.rkt"
 
  (only-in "../signatures.rkt" terms-extra^ syntax^ env^ store^ domain^
           menv^ mstore^ mcont^ bind^ eval^ parser^ expand^ expander^

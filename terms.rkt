@@ -45,7 +45,7 @@
                (eq-hash-code nam))))
 
 ;; Syntax objects (a subset of values)
-(define-term Stx       (e ctx))
+(define-term Stx Atom  (e ctx))
 
 ;; Expand-time continuation
 (define-term Hole      ())

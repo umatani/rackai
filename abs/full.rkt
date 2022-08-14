@@ -4,7 +4,7 @@
  "../reduction.rkt"
  "../mix.rkt"
  (only-in "../term.rkt" use-terms)
- "../example/suites.rkt"
+ "../test/suites.rkt"
 
  (only-in "../signatures.rkt" terms-extra^ syntax^ env^ store^ cont^ eval^
           domain^ menv^ mstore^ bind^ parser^ expand^ run^ debug^)
@@ -18,8 +18,7 @@
  (only-in "../interp-base/full/units.rkt"
           [syntax@ super:syntax@] config@ expander@ debug@)
  (only-in "../interp-set/units.rkt"       env@ domain@ menv@ run@)
- (only-in "../interp-set/full/units.rkt"  [eval@ set:eval@] parser@ expand@)
- (only-in "../interp-set/full/eval.rkt"   [--> set:-->])
+ (only-in "../interp-set/full/units.rkt"  eval@ parser@ expand@)
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
 (provide syntax@ run delta α ≤a)
 
@@ -32,96 +31,7 @@
                           flip flip-stl]
            [syntax::fin-alloc@ alloc-scope biggest-subset binding-lookup]))
 
-;; Revise evaluate to filter out stuck states
-
-;; --> : State -> (Setof State)
-(define-reduction (--> delta ==>) #:super (set:--> delta ==>)
-  #:within-signatures [(only terms-extra^
-                             val?)
-                       (only config^
-                             SApp% SIf% KApp% KIf% AstEnv% Stxξ% Σ% Σ*% ζ%
-                             TVar% TStop% InExpand%)
-                       (only syntax^
-                             add flip prune union alloc-scope)
-                       (only env^
-                             init-env lookup-env extend-env)
-                       (only store^
-                             alloc-loc* lookup-store update-store*)
-                       (only cont^
-                             push-cont)
-                       (only menv^
-                             init-ξ lookup-ξ extend-ξ)
-                       (only mstore^
-                             alloc-name alloc-𝓁 lookup-Σ update-Σ)
-                       (only bind^
-                             bind resolve)
-                       (only parser^
-                             parse)]
-
-
-  ;; local expand
-  #;
-  [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
-            `(,(Prim 'local-expand _)
-              ,(? Stx? stx) ,val_contextv ,val_idstops) '())
-     ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
-   #:with ξ_unstops := (make-immutable-hash
-                         (map (λ (p) (cons (car p) (unstop (cdr p))))
-                              (hash->list ξ)))
-   #:with nams_stop <- (resolve* ph (lst->list val_idstops) Σ)
-   #:with  ats_stop <- (lookup-ξ* ξ_unstops nams_stop)
-   #:with   ξ_stops := (extend-ξ*
-                         ξ_unstops
-                         (map (λ (n at) (cons n (TStop at)))
-                              nams_stop
-                              ats_stop))
-   (InExpand
-    (ζ (Stxξ ph (flip ph stx maybe-scp_i) ξ_stops) '∘ '• Σ*_0)
-    `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) '())
-      ,cont ,store ,Σ*_0))
-   ev-lexpand]
-  )
-
-(define-unit-from-reduction ev-red@ -->)
-
-(define-mixed-unit eval@
-  (import (only config^
-                AstEnv% Σ*%)
-          (only terms-extra^
-                val?)
-          (only env^
-                init-env)
-          (only store^
-                init-store)
-          (only menv^
-                init-ξ)
-          (only mstore^
-                init-Σ)
-          (only expand^
-                ==>))
-  (export eval^)
-  (inherit [ev-red@ reducer])
-  (use-terms AstEnv Σ*)
-
-  (define (--> delta) (λ () (reducer delta (==> delta))))
-
-  ; eval : Ph Ast MaybeScp ξ Σ* -> (Setof (Cons Val Σ*))
-  (define (eval delta ph ast maybe-scp_i ξ Σ*)
-    (define -->d (--> delta))
-    (match-let ([(set `(,val ,done? ,_store ,Σ*_2) ...)
-                 (apply-reduction-relation*
-                  (-->d) `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
-                           • ,(init-store) ,Σ*))])
-      (list->set
-       (map (λ (vds) (cons (first vds) (third vds)))
-            (filter (λ (vds) (and (val? (first vds)) (eq? (second vds) '•)))
-                    (map list val done? Σ*_2))))))
-
-  ; evaluate : Ast -> (Setof Val)
-  (define (evaluate delta ast)
-    (for/set ([val+Σ* (in-set (eval delta 0 ast 'no-scope (init-ξ)
-                                     (Σ* (init-Σ) (set) (set))))])
-      (car val+Σ*))))
+;; full/set's evaluate already filters out stuck states
 
 
 (define-values/invoke-unit

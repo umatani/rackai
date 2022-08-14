@@ -1,6 +1,6 @@
 #lang racket
 (require
- "../../example/suites.rkt"
+ ;"../../test/suites.rkt"
 
  ;;;; Signatures
  (only-in "../../signatures.rkt" run^ domain^ debug^)
@@ -24,6 +24,8 @@
   (import) (export domain^))
 
 ;; run example
+;; comment-out to avoid cyclic dependency from test/run.rkt
+#;
 (define (main [mode 'check])
   (run-suite run delta (suite 'core)   mode α set=? #;≤a)
   (run-suite run delta (suite 'finite) mode α set=? #;≤a)

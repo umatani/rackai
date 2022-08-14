@@ -11,6 +11,7 @@
  (prefix-in a:c: "../abs/core.rkt")
  (prefix-in a:p: "../abs/phases.rkt")
  (prefix-in a:f: "../abs/full.rkt")
+ (prefix-in n:c: "../abs/naive/core.rkt")
 
  "suites.rkt")
 
@@ -27,6 +28,7 @@
         (interp 'abs:core    a:c:run a:c:delta a:c:α s:c:≤a)
         (interp 'abs:phases  a:p:run a:p:delta a:p:α s:p:≤a)
         (interp 'abs:full    a:f:run a:f:delta a:f:α s:f:≤a)
+        (interp 'naive:core  n:c:run n:c:delta n:c:α n:c:≤a)
         ))
 
 (define test-suites
@@ -39,6 +41,7 @@
           'abs:core    (map suite '(core))
           'abs:phases  (map suite '(core phases))
           'abs:full    (map suite '(core phases full))
+          'naive:core  (map suite '(core             finite))
           ))
 
 
@@ -46,7 +49,7 @@
   (parameterize ([fail-count (if (eq? mode 'check) 0 -1)])
     (for ([interpreter (in-list interpreters)])
       (match-define (interp name run delta α ≤a) interpreter)
-      (printf "[~a]\n" name)
+      (printf "\n[~a]\n" name)
       (for ([suite (in-list (hash-ref test-suites name))])
         (run-suite run delta suite mode α ≤a)))
     (when (>= (fail-count) 0)

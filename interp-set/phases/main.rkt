@@ -1,6 +1,6 @@
 #lang racket
 (require
- "../../example/suites.rkt"
+ "../../test/suites.rkt"
  
  ;;;; Signatures
  (only-in "../../signatures.rkt" run^ domain^ debug^)

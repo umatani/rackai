@@ -1,6 +1,6 @@
 #lang racket/unit
 (require
- racket/match
+ racket/match (only-in racket/function identity)
  "../set.rkt"
  "../nondet.rkt"
  (only-in "../term.rkt" use-terms)
@@ -16,7 +16,7 @@
 ;; ----------------------------------------
 ;; Implementation of Domains:
 
-(define α set)
+(define α  identity)
 (define ≤a subset?)
 
 (use-terms Atom Bool Num Sym Stx Null Pair Prim)

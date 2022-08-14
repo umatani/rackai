@@ -4,27 +4,34 @@
  "../reduction.rkt"
  "../mix.rkt"
  (only-in "../term.rkt" use-terms)
- "../example/suites.rkt"
+ "../test/suites.rkt"
 
  (only-in "../signatures.rkt"
           terms-extra^ syntax^ env^ store^ cont^ domain^ eval^
-          menv^ mstore^ mcont^ bind^ parser^ expand^ expander^ run^ debug^)
- (only-in "../interp-base/core/config.rkt"
-          config^ #%term-forms)
+          menv^ mstore^ mcont^ bind^ parser^ expand^ expander^ io^ run^ debug^)
 
- (only-in "../terms.rkt"
-          Var% Fun% App% If% VFun% List% Null% Pair% Atom% Bool% Sym%
+ (only-in "../terms.rkt" [#%term-forms tm:#%term-forms]
+          Var% Fun% App% If% Val% VFun% List% Null% Pair% Atom% Bool% Sym%
           Stx% Prim% Hole%
           Lst id? lst->list snoc prim?)
+ (only-in "../interp-base/core/config.rkt"
+          config^ [#%term-forms cfg:#%term-forms])
+
  (only-in "../units.rkt"                  terms-extra@ io@)
  (only-in "../interp-base/units.rkt"      cont@ mcont@)
- (only-in "../interp-base/core/units.rkt" config@ debug@
-          [syntax@ super:syntax@] expander@)
+ (only-in "../interp-base/core/units.rkt" config@ debug@ expander@
+          [syntax@ super:syntax@])
  (only-in "../interp-set/units.rkt"       domain@ env@ menv@ run@)
  (only-in "../interp-set/core/units.rkt" [eval@ set:eval@] parser@ expand/red@)
  (only-in "../interp-set/core/expander.rkt" [==> set:==>])
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
-(provide syntax@ eval@ run delta α ≤a)
+(provide syntax@ eval@ ==> main-minus@
+         run delta α ≤a eval-->* expand==>*)
+(define-syntax #%term-forms
+  (append (syntax-local-value #'tm:#%term-forms)
+          (syntax-local-value #'cfg:#%term-forms)))
+(use-terms Val Atom)
+
 
 (define-mixed-unit syntax@
   (import)
@@ -36,8 +43,7 @@
            [syntax::fin-alloc@ alloc-scope biggest-subset binding-lookup]))
 
 
-;; Revise evaluate to filter out stuck states
-
+;; filter out stuck states
 (define-mixed-unit eval@
   (import (only config^
                 AstEnv%)
@@ -63,8 +69,6 @@
                     (map cons val done?)))))))
 
 
-;; Revise reduction rule ==>
-
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (set:==> -->)
   #:within-signatures [(only config^
@@ -87,7 +91,6 @@
                              push-κ)
                        (only parser^
                              parse)]
-
   ;; reference
   [(ζ (Stxξ (and id (Stx (Sym nam) ctx)) ξ) '∘ κ Σ)
    #:with nam <- (resolve id Σ)
@@ -109,11 +112,18 @@
 
 ;; Main
 
+(define-compound-unit/infer main-minus@
+  (import config^ terms-extra^ eval^ expand^ expander^ debug^)
+  (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^
+          parser^ io^ run^)
+  (link syntax@ env@ store@ cont@
+        menv@ mstore@ bind@ mcont@ parser@
+        io@ run@))
+
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
-   (link config@ terms-extra@ syntax@ env@ store@ cont@ eval@
-         menv@ mstore@ bind@ mcont@ parser@ expand@ expander@ io@ run@ debug@))
+   (link config@ terms-extra@ main-minus@ eval@ expand@ expander@ debug@))
   (import) (export run^ debug^))
 
 (define-values/invoke-unit domain@

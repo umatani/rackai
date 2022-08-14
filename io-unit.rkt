@@ -17,6 +17,13 @@
 
 (use-terms Var VFun Atom Stx Bool Num Sym Null Pair Defs 𝓁)
 
+(define (read-atom x)
+  (match x
+    [(? null?)    (Null)]
+    [(? boolean?) (Bool x)]
+    [(? real?)    (Num  x)]
+    [(? symbol?)  (Sym  x)]))
+
 (define reader
   (letrec
       ([read-stx

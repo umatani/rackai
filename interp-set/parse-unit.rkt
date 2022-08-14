@@ -8,7 +8,7 @@
  (only-in "../signatures.rkt"
           terms-extra^ syntax^ menv^ bind^ parse^)
  (only-in "../terms.rkt" #%term-forms
-          Var% Fun% App% If% Atom% Stx% List% Null% Pair% Prim%
+          Var% Fun% App% If% Val% Atom% Stx% List% Null% Pair% Prim%
           Lst lst->list id? prim?))
 
 (import (only terms-extra^
@@ -22,7 +22,7 @@
                 [b:id=? id=?]))
 (export parse^)
 
-(use-terms Var Fun App If Atom Stx List Null Pair Prim)
+(use-terms Var Fun App If Val Atom Stx List Null Pair Prim)
 
 ;; ----------------------------------------
 ;; Simple parsing of already-expanded code
@@ -40,6 +40,9 @@
   (define (id=? nam) (λ (id) (b:id=? #:phase ph id nam #:ξ (init-ξ) Σ)))
 
   (match stx
+    ;; TODO: move to abs
+    [(Stx 'stx-⊤ _) (pure (Val))] ;; (Val) = val-⊤
+
     ; (lambda (id ...) stx_body)
     [(Stx (Lst (? id? (? (id=? 'lambda)))
                (Stx stl_ids _)

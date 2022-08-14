@@ -21,5 +21,5 @@
               ast <- (parser stx2 Σ2)
               #:abort-if (eq? mode 'parse) ast
               ast2 <- (lift (evaluate delta ast))
-              #:abort-if (eq? mode 'eval) (printer ast2)
+              #:abort-if (eq? mode 'eval) ast2 #;(printer ast2)
               (error 'run "unknown mode: ~e" mode))))

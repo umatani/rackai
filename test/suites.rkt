@@ -1,9 +1,9 @@
 #lang racket
 (require
- (prefix-in ss: (only-in "scopeset.rkt"
+ (prefix-in ss: (only-in "suite/scopeset.rkt"
                          core:examples phases:examples
                          local:examples defs:examples))
- (prefix-in org: (only-in "original.rkt"
+ (prefix-in org: (only-in "suite/original.rkt"
                           core:examples phases:examples full:examples
                           finite:examples))
 
