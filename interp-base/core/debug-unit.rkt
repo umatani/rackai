@@ -6,14 +6,10 @@
 
  (only-in "../../signatures.rkt"
           env^ store^ eval^ menv^ mstore^ expand^ io^ run^ debug^)
- (only-in "../../terms.rkt" [#%term-forms tm:#%term-forms]
-          Stxξ%)
- (only-in "config.rkt"
-          config^ [#%term-forms cfg:#%term-forms]))
+ (only-in "terms.rkt" #%term-forms
+          Stxξ% AstEnv% ζ%))
 
 (import
- (only config^
-       AstEnv% ζ%)
  (only env^
        init-env)
  (only store^
@@ -32,9 +28,6 @@
        run))
 (export debug^)
 
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
 (use-terms AstEnv Stxξ ζ)
 
 ; eval--> : Sexp -> (Setof State)

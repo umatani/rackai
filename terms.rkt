@@ -4,6 +4,7 @@
  (only-in "term.rkt" define-term use-terms))
 (provide (all-defined-out))
 
+;;;; ----------------------------------------
 ;;;; Language
 
 (define-term Var        (nam))
@@ -17,20 +18,20 @@
 (define-term Atom Val   ())
 (define-term List Val   ())
 
-(define-term Prim Val  (nam stx))
+(define-term Prim Val   (nam stx))
 (define-term VFun Val   (vars ast env))
 ;; LBind2 is used only in full
 (define-term LBind2 Val (scps_p scps_u))
 
 ;; Literal values
-(define-term Bool Atom (b))
-(define-term Num  Atom (n))
-(define-term Sym  Atom (nam))
-(define-term Null List ())
-(define-term Pair List (a d))
+(define-term Bool Atom  (b))
+(define-term Num  Atom  (n))
+(define-term Sym  Atom  (nam))
+(define-term Null List  ())
+(define-term Pair List  (a d))
 
 ;; Defs, 𝓁 is used only in full
-(define-term Defs Atom (scp 𝓁))
+(define-term Defs Atom  (scp 𝓁))
 
 ;(define-term 𝓁    Atom (nam))
 (define 𝓁% (class* Atom% (equal<%>)
@@ -51,35 +52,6 @@
 ;; Expand-time continuation
 (define-term Hole      ())
 
-
-(module+ test
-  (use-terms Var Fun App If Val Atom List Prim VFun LBind2
-             Bool Num Sym Null Pair Defs 𝓁 Stx Hole)
-)
-
-(define-syntax #%term-forms
-  '((Var     nam)
-    (Fun     vars ast)
-    (App     lbl rator rands)
-    (If      lbl tst thn els)
-    (VFun    vars ast env)
-    (LBind2  scps_p scps_u)
-    (Val)
-    (Atom)
-    (List)
-    (Bool    b)
-    (Num     n)
-    (Sym     nam)
-    (Prim    nam stx)
-    (Null)
-    (Pair    a d)
-    (Defs    scp 𝓁)
-    (𝓁       nam)
-    (Stx     e ctx)
-    (Stxξ    stx ξ)
-    (Hole)))
-
-;;;; Extra utils
 
 ;; Lst patter/constructor
 (define-match-expander Lst
@@ -104,6 +76,76 @@
 
               [(_ . xs:id)  #'(and (List? xs) xs)]
               [(_ y ys ... . x:id)  #'(Pair y (Lst ys ... . x))])))
+
+
+;;;; ----------------------------------------
+;;;; Internal Configuration
+
+;; Eval-time continuation, environment, and store
+(define-term AstEnv  (ast env))
+(define-term Store   (size tbl))
+(define-term KApp    (lbl vals tms loc))
+(define-term KIf     (lbl thn els loc))
+(define-term SApp    (lbl vals tms))
+(define-term SIf     (lbl tst thn els))
+;; SSeq is used only in full
+(define-term SSeq    (tms))
+
+;; Expand-time environment
+(define-term TVar    (id))
+(define-term TStop   (all-transform))
+
+;; Expand-time store
+(define-term Σ       (size tbl))
+(define-term StoBind (scps nam))
+
+;; Expand-time continuation
+(define-term κ       (stx ex? 𝓁))
+
+;; Expand-time state (configuration)
+(define-term InEval  (state ξ))
+(define-term ζ       (stx ex? κ Σ))
+
+
+(define-syntax #%term-forms
+  (append '((Var     nam)
+            (Fun     vars ast)
+            (App     lbl rator rands)
+            (If      lbl tst thn els)
+            (VFun    vars ast env)
+            (LBind2  scps_p scps_u)
+            (Val)
+            (Atom)
+            (List)
+            (Bool    b)
+            (Num     n)
+            (Sym     nam)
+            (Prim    nam stx)
+            (Null)
+            (Pair    a d)
+            (Defs    scp 𝓁)
+            (𝓁       nam)
+            (Stx     e ctx)
+            (Stxξ    stx ξ)
+            (Hole))
+          '((AstEnv  ast env)
+            (Store   size tbl)
+            (KApp    lbl vals tms loc)
+            (KIf     lbl thn els loc)
+            (SApp    lbl vals tms)
+            (SIf     lbl tst thn els)
+            (SSeq    tms)
+            (TVar    id)
+            (TStop   all-transform)
+            (Σ       size tbl)
+            (StoBind scps nam)
+            (Stxξ    stx ξ)
+            (κ       stx ex? 𝓁)
+            (InEval  state ξ)
+            (ζ       stx ex? κ Σ))))
+
+
+;;;; Extra utils
 
 (use-terms Val Atom Sym List Null Pair Stx Stxξ Hole)
 

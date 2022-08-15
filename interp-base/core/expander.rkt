@@ -11,24 +11,18 @@
  (only-in "../../signatures.rkt"
           syntax^ env^ store^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^ expander^)
- (only-in "../../terms.rkt" [#%term-forms tm:#%term-forms]
+ (only-in "terms.rkt" #%term-forms
           App% Atom% Sym% Stx% Stxξ% List% Null% Pair% Hole%
-          Lst lst->list snoc id? prim? val? stx? proper-stl?)
- (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms]))
+          AstEnv% TVar% κ% InEval% ζ%
+          Lst lst->list snoc id? prim? val? stx? proper-stl?))
 (provide ==> red@ expand/red@ expand@ expander@)
-
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
 
 ;; ----------------------------------------
 ;; The expander:
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> --> :=<1>)
-  #:within-signatures [(only config^
-                             AstEnv% TVar% κ% InEval% ζ%)
-                       (only syntax^
+  #:within-signatures [(only syntax^
                              empty-ctx zip unzip in-hole alloc-scope add flip)
                        (only env^
                              init-env)
@@ -39,9 +33,9 @@
                        (only mstore^
                              lookup-Σ alloc-name)
                        (only bind^
-                              bind resolve id=?)
+                             bind resolve id=?)
                        (only mcont^
-                              push-κ)
+                             push-κ)
                        (only parser^
                              parse)]
   #:do [(use-terms App Atom Sym Stx List Null Pair Stxξ Hole
@@ -384,9 +378,7 @@
 (define-unit-from-reduction red@ ==>)
 
 (define-mixed-unit expand/red@
-  (import (only config^
-                ζ%)
-          (only eval^
+  (import (only eval^
                 -->)
           (only red^
                 reducer))
@@ -405,7 +397,7 @@
         (cons stx_new Σ_new)))))
 
 (define-compound-unit/infer expand@
-  (import config^ syntax^ env^ store^ eval^ menv^ mstore^
+  (import syntax^ env^ store^ eval^ menv^ mstore^
           mcont^ bind^ parser^)
   (export expand^)
   (link expand/red@ red@))

@@ -9,16 +9,15 @@
  (only-in "../signatures.rkt" syntax^ env^ store^ domain^
           menv^ mstore^ mcont^ bind^ eval^ parser^ expand^ expander^
           run^ debug^)
- (only-in "../terms.rkt"
-          App% List% Pair% Null% Atom% Sym% Stx% Hole%
+ (only-in "../interp-base/phases/terms.rkt" #%term-forms
+          App% List% Pair% Null% Atom% Sym% Stx% Hole% Stxξ%
+          AstEnv% TVar% ζ% κ% InEval%
           Lst snoc lst->list id? prim? val? proper-stl?)
- (only-in "../interp-base/phases/terms.rkt"   Stxξ%)
- (only-in "../interp-base/phases/config.rkt"  config^ #%term-forms)
 
  (only-in "../units.rkt"                      io@)
  (only-in "../interp-base/units.rkt"          cont@ mcont@)
  (only-in "../interp-base/phases/units.rkt"
-          config@ debug@ [syntax@ super:syntax@] expander@)
+          debug@ [syntax@ super:syntax@] expander@)
  (only-in "../interp-set/units.rkt"           env@ domain@ menv@ run@)
  (only-in "../interp-set/phases/units.rkt"    parser@ expand/red@)
  (only-in "../interp-set/phases/expander.rkt" [==> set:==>])
@@ -39,9 +38,7 @@
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (set:==> -->)
-  #:within-signatures [(only config^
-                             AstEnv% TVar% ζ% κ% InEval%)
-                       (only syntax^
+  #:within-signatures [(only syntax^
                              empty-ctx zip unzip add flip union in-hole
                              alloc-scope prune at-phase)
                        (only env^
@@ -71,7 +68,7 @@
 (define-unit-from-reduction red@ ==>)
 
 (define-compound-unit/infer expand@
-  (import config^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^
+  (import syntax^ env^ store^ eval^ menv^ mstore^ mcont^
           bind^ parser^)
   (export expand^)
   (link expand/red@ red@))
@@ -80,7 +77,7 @@
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
-   (link config@ syntax@ env@ store@ cont@ eval@
+   (link syntax@ env@ store@ cont@ eval@
          menv@ mstore@ bind@ mcont@ parser@ expand@ expander@ io@ run@ debug@))
   (import) (export run^ debug^))
 

@@ -8,24 +8,17 @@
  (only-in "../../signatures.rkt"
           syntax^ env^ store^ cont^ eval^
           menv^ mstore^ bind^ parser^ expand^)
- (only-in "../../terms.rkt"
+ (only-in "terms.rkt" #%term-forms
           Var% Fun% App% If% VFun% Bool% Sym% Stx% Null% Pair% Prim% Defs% 𝓁%
-          lst->list id? stx-prim? val?)
- (only-in "terms.rkt" [#%term-forms tm:#%term-forms]
-          Stxξ%)
- (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms]))
+          Stxξ%
+          KApp% KIf% SApp% SIf% AstEnv% TVar% TStop%
+          Σ% Σ*% ζ% InExpand%
+          lst->list id? stx-prim? val?))
 (provide --> eval@)
-
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta ==> :=<1>)
-  #:within-signatures [(only config^
-                             KApp% KIf% SApp% SIf% AstEnv% TVar% TStop%
-                             Σ% Σ*% ζ% InExpand%)
-                       (only syntax^
+  #:within-signatures [(only syntax^
                              alloc-scope add flip union prune)
                        (only env^
                              init-env lookup-env extend-env)
@@ -381,9 +374,7 @@
 (define-unit-from-reduction red@ -->)
 
 (define-mixed-unit eval@
-  (import (only config^
-                AstEnv% Σ*%)
-          (only env^
+  (import (only env^
                 init-env)
           (only store^
                 init-store)

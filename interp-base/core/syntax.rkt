@@ -5,12 +5,10 @@
  (only-in "../../term.rkt" use-terms)
  
  (only-in "../../signatures.rkt" syntax^)
- (only-in "../../terms.rkt"
+ (only-in "terms.rkt" #%term-forms
           Atom% Stx% Null% Pair% Hole%
-          prim?
-          #%term-forms)
- (only-in "../units.rkt" [syntax@ super:syntax@])
- (only-in "config.rkt" config^))
+          prim?)
+ (only-in "../units.rkt" [syntax@ super:syntax@]))
 (provide syntax@)
 
 (define-mixed-unit syntax@

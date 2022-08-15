@@ -10,7 +10,7 @@
  (only-in "../units.rkt"                       env@ store@ domain@ menv@ mstore@
                                                bind@ run@)
  (only-in "../../interp-base/units.rkt"        cont@ mcont@)
- (only-in "../../interp-base/phases/units.rkt" config@ syntax@ debug@ expander@)
+ (only-in "../../interp-base/phases/units.rkt" syntax@ debug@ expander@)
  (only-in "../core/units.rkt"                  eval@)
  (only-in "units.rkt"                          parser@ expand@))
 (provide run delta α ≤a)
@@ -18,7 +18,7 @@
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
-   (link config@ syntax@ env@ store@ cont@ eval@
+   (link syntax@ env@ store@ cont@ eval@
          menv@ mstore@ bind@ mcont@ parser@ expand@ expander@ io@ run@ debug@))
   (import) (export run^ debug^))
 

@@ -5,18 +5,12 @@
  (only-in "../../term.rkt" use-terms)
 
  (only-in "../../signatures.rkt" syntax^)
- (only-in "../../terms.rkt"
-          Stx% Pair% Hole%)
- (only-in "terms.rkt" [#%term-forms tm:#%term-forms]
-          Stxξ%)
- (only-in "config.rkt" config^  [#%term-forms cfg:#%term-forms])
+ (only-in "terms.rkt" #%term-forms
+          Stx% Pair% Hole% Stxξ%)
  (only-in "../units.rkt"        [syntax@ super:syntax@])
  (only-in "../phases/units.rkt" [syntax@ phases:syntax@]))
 (provide syntax@)
 
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
 
 (define-mixed-unit syntax@
   (import)

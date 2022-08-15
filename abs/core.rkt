@@ -10,16 +10,15 @@
           syntax^ env^ store^ cont^ domain^ eval^
           menv^ mstore^ mcont^ bind^ parser^ expand^ expander^ io^ run^ debug^)
 
- (only-in "../terms.rkt" [#%term-forms tm:#%term-forms]
+ (only-in "../interp-base/core/terms.rkt" #%term-forms
           Var% Fun% App% If% Val% VFun% List% Null% Pair% Atom% Bool% Sym%
-          Stx% Stxξ% Prim% Hole%
+          Stx% Prim% Hole% Stxξ%
+          AstEnv% TVar% ζ% κ% InEval%
           Lst id? lst->list snoc prim? val? stx? proper-stl?)
- (only-in "../interp-base/core/config.rkt"
-          config^ [#%term-forms cfg:#%term-forms])
 
  (only-in "../units.rkt"                  io@)
  (only-in "../interp-base/units.rkt"      cont@ mcont@)
- (only-in "../interp-base/core/units.rkt" config@ debug@ expander@
+ (only-in "../interp-base/core/units.rkt" debug@ expander@
           [syntax@ super:syntax@])
  (only-in "../interp-set/units.rkt"       domain@ env@ menv@ run@)
  (only-in "../interp-set/core/units.rkt" [eval@ set:eval@] parser@ expand/red@)
@@ -27,11 +26,8 @@
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
 (provide syntax@ eval@ ==> main-minus@
          run delta α ≤a eval-->* expand==>*)
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
-(use-terms Val Atom)
 
+(use-terms Val Atom)
 
 (define-mixed-unit syntax@
   (import)
@@ -45,9 +41,7 @@
 
 ;; filter out stuck states
 (define-mixed-unit eval@
-  (import (only config^
-                AstEnv%)
-          (only env^
+  (import (only env^
                 init-env)
           (only store^
                 init-store))
@@ -69,9 +63,7 @@
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (set:==> -->)
-  #:within-signatures [(only config^
-                             AstEnv% TVar% ζ% κ% InEval%)
-                       (only syntax^
+  #:within-signatures [(only syntax^
                              empty-ctx zip unzip alloc-scope add flip in-hole)
                        (only env^
                              init-env)
@@ -100,7 +92,7 @@
 (define-unit-from-reduction ex:red@ ==>)
 
 (define-compound-unit/infer expand@
-  (import syntax^ config^ env^ store^ eval^ menv^ mstore^
+  (import syntax^ env^ store^ eval^ menv^ mstore^
           mcont^ bind^ parser^)
   (export expand^)
   (link expand/red@ ex:red@))
@@ -109,7 +101,7 @@
 ;; Main
 
 (define-compound-unit/infer main-minus@
-  (import config^ eval^ expand^ expander^ debug^)
+  (import eval^ expand^ expander^ debug^)
   (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^
           parser^ io^ run^)
   (link syntax@ env@ store@ cont@
@@ -119,7 +111,7 @@
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
-   (link config@ main-minus@ eval@ expand@ expander@ debug@))
+   (link main-minus@ eval@ expand@ expander@ debug@))
   (import) (export run^ debug^))
 
 (define-values/invoke-unit domain@

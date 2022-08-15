@@ -16,12 +16,9 @@
  (only-in "sig/parser-sig.rkt"      parser^)
  (only-in "sig/run-sig.rkt"         run^)
  (only-in "sig/store-sig.rkt"       store^)
- (only-in "sig/syntax-sig.rkt"      syntax^)
-
- (only-in "config.rkt"              config^))
+ (only-in "sig/syntax-sig.rkt"      syntax^))
 
 (provide bind^
-         config^
          cont^
          debug^
          domain^

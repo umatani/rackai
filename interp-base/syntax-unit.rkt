@@ -5,20 +5,14 @@
  "../set.rkt"
  (only-in "../term.rkt" use-terms)
  
- (only-in "../signatures.rkt" config^ syntax^)
- (only-in "../terms.rkt" [#%term-forms tm:#%term-forms]
-          Stx% Null% Pair% Hole%
-          stx?)
- (only-in "../config.rkt" [#%term-forms cfg:#%term-forms]))
+ (only-in "../signatures.rkt" syntax^)
+ (only-in "../terms.rkt" #%term-forms
+          Stx% Null% Pair% Hole% StoBind%
+          stx?))
 
-(import
- (only config^
-       StoBind%))
+(import)
 (export syntax^)
 
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
 (use-terms Stx Null Pair Hole StoBind)
 
 

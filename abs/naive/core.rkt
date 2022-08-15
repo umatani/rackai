@@ -9,14 +9,13 @@
  (only-in "../../signatures.rkt"
           syntax^ env^ store^ cont^ domain^ eval^
           menv^ mstore^ mcont^ bind^ parser^ expand^ run^ debug^)
- (only-in "../../terms.rkt" [#%term-forms tm:#%term-forms]
+ (only-in "../../interp-base/core/terms.rkt" #%term-forms
           Var% Fun% App% If% Val% Atom% List% VFun% Bool% Sym%
           Stx% Stxξ% Null% Pair% Prim% Hole%
+          SApp% SIf% KApp% KIf% AstEnv% TVar% ζ% κ% InEval%
           Lst snoc id? prim?)
 
  (only-in "../../interp-base/core/units.rkt" debug@ expander@)
- (only-in "../../interp-base/core/config.rkt"
-          config^ config@ [#%term-forms cfg:#%term-forms])
  (only-in "../../interp-set/core/units.rkt" expand/red@)
  (only-in "../../interp-set/core/eval.rkt" [--> set:-->])
  (only-in "../core.rkt" [==> abs:==>] main-minus@)
@@ -26,16 +25,10 @@
           val? proper-stl? stx?))
 (provide run delta α ≤a)
 
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
-
 ;; Revise --> to interpret abstract values (val-⊤, stx-⊤, etc.)
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta) #:super (set:--> delta)
-  #:within-signatures [(only config^
-                             SApp% SIf% KApp% KIf% AstEnv%)
-                       (only env^
+  #:within-signatures [(only env^
                              extend-env lookup-env)
                        (only store^
                              update-store* lookup-store alloc-loc*)
@@ -57,9 +50,7 @@
 
 ;; filter out stuck states (same as ../core.rkt)
 (define-mixed-unit eval@
-  (import (only config^
-                AstEnv%)
-          (only env^
+  (import (only env^
                 init-env)
           (only store^
                 init-store))
@@ -85,9 +76,7 @@
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (abs:==> -->)
-  #:within-signatures [(only config^
-                             AstEnv% TVar% ζ% κ% InEval%)
-                       (only syntax^
+  #:within-signatures [(only syntax^
                              empty-ctx zip unzip alloc-scope add flip in-hole)
                        (only env^
                              init-env)
@@ -120,7 +109,7 @@
 (define-unit-from-reduction ex:red@ ==>)
 
 (define-compound-unit/infer expand@
-  (import syntax^ config^ env^ store^ eval^ menv^ mstore^
+  (import syntax^ env^ store^ eval^ menv^ mstore^
           mcont^ bind^ parser^)
   (export expand^)
   (link expand/red@ ex:red@))
@@ -130,7 +119,7 @@
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
-   (link config@ main-minus@ eval@ expand@ expander@ debug@))
+   (link main-minus@ eval@ expand@ expander@ debug@))
   (import) (export run^ debug^))
 
 (define-values/invoke-unit domain@

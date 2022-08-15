@@ -6,19 +6,12 @@
  (only-in "../../term.rkt" use-terms)
 
  (only-in "../../signatures.rkt" syntax^)
-
- (only-in "../../terms.rkt"
+ (only-in "terms.rkt" #%term-forms
           Atom% Stx% Null% Pair% Hole%
+          Stxξ%
           prim?)
- (only-in "terms.rkt" [#%term-forms tm:#%term-forms]
-          Stxξ%)
- (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms])
  (only-in "../units.rkt" [syntax@ super:syntax@]))
 (provide syntax@)
-
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
 
 (define-mixed-unit syntax@
   (import)

@@ -7,13 +7,10 @@
 
  (only-in "../../signatures.rkt"
           env^ store^ eval^ menv^ mstore^ expand^ io^ run^ debug^)
- (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms])
- (only-in "terms.rkt" [#%term-forms tm:#%term-forms]
-          Stxξ%))
+ (only-in "terms.rkt" #%term-forms
+          Stxξ% AstEnv% ζ% Σ*%))
 
-(import (only config^
-              AstEnv% ζ% Σ*%)
-        (only env^
+(import (only env^
               init-env)
         (only store^
               init-store)
@@ -30,10 +27,6 @@
         (only run^
               run))
 (export debug^)
-
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
 
 (use-terms AstEnv Stxξ ζ Σ*)
 

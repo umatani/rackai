@@ -9,25 +9,16 @@
  (only-in "../../signatures.rkt"
           syntax^ env^ store^ eval^ menv^ mstore^ bind^ mcont^
           parser^ expand^ expander^)
- (only-in "../../terms.rkt"
-          App% Atom% Sym% Stx% List% Null% Pair% Hole%
+ (only-in "../../interp-base/phases/terms.rkt" #%term-forms
+          App% Atom% Sym% Stx% List% Null% Pair% Hole% Stxξ%
+          AstEnv% TVar% ζ% κ% InEval%
           Lst lst->list snoc id? prim? val? proper-stl?)
- (only-in "../../interp-base/phases/terms.rkt" [#%term-forms tm:#%term-forms]
-          Stxξ%)
- (only-in "../../interp-base/phases/config.rkt" [#%term-forms cfg:#%term-forms]
-          config^ )
  (only-in "../../interp-base/phases/expander.rkt" [==> base:==>] expander@))
 (provide ==> expand/red@ expand@)
 
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
-
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (base:==> <- -->)
-  #:within-signatures [(only config^
-                             AstEnv% TVar% ζ% κ% InEval%)
-                       (only syntax^
+  #:within-signatures [(only syntax^
                              empty-ctx zip unzip add flip union in-hole
                              alloc-scope prune at-phase)
                        (only env^
@@ -78,9 +69,7 @@
 (define-unit-from-reduction red@ ==>)
 
 (define-mixed-unit expand/red@
-  (import (only config^
-                ζ%)
-          (only eval^
+  (import (only eval^
                 -->)
           (only red^
                 reducer))
@@ -99,7 +88,7 @@
         (list->set (map cons stx_new Σ_new))))))
 
 (define-compound-unit/infer expand@
-  (import config^ syntax^ env^ store^ eval^ menv^ mstore^
+  (import syntax^ env^ store^ eval^ menv^ mstore^
           mcont^ bind^ parser^)
   (export expand^)
   (link expand/red@ red@))

@@ -6,23 +6,17 @@
  (only-in "../term.rkt" use-terms)
 
  (only-in "../signatures.rkt"
-          config^ syntax^ mstore^ bind^)
- (only-in "../terms.rkt"
-          Sym% Stx% [#%term-forms tm:#%term-forms])
- (only-in "../config.rkt" [#%term-forms cfg:#%term-forms]))
+          syntax^ mstore^ bind^)
+ (only-in "../terms.rkt" #%term-forms
+          Sym% Stx% Σ% StoBind%))
 
 (import
- (only config^
-       Σ% StoBind%)
  (only syntax^
        binding-lookup biggest-subset at-phase)
  (only mstore^
        lookup-Σ))
 (export bind^)
 
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
 (use-terms Sym Stx Σ StoBind)
 
 

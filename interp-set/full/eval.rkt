@@ -4,25 +4,21 @@
  "../../reduction.rkt"
  "../../mix.rkt"
  (only-in "../../term.rkt" use-terms)
- (only-in "../../dprint.rkt" dprint)
  
  (only-in "../../signatures.rkt"
           syntax^ env^ store^ cont^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^)
- (only-in "../../terms.rkt"
+ (only-in "../../interp-base/full/terms.rkt" #%term-forms
           Var% Fun% App% If% Bool% VFun% Sym% Stx% Null% Pair% Prim% Defs% 𝓁%
+          Stxξ%
+          KApp% KIf% SApp% SIf% AstEnv% Σ% ζ% Σ*% TVar% TStop% InExpand%
           lst->list id? stx-prim? val?)
- (only-in "../../interp-base/full/terms.rkt"  Stxξ%)
- (only-in "../../interp-base/full/config.rkt" config^ #%term-forms)
  (only-in "../../interp-base/full/eval.rkt" [--> base:-->]))
 (provide --> red@ eval@)
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta ==>) #:super (base:--> delta ==> <-)
-  #:within-signatures [(only config^
-                             KApp% KIf% SApp% SIf%
-                             AstEnv% Σ% ζ% Σ*% TVar% TStop% InExpand%)
-                       (only syntax^
+  #:within-signatures [(only syntax^
                              add flip union alloc-scope prune)
                        (only env^
                              init-env lookup-env extend-env)
@@ -62,9 +58,7 @@
 (define-unit-from-reduction red@ -->)
 
 (define-mixed-unit eval@
-  (import (only config^
-                AstEnv% Σ*%)
-          (only env^
+  (import (only env^
                 init-env)
           (only store^
                 init-store)

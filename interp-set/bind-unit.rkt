@@ -9,21 +9,14 @@
 
  (only-in "../signatures.rkt"
           syntax^ mstore^ bind^)
- (only-in "../terms.rkt" [#%term-forms tm:#%term-forms]
-          Sym% Stx%)
- (only-in "../config.rkt" config^ [#%term-forms cfg:#%term-forms]))
+ (only-in "../terms.rkt" #%term-forms
+          Sym% Stx% Σ% StoBind%))
 
-(import (only config^
-              Σ% StoBind%)
-        (only syntax^
+(import (only syntax^
               binding-lookup biggest-subset at-phase)
         (only mstore^
               lookup-Σ))
 (export bind^)
-
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
 
 (use-terms Sym Stx Σ StoBind)
 

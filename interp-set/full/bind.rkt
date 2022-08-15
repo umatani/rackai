@@ -7,14 +7,13 @@
 
  (only-in "../../signatures.rkt"
           syntax^ menv^ mstore^ bind^)
- (only-in "../../interp-base/full/config.rkt" config^ #%term-forms)
+ (only-in "../../interp-base/full/terms.rkt" #%term-forms
+          TStop%)
  (only-in "../units.rkt" [bind@ super:bind@]))
 (provide bind@)
 
 (define-mixed-unit bind@
-  (import (only config^
-                TStop%)
-          (only menv^
+  (import (only menv^
                 lookup-ξ))
   (export bind^)
   (inherit [super:bind@ bind resolve])

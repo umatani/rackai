@@ -7,17 +7,15 @@
  (only-in "../term.rkt" use-terms)
 
  (only-in "../signatures.rkt" store^)
-
- (only-in "../config.rkt" config^ #%term-forms)
+ (only-in "../terms.rkt" #%term-forms
+          Store%)
  (rename-in "../interp-base/units.rkt" [store@ base:store@]))
 (provide store@)
 
 (define-mixed-unit store@
-  (import (only config^
-                Store%))
+  (import)
   (export store^)
   (inherit [base:store@ init-store alloc-loc alloc-loc*])
-
   (use-terms Store)
 
   ;; Set-based heap

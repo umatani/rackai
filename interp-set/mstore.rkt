@@ -7,16 +7,15 @@
  (only-in "../term.rkt" use-terms)
  
  (only-in "../signatures.rkt" syntax^ mstore^)
- (only-in "../config.rkt" config^ #%term-forms)
+ (only-in "../terms.rkt" #%term-forms
+          Σ%)
  (rename-in "../interp-base/units.rkt" [mstore@ base:mstore@]))
 (provide mstore@)
 
 (define-mixed-unit mstore@
-  (import (only config^
-                Σ%))
+  (import)
   (export mstore^)
   (inherit [base:mstore@ init-Σ alloc-name alloc-𝓁])
-
   (use-terms Σ)
 
   ;; Set-based Σ

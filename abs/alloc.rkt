@@ -4,11 +4,8 @@
  "../mix.rkt"
  (only-in "../term.rkt" use-terms)
  (only-in "../signatures.rkt" syntax^ store^ mstore^ bind^)
- (only-in "../terms.rkt"
-          Sym% Stx% 𝓁%
-          [#%term-forms tm:#%term-forms])
- (only-in "../config.rkt" config^ [#%term-forms cfg:#%term-forms])
-
+ (only-in "../terms.rkt" #%term-forms
+          Sym% Stx% 𝓁% Σ% StoBind%)
  (only-in "../interp-set/store.rkt" [store@ super:store@])
  (only-in "../interp-set/units.rkt"
           [mstore@ super:mstore@]
@@ -17,11 +14,6 @@
          mstore::fin-alloc@ mstore@
          syntax::fin-alloc@
          bind@)
-
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
-
 
 (define-unit store::fin-alloc@
   (import)
@@ -66,8 +58,7 @@
 
 
 (define-unit mstore::fin-alloc@
-  (import (only config^
-                Σ%))
+  (import)
   (export mstore^)
   (use-terms Sym Stx 𝓁 Σ)
 
@@ -109,8 +100,7 @@
 
 
 (define-unit syntax::fin-alloc@
-  (import (only config^
-                StoBind%))
+  (import)
   (export syntax^)
   (use-terms StoBind)
 
@@ -167,9 +157,7 @@
                              (set->list sbs)))))
 
 (define-mixed-unit bind@
-  (import (only config^
-                StoBind%)
-          (only syntax^
+  (import (only syntax^
                 binding-lookup biggest-subset at-phase)
           (only mstore^
                 lookup-Σ))

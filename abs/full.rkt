@@ -8,15 +8,14 @@
 
  (only-in "../signatures.rkt" syntax^ env^ store^ cont^ eval^
           domain^ menv^ mstore^ bind^ parser^ expand^ run^ debug^)
- (only-in "../interp-base/full/config.rkt" config^ #%term-forms)
- (only-in "../terms.rkt"
+ (only-in "../interp-base/full/terms.rkt" #%term-forms
           Var% Fun% App% If% VFun% Null% Pair% Bool% Stx% Sym% Prim% 𝓁% Defs%
           lst->list id? stx-prim?)
  
  (only-in "../units.rkt"                  io@)
  (only-in "../interp-base/units.rkt"      cont@ mcont@)
  (only-in "../interp-base/full/units.rkt"
-          [syntax@ super:syntax@] config@ expander@ debug@)
+          [syntax@ super:syntax@] expander@ debug@)
  (only-in "../interp-set/units.rkt"       env@ domain@ menv@ run@)
  (only-in "../interp-set/full/units.rkt"  eval@ parser@ expand@)
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
@@ -37,7 +36,7 @@
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
-   (link config@ syntax@ env@ store@ cont@ eval@
+   (link syntax@ env@ store@ cont@ eval@
          menv@ mstore@ bind@ mcont@ parser@ expand@ expander@ io@ run@ debug@))
   (import) (export run^ debug^))
 

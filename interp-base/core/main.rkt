@@ -8,15 +8,15 @@
  ;;;; Units
  (only-in "../../units.rkt" io@)
  (only-in "../units.rkt"    env@ store@ cont@ domain@ menv@ mstore@ mcont@
-                            bind@ run@)
- (only-in "units.rkt"       config@ syntax@ eval@ parser@
-                            expand@ expander@ debug@))
+          bind@ run@)
+ (only-in "units.rkt"       syntax@ eval@ parser@
+          expand@ expander@ debug@))
 (provide run delta α ≤a)
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
-   (link config@ syntax@ env@ store@ cont@ eval@
+   (link syntax@ env@ store@ cont@ eval@
          menv@ mstore@ bind@ mcont@ parser@ expand@ expander@
          io@ run@ debug@))
   (import) (export run^ debug^))

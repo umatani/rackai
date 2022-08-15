@@ -1,13 +1,15 @@
 #lang racket
 (require
  "../../term.rkt"
- (rename-in "../../terms.rkt" [#%term-forms super:#%term-forms]
-            [Stxξ% super:Stxξ%]))
-(provide Stxξ% #%term-forms)
+ (rename-in "../core/terms.rkt"
+            [#%term-forms core:#%term-forms]
+            [Stxξ% core:Stxξ%]))
+(provide Stxξ% #%term-forms
+         (all-from-out "../core/terms.rkt"))
 
 ;;; updated (ph scps
-(define-term Stxξ super:Stxξ (ph scps))
+(define-term Stxξ core:Stxξ (ph scps))
 
 (define-syntax #%term-forms
   (append '((Stxξ ph stx ξ scps))
-          (syntax-local-value #'super:#%term-forms)))
+          (syntax-local-value #'core:#%term-forms)))

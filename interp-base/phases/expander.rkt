@@ -8,26 +8,18 @@
  (only-in "../../signatures.rkt"
           syntax^ env^ store^ eval^ menv^ mstore^
           bind^ mcont^ parser^ expand^ expander^)
- (only-in "../../terms.rkt"
-          App% Atom% Sym% Stx% List% Null% Pair% Hole%
-          Lst lst->list snoc id? prim? val? proper-stl?)
- (only-in "terms.rkt" [#%term-forms tm:#%term-forms]
-          Stxξ%)
- (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms]))
+ (only-in "terms.rkt" #%term-forms
+          App% Atom% Sym% Stx% List% Null% Pair% Hole% Stxξ%
+          TVar% AstEnv% ζ% κ% InEval%
+          Lst lst->list snoc id? prim? val? proper-stl?))
 (provide ==> red@ expand/red@ expand@ expander@)
-
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
 
 ;; ----------------------------------------
 ;; The expander:
 
 ;; ==> :  ζ -> (Setof ζ)
 (define-reduction (==> :=<1> -->)
-  #:within-signatures [(only config^
-                             TVar% AstEnv% ζ% κ% InEval%)
-                       (only syntax^
+  #:within-signatures [(only syntax^
                              empty-ctx zip unzip add flip union in-hole
                              alloc-scope prune at-phase)
                        (only env^
@@ -411,12 +403,10 @@
 (define-unit-from-reduction red@ ==>)
 
 (define-mixed-unit expand/red@
-  (import  (only config^
-                 ζ%)
-           (only eval^
-                 -->)
-           (only red^
-                 reducer))
+  (import (only eval^
+                -->)
+          (only red^
+                reducer))
   (export expand^)
   (inherit)
   (use-terms ζ Stxξ)
@@ -432,7 +422,7 @@
         (cons stx_new Σ_new)))))
 
 (define-compound-unit/infer expand@
-  (import config^ syntax^ env^ store^ eval^
+  (import syntax^ env^ store^ eval^
           menv^ mstore^ mcont^ bind^ parser^)
   (export expand^)
   (link expand/red@ red@))

@@ -6,24 +6,18 @@
  (only-in "../../term.rkt" use-terms)
 
  (only-in "../../signatures.rkt" env^ store^ cont^ eval^)
- (only-in "../../terms.rkt" [#%term-forms tm:#%term-forms]
+ (only-in "terms.rkt" #%term-forms
           Var% Fun% App% If% Bool% VFun% Prim%
-          val?)
- (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms]))
+          AstEnv% KApp% KIf% SApp% SIf%
+          val?))
 (provide --> eval@)
-
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
 
 ;; ----------------------------------------
 ;; Evaluating AST:
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta :=<1>)
-  #:within-signatures [(only config^
-                             AstEnv% KApp% KIf% SApp% SIf%)
-                       (only env^
+  #:within-signatures [(only env^
                              lookup-env extend-env)
                        (only store^
                              lookup-store alloc-loc* update-store*)
@@ -121,8 +115,7 @@
 (define-unit-from-reduction red@ -->)
 
 (define-mixed-unit eval@
-  (import (only config^      AstEnv%)
-          (only env^         init-env)
+  (import (only env^         init-env)
           (only store^       init-store))
   (export eval^)
   (inherit [red@ reducer])

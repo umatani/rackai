@@ -5,22 +5,15 @@
  "../set.rkt"
  (only-in "../term.rkt" use-terms)
 
- (only-in "../signatures.rkt" config^ syntax^ menv^ mstore^)
- (only-in "../terms.rkt"
-          Sym% Stx% 𝓁%
-          [#%term-forms tm:#%term-forms])
- (only-in "../config.rkt" [#%term-forms cfg:#%term-forms]))
+ (only-in "../signatures.rkt" syntax^ menv^ mstore^)
+ (only-in "../terms.rkt" #%term-forms
+          Sym% Stx% 𝓁% Σ%))
 
 (import
- (only config^
-       Σ%)
  (only syntax^
        add biggest-subset binding-lookup))
 (export mstore^)
 
-(define-syntax #%term-forms
-  (append (syntax-local-value #'tm:#%term-forms)
-          (syntax-local-value #'cfg:#%term-forms)))
 (use-terms Sym Stx 𝓁 Σ)
 
 ;; ----------------------------------------
