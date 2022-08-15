@@ -6,9 +6,10 @@
  (only-in "../../term.rkt" use-terms)
 
  (only-in "../../signatures.rkt"
-          terms-extra^ env^ store^ cont^ eval^)
+          env^ store^ cont^ eval^)
  (only-in "../../terms.rkt"
-          Var% Fun% App% If% Bool% VFun% Prim%)
+          Var% Fun% App% If% Bool% VFun% Prim%
+          val?)
  (only-in "../../interp-base/core/config.rkt" config^ #%term-forms)
  (only-in "../../interp-base/core/eval.rkt" [--> base:-->]))
 (provide --> eval@ red@)
@@ -19,8 +20,6 @@
 (define-reduction (--> delta) #:super (base:--> delta <-)
   #:within-signatures [(only config^
                              AstEnv% KApp% KIf% SApp% SIf%)
-                       (only terms-extra^
-                             val?)
                        (only env^
                              lookup-env extend-env)
                        (only store^
@@ -33,8 +32,6 @@
 (define-mixed-unit eval@
   (import (only config^
                 AstEnv%)
-          (only terms-extra^
-                val?)
           (only env^
                 init-env)
           (only store^

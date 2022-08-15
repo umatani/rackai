@@ -15,12 +15,7 @@
   (import)
   (export config^)
   (inherit [core:config@
-            [core:Stxξ% Stxξ%]
             AstEnv% Store% KApp% KIf% SApp% SIf% SSeq%
-            TVar% TStop% Σ% StoBind% κ% InEval% ζ%])
-  ;;; updated (ph scps
-  (define-term Stxξ core:Stxξ (ph scps)))
+            TVar% TStop% Σ% StoBind% κ% InEval% ζ%]))
 
-(define-syntax #%term-forms
-  (append '((Stxξ ph stx ξ scps))
-          (syntax-local-value #'core:#%term-forms)))
+(define-syntax #%term-forms (syntax-local-value #'core:#%term-forms))

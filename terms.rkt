@@ -46,6 +46,7 @@
 
 ;; Syntax objects (a subset of values)
 (define-term Stx Atom  (e ctx))
+(define-term Stxξ      (stx ξ))
 
 ;; Expand-time continuation
 (define-term Hole      ())
@@ -75,6 +76,7 @@
     (Defs    scp 𝓁)
     (𝓁       nam)
     (Stx     e ctx)
+    (Stxξ    stx ξ)
     (Hole)))
 
 ;;;; Extra utils
@@ -103,7 +105,7 @@
               [(_ . xs:id)  #'(and (List? xs) xs)]
               [(_ y ys ... . x:id)  #'(Pair y (Lst ys ... . x))])))
 
-(use-terms Val Atom Sym List Null Pair Stx Hole)
+(use-terms Val Atom Sym List Null Pair Stx Stxξ Hole)
 
 ;; Additional constructor
 (define (id nam ctx) (Stx (Sym nam) ctx))
@@ -147,3 +149,27 @@
                                  syntax-local-make-definition-context
                                  syntax-local-bind-syntaxes)))
 
+(define (val? x)
+  (or (Val? x)
+      (and (Pair? x) (val? (Pair-a x)) (val? (Pair-d x)))
+      (stx? x)))
+
+(define (stx? x)
+  (or (and (Stx? x) (Atom? (Stx-e x)))
+      (and (Stx? x) (prim? (Stx-e x)))
+      (and (Stx? x) (Pair? (Stx-e x))
+           (stx? (Pair-a (Stx-e x)))
+           (stl? (Pair-d (Stx-e x))))
+      (and (Stx? x) (proper-stl? (Stx-e x)))
+      (Stxξ? x)
+      (Hole? x)
+      (and (Stx? x) (Hole? (Stx-e x)))))
+
+(define (stl? x)
+  (or (Null? x) (stx? x)
+      (and (Pair? x) (stx? (Pair-a x)) (stl? (Pair-d x)))
+      (Hole? x)))
+
+(define (proper-stl? x)
+  (or (Null? x)
+      (and (Pair? x) (stx? (Pair-a x)) (proper-stl? (Pair-d x)))))

@@ -6,14 +6,12 @@
  (only-in "../term.rkt"  use-terms)
 
  (only-in "../signatures.rkt"
-          terms-extra^ syntax^ menv^ bind^ parse^)
+          syntax^ menv^ bind^ parse^)
  (only-in "../terms.rkt" #%term-forms
           Var% Fun% App% If% Val% Atom% Stx% List% Null% Pair% Prim%
-          Lst lst->list id? prim?))
+          Lst lst->list id? prim? proper-stl?))
 
-(import (only terms-extra^
-              proper-stl?)
-        (only syntax^
+(import (only syntax^
               unzip strip)
         (only menv^
               init-ξ)

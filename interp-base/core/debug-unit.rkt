@@ -6,13 +6,14 @@
 
  (only-in "../../signatures.rkt"
           env^ store^ eval^ menv^ mstore^ expand^ io^ run^ debug^)
- (only-in "../../terms.rkt" [#%term-forms tm:#%term-forms])
+ (only-in "../../terms.rkt" [#%term-forms tm:#%term-forms]
+          Stxξ%)
  (only-in "config.rkt"
           config^ [#%term-forms cfg:#%term-forms]))
 
 (import
  (only config^
-       AstEnv% Stxξ% ζ%)
+       AstEnv% ζ%)
  (only env^
        init-env)
  (only store^

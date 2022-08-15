@@ -4,7 +4,7 @@
  (only-in "../../term.rkt" use-terms)
 
  (only-in "../../signatures.rkt"
-          terms-extra^ syntax^ menv^ bind^ parse^ parser^)
+          syntax^ menv^ bind^ parse^ parser^)
  (only-in "config.rkt" config^ #%term-forms)
  (only-in "../units.rkt" parse@))
 (provide parser@)

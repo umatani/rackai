@@ -5,11 +5,10 @@
  "../../mix.rkt"
  (only-in "../../term.rkt" use-terms)
 
- (only-in "../../signatures.rkt"
-          terms-extra^ env^ store^ cont^ eval^)
- (only-in "../../terms.rkt"
+ (only-in "../../signatures.rkt" env^ store^ cont^ eval^)
+ (only-in "../../terms.rkt" [#%term-forms tm:#%term-forms]
           Var% Fun% App% If% Bool% VFun% Prim%
-          [#%term-forms tm:#%term-forms])
+          val?)
  (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms]))
 (provide --> eval@)
 
@@ -22,9 +21,7 @@
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta :=<1>)
-  #:within-signatures [(only terms-extra^
-                             val?)
-                       (only config^
+  #:within-signatures [(only config^
                              AstEnv% KApp% KIf% SApp% SIf%)
                        (only env^
                              lookup-env extend-env)
@@ -124,8 +121,7 @@
 (define-unit-from-reduction red@ -->)
 
 (define-mixed-unit eval@
-  (import (only terms-extra^ val?)
-          (only config^      AstEnv%)
+  (import (only config^      AstEnv%)
           (only env^         init-env)
           (only store^       init-store))
   (export eval^)

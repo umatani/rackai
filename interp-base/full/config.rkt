@@ -16,7 +16,6 @@
   (export config^)
   (inherit [phases:config@
             [phases:AstEnv% AstEnv%]
-            [phases:Stxξ%   Stxξ%]
             [phases:KApp%   KApp%]
             [phases:SApp%   SApp%]
             [phases:κ%      κ%]
@@ -24,8 +23,6 @@
             Store% KIf% SIf% SSeq% TVar% TStop% Σ% StoBind% InEval%])
   ;; add ph, maybe-scp, and ξ
   (define-term AstEnv   phases:AstEnv (ph maybe-scp ξ))
-  ;; remove scps from those of phases
-  (define-term Stxξ     phases:Stxξ   () #:remove [scps])
   ;; new
   (define-term Σ*                     (Σ scps_p scps_u))
   ;; add ctx (List Ph MaybeScp ξ)
@@ -38,7 +35,6 @@
   (define-term κ        phases:κ      (Σ*))
   ;; Σ -> Σ*
   (define-term ζ        phases:ζ      (Σ*) #:remove [Σ]))
-
 
 (define-syntax #%term-forms
   (append '((AstEnv   ph ast env maybe-scp ξ)

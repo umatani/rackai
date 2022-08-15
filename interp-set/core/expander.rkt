@@ -6,11 +6,11 @@
  (only-in "../../term.rkt"  use-terms)
 
  (only-in "../../signatures.rkt"
-          terms-extra^ syntax^ env^ store^ eval^
+          syntax^ env^ store^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^ expander^)
  (only-in "../../terms.rkt"
-          App% Atom% Sym% Stx% List% Null% Pair% Hole%
-          Lst lst->list snoc id? prim?)
+          App% Atom% Sym% Stx% Stxξ% List% Null% Pair% Hole%
+          Lst lst->list snoc id? prim? val? stx? proper-stl?)
  (only-in "../../interp-base/core/config.rkt" config^ #%term-forms)
  (only-in "../../interp-base/core/expander.rkt" [==> base:==>] expander@))
 (provide ==> red@ expand/red@ expand@)
@@ -20,9 +20,7 @@
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (base:==> --> <-)
   #:within-signatures [(only config^
-                             AstEnv% TVar% ζ% Stxξ% κ% InEval%)
-                       (only terms-extra^
-                             val? stx? proper-stl?)
+                             AstEnv% TVar% ζ% κ% InEval%)
                        (only syntax^
                              empty-ctx zip unzip alloc-scope add flip in-hole)
                        (only env^
@@ -73,7 +71,7 @@
 
 (define-mixed-unit expand/red@
   (import (only config^
-                Stxξ% ζ%)
+                ζ%)
           (only eval^
                 -->)
           (only red^
@@ -94,7 +92,7 @@
         (list->set (map cons stx_new Σ_new)))))  )
 
 (define-compound-unit/infer expand@
-  (import terms-extra^ config^ syntax^ env^ store^ eval^ menv^ mstore^
+  (import config^ syntax^ env^ store^ eval^ menv^ mstore^
           mcont^ bind^ parser^)
   (export expand^)
   (link expand/red@ red@))

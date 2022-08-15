@@ -4,17 +4,19 @@
  "../../nondet.rkt"
  (only-in "../../term.rkt" use-terms)
  
- (only-in "../../signatures.rkt" terms-extra^ domain^)
+ (only-in "../../signatures.rkt" domain^)
 
  (only-in "../../terms.rkt" #%term-forms
-          Val% Atom% List% Bool% Num% Sym% Stx% Null% Pair% Prim%))
-(provide val-⊤ atom-⊤ num-⊤ stx-⊤ list-⊤
-         ≤e domain@)
+          Val% Atom% List% Bool% Num% Sym% Stx% Stxξ% Null% Pair% Prim% Hole%
+          prim?))
+(provide val-⊤ atom-⊤ num-⊤ stx-⊤ list-⊤ ≤e
+         val? stx? proper-stl?
+         domain@)
 
 ;; ----------------------------------------
 ;; Implementation of Domains:
 
-(use-terms Val Atom List Bool Num Sym Stx Null Pair Prim)
+(use-terms Val Atom List Bool Num Sym Stx Stxξ Null Pair Prim Hole)
 
 (define val-⊤  (Val))
 (define atom-⊤ (Atom))
@@ -38,6 +40,35 @@
         [((? List?) list-⊤) #t]
         [(_         list-⊤) #f]
         [(_ _) #f])))
+
+;; extends predicates to recognize stx-⊤
+
+(define (val? x)
+  (or (Val? x)
+      (and (Pair? x) (val? (Pair-a x)) (val? (Pair-d x)))
+      (stx? x)))
+
+(define (stx? x)
+  (or (equal? x stx-⊤) ;; added
+      (and (Stx? x) (Atom? (Stx-e x)))
+      (and (Stx? x) (prim? (Stx-e x)))
+      (and (Stx? x) (Pair? (Stx-e x))
+           (stx? (Pair-a (Stx-e x)))
+           (stl? (Pair-d (Stx-e x))))
+      (and (Stx? x) (proper-stl? (Stx-e x)))
+      (Stxξ? x)
+      (Hole? x)
+      (and (Stx? x) (Hole? (Stx-e x)))))
+
+(define (stl? x)
+  (or (Null? x) (stx? x)
+      (and (Pair? x) (stx? (Pair-a x)) (stl? (Pair-d x)))
+      (Hole? x)))
+
+(define (proper-stl? x)
+  (or (Null? x)
+      (and (Pair? x) (stx? (Pair-a x)) (proper-stl? (Pair-d x)))))
+
 
 (define-unit domain@
   (import)

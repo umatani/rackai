@@ -3,7 +3,7 @@
  "../../mix.rkt"
  
  (only-in "../../signatures.rkt"
-          terms-extra^ syntax^ menv^ bind^ parse^ parser^)
+          syntax^ menv^ bind^ parse^ parser^)
 
  (only-in "../units.rkt" parse@))
 (provide parser@)

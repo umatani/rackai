@@ -16,7 +16,7 @@
    ;; Expand-time store
    Σ% StoBind%
    ;; Expand-time continuation
-   Stxξ% κ%
+   κ%
    ;; Expand-time state (configuration)
    InEval% ζ%))
 
@@ -42,7 +42,6 @@
   (define-term StoBind (scps nam))
 
   ;; Expand-time continuation
-  (define-term Stxξ    (stx ξ))
   (define-term κ       (stx ex? 𝓁))
 
   ;; Expand-time state (configuration)

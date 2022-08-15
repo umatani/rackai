@@ -6,15 +6,16 @@
  (only-in "../term.rkt" use-terms)
  "../test/suites.rkt"
 
- (only-in "../signatures.rkt" terms-extra^ syntax^ env^ store^ domain^
+ (only-in "../signatures.rkt" syntax^ env^ store^ domain^
           menv^ mstore^ mcont^ bind^ eval^ parser^ expand^ expander^
           run^ debug^)
- (only-in "../interp-base/phases/config.rkt" config^ #%term-forms)
  (only-in "../terms.rkt"
           App% List% Pair% Null% Atom% Sym% Stx% Hole%
-          Lst snoc lst->list id? prim?)
+          Lst snoc lst->list id? prim? val? proper-stl?)
+ (only-in "../interp-base/phases/terms.rkt"   Stxξ%)
+ (only-in "../interp-base/phases/config.rkt"  config^ #%term-forms)
 
- (only-in "../units.rkt"                    terms-extra@ io@)
+ (only-in "../units.rkt"                      io@)
  (only-in "../interp-base/units.rkt"          cont@ mcont@)
  (only-in "../interp-base/phases/units.rkt"
           config@ debug@ [syntax@ super:syntax@] expander@)
@@ -39,9 +40,7 @@
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (set:==> -->)
   #:within-signatures [(only config^
-                             AstEnv% TVar% ζ% Stxξ% κ% InEval%)
-                       (only terms-extra^
-                             val? proper-stl?)
+                             AstEnv% TVar% ζ% κ% InEval%)
                        (only syntax^
                              empty-ctx zip unzip add flip union in-hole
                              alloc-scope prune at-phase)
@@ -72,7 +71,7 @@
 (define-unit-from-reduction red@ ==>)
 
 (define-compound-unit/infer expand@
-  (import terms-extra^ config^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^
+  (import config^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^
           bind^ parser^)
   (export expand^)
   (link expand/red@ red@))
@@ -81,7 +80,7 @@
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
-   (link config@ terms-extra@ syntax@ env@ store@ cont@ eval@
+   (link config@ syntax@ env@ store@ cont@ eval@
          menv@ mstore@ bind@ mcont@ parser@ expand@ expander@ io@ run@ debug@))
   (import) (export run^ debug^))
 

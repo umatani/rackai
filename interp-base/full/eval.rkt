@@ -6,11 +6,13 @@
  (only-in "../../term.rkt"   use-terms)
 
  (only-in "../../signatures.rkt"
-          terms-extra^ syntax^ env^ store^ cont^ eval^
+          syntax^ env^ store^ cont^ eval^
           menv^ mstore^ bind^ parser^ expand^)
- (only-in "../../terms.rkt" [#%term-forms tm:#%term-forms]
+ (only-in "../../terms.rkt"
           Var% Fun% App% If% VFun% Bool% Sym% Stx% Null% Pair% Prim% Defs% 𝓁%
-          lst->list id? stx-prim?)
+          lst->list id? stx-prim? val?)
+ (only-in "terms.rkt" [#%term-forms tm:#%term-forms]
+          Stxξ%)
  (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms]))
 (provide --> eval@)
 
@@ -22,9 +24,7 @@
 (define-reduction (--> delta ==> :=<1>)
   #:within-signatures [(only config^
                              KApp% KIf% SApp% SIf% AstEnv% TVar% TStop%
-                             Stxξ% Σ% Σ*% ζ% InExpand%)
-                       (only terms-extra^
-                             val?)
+                             Σ% Σ*% ζ% InExpand%)
                        (only syntax^
                              alloc-scope add flip union prune)
                        (only env^
@@ -383,8 +383,6 @@
 (define-mixed-unit eval@
   (import (only config^
                 AstEnv% Σ*%)
-          (only terms-extra^
-                val?)
           (only env^
                 init-env)
           (only store^

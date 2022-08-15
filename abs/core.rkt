@@ -7,17 +7,17 @@
  "../test/suites.rkt"
 
  (only-in "../signatures.rkt"
-          terms-extra^ syntax^ env^ store^ cont^ domain^ eval^
+          syntax^ env^ store^ cont^ domain^ eval^
           menv^ mstore^ mcont^ bind^ parser^ expand^ expander^ io^ run^ debug^)
 
  (only-in "../terms.rkt" [#%term-forms tm:#%term-forms]
           Var% Fun% App% If% Val% VFun% List% Null% Pair% Atom% Bool% Sym%
-          Stx% Prim% Hole%
-          Lst id? lst->list snoc prim?)
+          Stx% Stxξ% Prim% Hole%
+          Lst id? lst->list snoc prim? val? stx? proper-stl?)
  (only-in "../interp-base/core/config.rkt"
           config^ [#%term-forms cfg:#%term-forms])
 
- (only-in "../units.rkt"                  terms-extra@ io@)
+ (only-in "../units.rkt"                  io@)
  (only-in "../interp-base/units.rkt"      cont@ mcont@)
  (only-in "../interp-base/core/units.rkt" config@ debug@ expander@
           [syntax@ super:syntax@])
@@ -47,8 +47,6 @@
 (define-mixed-unit eval@
   (import (only config^
                 AstEnv%)
-          (only terms-extra^
-                val?)
           (only env^
                 init-env)
           (only store^
@@ -72,9 +70,7 @@
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (set:==> -->)
   #:within-signatures [(only config^
-                             AstEnv% TVar% ζ% Stxξ% κ% InEval%)
-                       (only terms-extra^
-                             val? stx? proper-stl?)
+                             AstEnv% TVar% ζ% κ% InEval%)
                        (only syntax^
                              empty-ctx zip unzip alloc-scope add flip in-hole)
                        (only env^
@@ -104,7 +100,7 @@
 (define-unit-from-reduction ex:red@ ==>)
 
 (define-compound-unit/infer expand@
-  (import terms-extra^ syntax^ config^ env^ store^ eval^ menv^ mstore^
+  (import syntax^ config^ env^ store^ eval^ menv^ mstore^
           mcont^ bind^ parser^)
   (export expand^)
   (link expand/red@ ex:red@))
@@ -113,7 +109,7 @@
 ;; Main
 
 (define-compound-unit/infer main-minus@
-  (import config^ terms-extra^ eval^ expand^ expander^ debug^)
+  (import config^ eval^ expand^ expander^ debug^)
   (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^
           parser^ io^ run^)
   (link syntax@ env@ store@ cont@
@@ -123,7 +119,7 @@
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
-   (link config@ terms-extra@ main-minus@ eval@ expand@ expander@ debug@))
+   (link config@ main-minus@ eval@ expand@ expander@ debug@))
   (import) (export run^ debug^))
 
 (define-values/invoke-unit domain@

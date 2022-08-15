@@ -4,7 +4,7 @@
  "../../mix.rkt"
  (only-in "../../term.rkt" use-terms)
  
- (only-in "../../signatures.rkt" terms-extra^ syntax^)
+ (only-in "../../signatures.rkt" syntax^)
  (only-in "../../terms.rkt"
           Atom% Stx% Null% Pair% Hole%
           prim?

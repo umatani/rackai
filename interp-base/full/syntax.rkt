@@ -4,10 +4,12 @@
  "../../mix.rkt"
  (only-in "../../term.rkt" use-terms)
 
- (only-in "../../signatures.rkt" terms-extra^ syntax^)
- (only-in "../../terms.rkt" [#%term-forms tm:#%term-forms]
+ (only-in "../../signatures.rkt" syntax^)
+ (only-in "../../terms.rkt"
           Stx% Pair% Hole%)
- (only-in "config.rkt" config^ [#%term-forms cfg:#%term-forms])
+ (only-in "terms.rkt" [#%term-forms tm:#%term-forms]
+          Stxξ%)
+ (only-in "config.rkt" config^  [#%term-forms cfg:#%term-forms])
  (only-in "../units.rkt"        [syntax@ super:syntax@])
  (only-in "../phases/units.rkt" [syntax@ phases:syntax@]))
 (provide syntax@)
@@ -17,8 +19,7 @@
           (syntax-local-value #'cfg:#%term-forms)))
 
 (define-mixed-unit syntax@
-  (import (only config^
-                Stxξ%))
+  (import)
   (export syntax^)
   (inherit [super:syntax@  zip unzip in-hole-stl
                            alloc-scope addremove strip subtract union

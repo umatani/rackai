@@ -7,11 +7,12 @@
  "../../test/suites.rkt"
 
  (only-in "../../signatures.rkt"
-          terms-extra^ syntax^ env^ store^ cont^ domain^ eval^
+          syntax^ env^ store^ cont^ domain^ eval^
           menv^ mstore^ mcont^ bind^ parser^ expand^ run^ debug^)
  (only-in "../../terms.rkt" [#%term-forms tm:#%term-forms]
-          Var% Fun% App% If% Val% Atom% List% VFun% Bool% Sym% Stx% Null% Pair%
-          Hole% Prim% Lst id? snoc prim?)
+          Var% Fun% App% If% Val% Atom% List% VFun% Bool% Sym%
+          Stx% Stxξ% Null% Pair% Prim% Hole%
+          Lst snoc id? prim?)
 
  (only-in "../../interp-base/core/units.rkt" debug@ expander@)
  (only-in "../../interp-base/core/config.rkt"
@@ -19,56 +20,21 @@
  (only-in "../../interp-set/core/units.rkt" expand/red@)
  (only-in "../../interp-set/core/eval.rkt" [--> set:-->])
  (only-in "../core.rkt" [==> abs:==>] main-minus@)
- (only-in "domain.rkt" domain@ val-⊤ atom-⊤ stx-⊤))
+
+ (only-in "domain.rkt"
+          domain@ val-⊤ atom-⊤ stx-⊤
+          val? proper-stl? stx?))
 (provide run delta α ≤a)
 
 (define-syntax #%term-forms
   (append (syntax-local-value #'tm:#%term-forms)
           (syntax-local-value #'cfg:#%term-forms)))
 
-(use-terms Val Atom Stx Null Pair Hole)
-
-(define-unit terms-extra@
-  (import (only config^
-                Stxξ%))
-  (export terms-extra^)
-
-  (use-terms Stxξ)
-
-  (define (val? x)
-    (or (Val? x)
-        (and (Pair? x) (val? (Pair-a x)) (val? (Pair-d x)))
-        (stx? x)))
-
-  (define (stx? x)
-    (or (equal? x stx-⊤) ;; added
-        (and (Stx? x) (Atom? (Stx-e x)))
-        (and (Stx? x) (prim? (Stx-e x)))
-        (and (Stx? x) (Pair? (Stx-e x))
-             (stx? (Pair-a (Stx-e x)))
-             (stl? (Pair-d (Stx-e x))))
-        (and (Stx? x) (proper-stl? (Stx-e x)))
-        (Stxξ? x)
-        (Hole? x)
-        (and (Stx? x) (Hole? (Stx-e x)))))
-
-  (define (stl? x)
-    (or (Null? x) (stx? x)
-        (and (Pair? x) (stx? (Pair-a x)) (stl? (Pair-d x)))
-        (Hole? x)))
-
-  (define (proper-stl? x)
-    (or (Null? x)
-        (and (Pair? x) (stx? (Pair-a x)) (proper-stl? (Pair-d x))))))
-
-
 ;; Revise --> to interpret abstract values (val-⊤, stx-⊤, etc.)
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta) #:super (set:--> delta)
   #:within-signatures [(only config^
                              SApp% SIf% KApp% KIf% AstEnv%)
-                       (only terms-extra^
-                             val?)
                        (only env^
                              extend-env lookup-env)
                        (only store^
@@ -93,8 +59,6 @@
 (define-mixed-unit eval@
   (import (only config^
                 AstEnv%)
-          (only terms-extra^
-                val?)
           (only env^
                 init-env)
           (only store^
@@ -122,9 +86,7 @@
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (abs:==> -->)
   #:within-signatures [(only config^
-                             AstEnv% TVar% ζ% Stxξ% κ% InEval%)
-                       (only terms-extra^
-                             val? stx? proper-stl?)
+                             AstEnv% TVar% ζ% κ% InEval%)
                        (only syntax^
                              empty-ctx zip unzip alloc-scope add flip in-hole)
                        (only env^
@@ -158,7 +120,7 @@
 (define-unit-from-reduction ex:red@ ==>)
 
 (define-compound-unit/infer expand@
-  (import terms-extra^ syntax^ config^ env^ store^ eval^ menv^ mstore^
+  (import syntax^ config^ env^ store^ eval^ menv^ mstore^
           mcont^ bind^ parser^)
   (export expand^)
   (link expand/red@ ex:red@))
@@ -168,7 +130,7 @@
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
-   (link config@ terms-extra@ main-minus@ eval@ expand@ expander@ debug@))
+   (link config@ main-minus@ eval@ expand@ expander@ debug@))
   (import) (export run^ debug^))
 
 (define-values/invoke-unit domain@

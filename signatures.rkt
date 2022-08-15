@@ -17,7 +17,6 @@
  (only-in "sig/run-sig.rkt"         run^)
  (only-in "sig/store-sig.rkt"       store^)
  (only-in "sig/syntax-sig.rkt"      syntax^)
- (only-in "sig/terms-extra-sig.rkt" terms-extra^)
 
  (only-in "config.rkt"              config^))
 
@@ -38,5 +37,4 @@
          parser^
          run^
          store^
-         syntax^
-         terms-extra^)
+         syntax^)

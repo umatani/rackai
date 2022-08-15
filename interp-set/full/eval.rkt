@@ -7,11 +7,12 @@
  (only-in "../../dprint.rkt" dprint)
  
  (only-in "../../signatures.rkt"
-          terms-extra^ syntax^ env^ store^ cont^ eval^
+          syntax^ env^ store^ cont^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^)
  (only-in "../../terms.rkt"
           Var% Fun% App% If% Bool% VFun% Sym% Stx% Null% Pair% Prim% Defs% 𝓁%
-          lst->list id? stx-prim?)
+          lst->list id? stx-prim? val?)
+ (only-in "../../interp-base/full/terms.rkt"  Stxξ%)
  (only-in "../../interp-base/full/config.rkt" config^ #%term-forms)
  (only-in "../../interp-base/full/eval.rkt" [--> base:-->]))
 (provide --> red@ eval@)
@@ -20,9 +21,7 @@
 (define-reduction (--> delta ==>) #:super (base:--> delta ==> <-)
   #:within-signatures [(only config^
                              KApp% KIf% SApp% SIf%
-                             AstEnv% Σ% ζ% Stxξ% Σ*% TVar% TStop% InExpand%)
-                       (only terms-extra^
-                             val?)
+                             AstEnv% Σ% ζ% Σ*% TVar% TStop% InExpand%)
                        (only syntax^
                              add flip union alloc-scope prune)
                        (only env^
@@ -65,8 +64,6 @@
 (define-mixed-unit eval@
   (import (only config^
                 AstEnv% Σ*%)
-          (only terms-extra^
-                val?)
           (only env^
                 init-env)
           (only store^
