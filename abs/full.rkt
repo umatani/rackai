@@ -32,7 +32,6 @@
 
 ;; full/set's evaluate already filters out stuck states
 
-
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)

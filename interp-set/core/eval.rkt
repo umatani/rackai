@@ -12,7 +12,7 @@
           AstEnv% KApp% KIf% SApp% SIf%
           val?)
  (only-in "../../interp-base/core/eval.rkt" [--> base:-->]))
-(provide --> eval@ red@)
+(provide --> red@ eval@)
 
 ;; Revised reduction rules
 
@@ -34,7 +34,7 @@
                 init-store))
   (export eval^)
   (inherit [red@ reducer])
-  
+
   (use-terms AstEnv)
 
   (define (--> delta) (reducer delta))

@@ -21,10 +21,10 @@
  (only-in "../interp-base/core/units.rkt" debug@ expander@
           [syntax@ super:syntax@])
  (only-in "../interp-set/units.rkt"       domain@ env@ menv@ run@)
- (only-in "../interp-set/core/units.rkt" [eval@ set:eval@] parser@ expand/red@)
+ (only-in "../interp-set/core/units.rkt"  ev:red@ parser@ expand/red@)
  (only-in "../interp-set/core/expander.rkt" [==> set:==>])
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
-(provide syntax@ eval@ ==> main-minus@
+(provide syntax@ eval/red@ ==> main-minus@
          run delta α ≤a eval-->* expand==>*)
 
 (use-terms Val Atom)
@@ -40,14 +40,18 @@
 
 
 ;; filter out stuck states
-(define-mixed-unit eval@
+
+(define-unit eval/red@
   (import (only env^
                 init-env)
           (only store^
-                init-store))
+                init-store)
+          (only red^
+                reducer))
   (export eval^)
-  (inherit [set:eval@ -->])
   (use-terms AstEnv)
+
+  (define (--> delta) (reducer delta))
 
   ; evaluate : Ast -> (Setof Val)
   (define (evaluate delta ast)
@@ -91,27 +95,22 @@
 
 (define-unit-from-reduction ex:red@ ==>)
 
-(define-compound-unit/infer expand@
-  (import syntax^ env^ store^ eval^ menv^ mstore^
-          mcont^ bind^ parser^)
-  (export expand^)
-  (link expand/red@ ex:red@))
-
 
 ;; Main
 
 (define-compound-unit/infer main-minus@
-  (import eval^ expand^ expander^ debug^)
+  (import eval^ expand^)
   (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^
-          parser^ io^ run^)
-  (link syntax@ env@ store@ cont@
-        menv@ mstore@ bind@ mcont@ parser@
-        io@ run@))
+          parser^ run^ debug^)
+  (link   syntax@ env@ store@ cont@ menv@ mstore@ bind@ mcont@
+          parser@ expander@ io@ run@ debug@))
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
-   (link main-minus@ eval@ expand@ expander@ debug@))
+   (link main-minus@
+         (() eval/red@ ev)   (([ev : red^]) ev:red@)
+         (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export run^ debug^))
 
 (define-values/invoke-unit domain@

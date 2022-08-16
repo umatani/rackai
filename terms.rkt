@@ -215,3 +215,26 @@
 (define (proper-stl? x)
   (or (Null? x)
       (and (Pair? x) (stx? (Pair-a x)) (proper-stl? (Pair-d x)))))
+
+;; syntax->datum (especially useful for displaying κ)
+
+(define (stx->datum stx)
+  (cond
+    [(Hole? stx) '□]
+    [(Stxξ? stx) (stx->datum (Stxξ-stx stx))]
+    [else (let ([e (Stx-e stx)])
+            (cond
+              [(Stx? e)  (stx->datum e)]
+              [(Atom? e) e]
+              [(Null? e) '()]
+              [(Pair? e) (cons (stx->datum (Pair-a e))
+                               (stl->datum (Pair-d e)))]))]))
+
+(define (stl->datum stl)
+  (cond
+    [(Hole? stl) '□]
+    [(Null? stl) '()]
+    [(Stx? stl)  (stx->datum stl)]
+    [(Pair? stl) (cons (stx->datum (Pair-a stl))
+                       (stl->datum (Pair-d stl)))]
+    [else (cons '??? stl)]))

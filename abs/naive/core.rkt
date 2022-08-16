@@ -13,17 +13,16 @@
           Var% Fun% App% If% Val% Atom% List% VFun% Bool% Sym%
           Stx% Stxξ% Null% Pair% Prim% Hole%
           SApp% SIf% KApp% KIf% AstEnv% TVar% ζ% κ% InEval%
-          Lst snoc id? prim?)
+          Lst snoc id? prim? stx->datum)
 
- (only-in "../../interp-base/core/units.rkt" debug@ expander@)
  (only-in "../../interp-set/core/units.rkt" expand/red@)
  (only-in "../../interp-set/core/eval.rkt" [--> set:-->])
- (only-in "../core.rkt" [==> abs:==>] main-minus@)
+ (only-in "../core.rkt" eval/red@ [==> abs:==>] main-minus@)
 
  (only-in "domain.rkt"
           domain@ val-⊤ atom-⊤ stx-⊤
-          val? proper-stl? stx?))
-(provide run delta α ≤a)
+          val? stx? proper-stl?))
+(provide ev:red@ run delta α ≤a)
 
 ;; Revise --> to interpret abstract values (val-⊤, stx-⊤, etc.)
 ;; --> : State -> (Setof State)
@@ -47,29 +46,6 @@
    ev-if-abs-#f])
 
 (define-unit-from-reduction ev:red@ -->)
-
-;; filter out stuck states (same as ../core.rkt)
-(define-mixed-unit eval@
-  (import (only env^
-                init-env)
-          (only store^
-                init-store))
-  (export eval^)
-  (inherit [ev:red@ reducer])
-  (use-terms AstEnv)
-
-  (define (--> delta) (reducer delta))
-
-  ; evaluate : Ast -> (Setof Val)
-  (define (evaluate delta ast)
-    (define -->d (--> delta))
-    (match-let ([(set `(,val ,done? ,_store) ...)
-                 (apply-reduction-relation*
-                  -->d `(,(AstEnv ast (init-env)) • ,(init-store)))])
-      (list->set
-       (map car
-            (filter (λ (vd) (and (val? (car vd)) (eq? (cdr vd) '•)))
-                    (map cons val done?)))))))
 
 
 ;; Revise reduction rule ==>
@@ -102,24 +78,20 @@
    ex-macapp-flip]
 
   ;; stx-⊤
-  [(ζ (Stxξ (Stx 'stx-⊤ ctx) ξ) '∘ κ Σ)
-   (ζ (Stx 'stx-⊤ ctx) '• κ Σ)
+  [(ζ (Stxξ (and stx (Stx 'stx-⊤ ctx)) ξ) '∘ κ0 Σ)
+   (ζ stx '• κ0 Σ)
    ex-stx-⊤])
 
 (define-unit-from-reduction ex:red@ ==>)
-
-(define-compound-unit/infer expand@
-  (import syntax^ env^ store^ eval^ menv^ mstore^
-          mcont^ bind^ parser^)
-  (export expand^)
-  (link expand/red@ ex:red@))
 
 ;; Main
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
-   (link main-minus@ eval@ expand@ expander@ debug@))
+   (link main-minus@
+         (() eval/red@ ev)   (([ev : red^]) ev:red@)
+         (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export run^ debug^))
 
 (define-values/invoke-unit domain@

@@ -6,9 +6,8 @@
  (only-in "../term.rkt" use-terms)
  "../test/suites.rkt"
 
- (only-in "../signatures.rkt" syntax^ env^ store^ domain^
-          menv^ mstore^ mcont^ bind^ eval^ parser^ expand^ expander^
-          run^ debug^)
+ (only-in "../signatures.rkt" syntax^ env^ store^ cont^ domain^ eval^
+          menv^ mstore^ bind^ mcont^ parser^ expand^ run^ debug^)
  (only-in "../interp-base/phases/terms.rkt" #%term-forms
           App% List% Pair% Null% Atom% Sym% Stx% Hole% Stxξ%
           AstEnv% TVar% ζ% κ% InEval%
@@ -19,11 +18,13 @@
  (only-in "../interp-base/phases/units.rkt"
           debug@ [syntax@ super:syntax@] expander@)
  (only-in "../interp-set/units.rkt"           env@ domain@ menv@ run@)
+ (only-in "../interp-set/core/units.rkt"      ev:red@)
  (only-in "../interp-set/phases/units.rkt"    parser@ expand/red@)
  (only-in "../interp-set/phases/expander.rkt" [==> set:==>])
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@)
- (only-in "core.rkt" eval@))
-(provide syntax@ run delta α ≤a)
+ (only-in "core.rkt" eval/red@))
+(provide syntax@ ==> main-minus@
+         run delta α ≤a)
 
 
 (define-mixed-unit syntax@
@@ -55,7 +56,6 @@
                              push-κ)
                        (only parser^
                              parse)]
-
   ;; reference
   [(ζ (Stxξ ph (and id (Stx (Sym nam) ctx)) ξ scps_p) '∘ κ0 Σ)
    #:with nam <- (resolve #:phase ph id Σ)
@@ -65,20 +65,23 @@
      [_ (error '==>p "unbound identifier: ~a" nam)])
    ex-var])
 
-(define-unit-from-reduction red@ ==>)
+(define-unit-from-reduction ex:red@ ==>)
 
-(define-compound-unit/infer expand@
-  (import syntax^ env^ store^ eval^ menv^ mstore^ mcont^
-          bind^ parser^)
-  (export expand^)
-  (link expand/red@ red@))
+;; Main
 
+(define-compound-unit/infer main-minus@
+  (import eval^ expand^)
+  (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^
+          parser^ run^ debug^)
+  (link   syntax@ env@ store@ cont@ menv@ mstore@ bind@ mcont@
+          parser@ expander@ io@ run@ debug@))
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
-   (link syntax@ env@ store@ cont@ eval@
-         menv@ mstore@ bind@ mcont@ parser@ expand@ expander@ io@ run@ debug@))
+   (link main-minus@
+         (() eval/red@ ev)   (([ev : red^]) ev:red@)
+         (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export run^ debug^))
 
 (define-values/invoke-unit domain@
