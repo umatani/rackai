@@ -13,7 +13,7 @@
           AstEnv% TVar% TStop% ζ% κ% Σ*% InEval% InExpand%
           Lst lst->list snoc id? prim? val? proper-stl?)
  (only-in "../../interp-base/full/expander.rkt" [==> base:==>]))
-(provide ==> expand/red@ expand@)
+(provide ==> red@ expand/red@ expand@)
 
 (define-reduction (==> -->) #:super (base:==> --> <-)
   #:within-signatures [(only syntax^

@@ -14,7 +14,7 @@
           KApp% KIf% SApp% SIf% AstEnv% Σ% ζ% Σ*% TVar% TStop% InExpand%
           lst->list id? stx-prim? val?)
  (only-in "../../interp-base/full/eval.rkt" [--> base:-->]))
-(provide --> red@ eval@)
+(provide --> red@ eval/red@ eval@)
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta ==>) #:super (base:--> delta ==> <-)
@@ -57,7 +57,7 @@
 
 (define-unit-from-reduction red@ -->)
 
-(define-mixed-unit eval@
+(define-unit eval/red@
   (import (only env^
                 init-env)
           (only store^
@@ -67,9 +67,10 @@
           (only mstore^
                 init-Σ)
           (only expand^
-                ==>))
+                ==>)
+          (only red^
+                reducer))
   (export eval^)
-  (inherit [red@ reducer])
   (use-terms AstEnv Σ*)
 
   (define (--> delta) (λ () (reducer delta (==> delta))))
@@ -88,3 +89,8 @@
     (for/set ([val+Σ* (in-set (eval delta 0 ast 'no-scope (init-ξ)
                                      (Σ* (init-Σ) (set) (set))))])
       (car val+Σ*))))
+
+(define-compound-unit/infer eval@
+  (import syntax^ env^ store^ cont^ menv^ mstore^ bind^ expand^ parser^)
+  (export eval^)
+  (link eval/red@ red@))

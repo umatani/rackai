@@ -4,7 +4,8 @@
  "../nondet.rkt"
 
  (only-in "../signatures.rkt"
-          eval^ parser^ expander^ io^ run^))
+          eval^ parser^ expander^ io^ run^)
+ (only-in "../terms.rkt" lst->list/recur stx->datum))
 
 ;;;; runner
 
@@ -17,10 +18,10 @@
 (define (run delta form mode)
   (aborts (do stx := (reader form)
               #:abort-if (eq? mode 'read) stx
-              (cons stx2 Σ2) := (expander delta stx)
-              #:abort-if (eq? mode 'expand) stx2
-              ast := (parser stx2 Σ2)
+              (cons stx* Σ) := (expander delta stx)
+              #:abort-if (eq? mode 'expand) (lst->list/recur (stx->datum stx*))
+              ast := (parser stx* Σ)
               #:abort-if (eq? mode 'parse) ast
-              ast2 := (evaluate delta ast)
-              #:abort-if (eq? mode 'eval) ast2 #;(printer ast2) 
+              val := (evaluate delta ast)
+              #:abort-if (eq? mode 'eval) (lst->list/recur val)
               (error 'run "unknown mode: ~e" mode))))

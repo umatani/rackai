@@ -146,7 +146,7 @@
   ;;   the provided definition contexts are not used to enrich id's
   ;;   lexical information.
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
-            `(,(Prim syntax-local-value _)
+            `(,(Prim 'syntax-local-value _)
               ,(? id? id) ,(Bool #f) ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    #:with ξ_defs :=<1> (def-ξ-lookup Σ 𝓁)

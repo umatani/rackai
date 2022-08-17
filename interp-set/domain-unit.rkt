@@ -1,14 +1,14 @@
 #lang racket/unit
 (require
- racket/match (only-in racket/function identity)
+ racket/match (only-in racket/function identity) racket/pretty
  "../set.rkt"
  "../nondet.rkt"
  (only-in "../term.rkt" use-terms)
  
  (only-in "../signatures.rkt" domain^)
- (only-in "../terms.rkt"
+ (only-in "../terms.rkt" #%term-forms
           Atom% Bool% Num% Sym% Stx% Null% Pair% Prim%
-          #%term-forms))
+          lst->list/recur stx->datum))
 
 (import)
 (export domain^)
@@ -69,19 +69,15 @@
     [((Prim 'fourth _) (list (Pair _ (Pair _ (Pair _ (Pair v4 _))))))
      (pure v4)]
 
-    ;; for debug
-    [((Prim 'printe _) (list v1 v2))
-     (println v1)
-     (pure v2)]
-
     [((Prim 'syntax-e _) (list (Stx e _)))
      (pure e)]
+    [((Prim 'syntax->datum _) (list v))
+     (pure (stx->datum v))]
+    
     [((Prim 'datum->syntax _) (list _ (? Stx? stx)))
      (pure stx)]
     [((Prim 'datum->syntax _) (list (Stx _ ctx) (Null)))
      (pure (Stx (Null) ctx))]
-
-
 
     [((Prim 'datum->syntax _) (list (and stx (Stx _ ctx_0))
                                     (Pair v1 vs)))
@@ -91,4 +87,9 @@
          (pure (Stx (Pair s1 d) ctx_0)))]
 
     [((Prim 'datum->syntax _) (list (Stx _ ctx) (? Atom? atom)))
-     (pure (Stx atom ctx))]))
+     (pure (Stx atom ctx))]
+
+    ;; for debug
+    [((Prim 'printe _) (list v1 v2))
+     (pretty-print (lst->list/recur v1))
+     (pure v2)]))

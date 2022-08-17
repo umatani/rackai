@@ -7,7 +7,7 @@
  "../test/suites.rkt"
 
  (only-in "../signatures.rkt" syntax^ env^ store^ cont^ eval^
-          domain^ menv^ mstore^ bind^ parser^ expand^ run^ debug^)
+          domain^ menv^ mstore^ bind^ mcont^ parser^ expand^ run^ debug^)
  (only-in "../interp-base/full/terms.rkt" #%term-forms
           Var% Fun% App% If% VFun% Null% Pair% Bool% Stx% Sym% Prim% 𝓁% Defs%
           lst->list id? stx-prim?)
@@ -19,7 +19,7 @@
  (only-in "../interp-set/units.rkt"       env@ domain@ menv@ run@)
  (only-in "../interp-set/full/units.rkt"  eval@ parser@ expand@)
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
-(provide syntax@ run delta α ≤a)
+(provide syntax@ main-minus@ run delta α ≤a)
 
 (define-mixed-unit syntax@
   (import)
@@ -32,11 +32,18 @@
 
 ;; full/set's evaluate already filters out stuck states
 
+(define-compound-unit/infer main-minus@
+  (import eval^ expand^)
+  (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^
+          parser^ run^ debug^)
+  (link   syntax@ env@ store@ cont@ menv@ mstore@ bind@ mcont@
+          parser@ expander@ io@ run@ debug@))
+
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export run^ debug^)
-   (link syntax@ env@ store@ cont@ eval@
-         menv@ mstore@ bind@ mcont@ parser@ expand@ expander@ io@ run@ debug@))
+   (link main-minus@
+         eval@ expand@))
   (import) (export run^ debug^))
 
 (define-values/invoke-unit domain@

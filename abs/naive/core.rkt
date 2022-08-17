@@ -33,7 +33,7 @@
                              update-store* lookup-store alloc-loc*)
                        (only cont^
                              push-cont)]
-  ;; β
+  ;; β (val-⊤ ...)
   [`(,(SApp _lbl (cons f _) '()) ,cont ,store)
    #:when (equal? f val-⊤)
    `(,f ,cont ,store)

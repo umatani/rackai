@@ -13,6 +13,7 @@
  (prefix-in a:f: "../abs/full.rkt")
  (prefix-in n:c: "../abs/naive/core.rkt")
  (prefix-in n:p: "../abs/naive/phases.rkt")
+ (prefix-in n:f: "../abs/naive/full.rkt")
 
  "suites.rkt")
 
@@ -30,7 +31,8 @@
         (interp 'abs:phases   a:p:run a:p:delta a:p:α s:p:≤a)
         (interp 'abs:full     a:f:run a:f:delta a:f:α s:f:≤a)
         (interp 'naive:core   n:c:run n:c:delta n:c:α n:c:≤a)
-        (interp 'naive:phases n:c:run n:c:delta n:c:α n:c:≤a)
+        (interp 'naive:phases n:p:run n:p:delta n:p:α n:p:≤a)
+        (interp 'naive:full   n:f:run n:f:delta n:f:α n:f:≤a)
         ))
 
 (define test-suites
@@ -45,6 +47,7 @@
           'abs:full     (map suite '(core phases full       ))
           'naive:core   (map suite '(core             finite))
           'naive:phases (map suite '(core phases      finite))
+          'naive:full   (map suite '(core phases full finite))
           ))
 
 

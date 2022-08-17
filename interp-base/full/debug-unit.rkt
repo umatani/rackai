@@ -1,6 +1,6 @@
 #lang racket/unit
 (require
- (for-syntax racket)
+ racket/match
  "../../set.rkt"
  "../../reduction.rkt"
  (only-in "../../term.rkt" use-terms)
@@ -8,7 +8,8 @@
  (only-in "../../signatures.rkt"
           env^ store^ eval^ menv^ mstore^ expand^ io^ run^ debug^)
  (only-in "terms.rkt" #%term-forms
-          Stxξ% AstEnv% ζ% Σ*%))
+          Stxξ% AstEnv% ζ% Σ*%
+          lst->list/recur stx->datum))
 
 (import (only env^
               init-env)
@@ -54,9 +55,15 @@
    (ζ (Stxξ 0 (reader form) (init-ξ)) '∘ '• (Σ* (init-Σ) (set) (set)))))
 
 ; expand==>* : (->* (Sexp) (#:steps (Option Natural)) (Setof ζ))
-(define (expand==>* delta form #:steps [steps #f])
+(define (expand==>* delta form #:steps [steps #f] #:compact [compact #t])
   (define ==>d (==> delta))
-  (apply-reduction-relation*
-   (==>d)
-   (ζ (Stxξ 0 (reader form) (init-ξ)) '∘ '• (Σ* (init-Σ) (set) (set)))
-   #:steps steps))
+  (let ([results (apply-reduction-relation*
+                  (==>d)
+                  (ζ (Stxξ 0 (reader form) (init-ξ)) '∘ '•
+                      (Σ* (init-Σ) (set) (set)))
+                  #:steps steps)])
+    (if compact
+        (match results
+          [(set (ζ stx ex? _ _) ...)
+           (map cons (map (compose1 lst->list/recur stx->datum) stx) ex?)])
+        results)))

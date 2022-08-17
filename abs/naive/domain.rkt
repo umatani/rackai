@@ -8,9 +8,9 @@
 
  (only-in "../../terms.rkt" #%term-forms
           Val% Atom% List% Bool% Num% Sym% Stx% Stxξ% Null% Pair% Prim% Hole%
-          prim?))
+          lst->list/recur prim?))
 (provide val-⊤ atom-⊤ num-⊤ stx-⊤ list-⊤ ≤e
-         val? stx? proper-stl?
+         val? stx? stl? proper-stl?
          domain@)
 
 ;; ----------------------------------------
@@ -156,8 +156,13 @@
       [((Prim 'syntax-e _) (list _ ...))
        (lift (set))]
 
-
-
+      [((Prim 'syntax->datum _)
+        (list (? (λ (x) (or (Stx? x)
+                             (equal? x atom-⊤)
+                             (equal? x val-⊤))))))
+       (pure val-⊤)]
+      [((Prim 'syntax->datum _) (list _ ...))
+       (lift (set))]
 
       [((Prim 'datum->syntax _)
         (list (? (λ (x) (or (Stx? x)
@@ -170,5 +175,5 @@
 
       ;; for debug
       [((Prim 'printe _) (list v1 v2))
-       (println v1)
+       (pretty-print (lst->list/recur v1))
        (pure v2)])))

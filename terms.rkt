@@ -164,6 +164,13 @@
     ['() (Null)]
     [(cons a d) (Pair a (list->lst d))]))
 
+(define (lst->list/recur x)
+  (match x
+    [(Null) '()]
+    [(Pair a d) (cons (lst->list/recur a) (lst->list/recur d))]
+    [_ x]))
+
+
 ; snoc : ProperStl Stx -> ProperStl
 (define (snoc stl stx)
   (cond
@@ -178,10 +185,11 @@
     [_ #f]))
 
 (define (prim? x)
-  (or (member x '(syntax-e datum->syntax + - * / < = eq?
-                           cons car cdr list second third fourth
-                           printe ;; for debug
-                           ))
+  (or (member x '(syntax-e syntax->datum
+                  datum->syntax + - * / < = eq?
+                  cons car cdr list second third fourth
+                  printe ;; for debug
+                  ))
       (stx-prim? x)))
 
 (define (stx-prim? x)
@@ -220,21 +228,21 @@
 
 (define (stx->datum stx)
   (cond
-    [(Hole? stx) '□]
+    [(Hole? stx) (Sym '□)]
     [(Stxξ? stx) (stx->datum (Stxξ-stx stx))]
     [else (let ([e (Stx-e stx)])
             (cond
+              [(prim? e) (Sym e)]
               [(Stx? e)  (stx->datum e)]
               [(Atom? e) e]
-              [(Null? e) '()]
-              [(Pair? e) (cons (stx->datum (Pair-a e))
+              [(Null? e) (Null)]
+              [(Pair? e) (Pair (stx->datum (Pair-a e))
                                (stl->datum (Pair-d e)))]))]))
 
 (define (stl->datum stl)
   (cond
-    [(Hole? stl) '□]
-    [(Null? stl) '()]
+    [(Hole? stl) (Sym '□)]
+    [(Null? stl) (Null)]
     [(Stx? stl)  (stx->datum stl)]
-    [(Pair? stl) (cons (stx->datum (Pair-a stl))
-                       (stl->datum (Pair-d stl)))]
-    [else (cons '??? stl)]))
+    [(Pair? stl) (Pair (stx->datum (Pair-a stl))
+                       (stl->datum (Pair-d stl)))]))

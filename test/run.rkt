@@ -34,7 +34,7 @@
 (define fail-count (make-parameter -1))
 
 (define (runner run delta example mode α ≤a)
-  (println
+  (pretty-print
    (case mode
      [(raw) (raw-eval example)]
      [(check)
