@@ -6,19 +6,21 @@
  (only-in "../../term.rkt"   use-terms)
 
  (only-in "../../signatures.rkt"
-          syntax^ env^ store^ cont^ eval^
+          domain^ syntax^ env^ store^ cont^ eval^
           menv^ mstore^ bind^ parser^ expand^)
  (only-in "terms.rkt" #%term-forms
           Var% Fun% App% If% VFun% Bool% Sym% Stx% Null% Pair% Prim% Defs% 𝓁%
           Stxξ%
           KApp% KIf% SApp% SIf% AstEnv% TVar% TStop%
           Σ% Σ*% ζ% InExpand%
-          lst->list id? stx-prim? val?))
+          lst->list id? stx-prim?))
 (provide --> eval@)
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta ==> :=<1>)
-  #:within-signatures [(only syntax^
+  #:within-signatures [(only domain^
+                             val? stx?)
+                       (only syntax^
                              alloc-scope add flip union prune)
                        (only env^
                              init-env lookup-env extend-env)
@@ -191,13 +193,13 @@
                                         (extend-ξ ξ_defs nam_new
                                                    (TVar id_defs)))
    `(,(Pair id_defs (Null)) ,cont ,store ,(Σ* Σ_3 scps_p scps_u))
-   ev-slbcv]
+   ev-slbsv]
 
   ;; create macro definition binding
   [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
             `(,(Prim 'syntax-local-bind-syntaxes _)
               ,(Pair (? id? id_arg) (Null))
-              ,(? Stx? stx_arg) ,(Defs scp_defs 𝓁)) '())
+              ,(? stx? stx_arg) ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
    #:with (values stx_arg2) := (add ph (flip ph stx_arg maybe-scp_i) scp_defs)
    (InExpand (ζ (Stxξ (add1 ph) stx_arg2 (init-ξ))
@@ -207,7 +209,7 @@
                               `((0 . ,scps_p) (1 . ,scps_u)))
                         (,id_arg) ,(Defs scp_defs 𝓁)) '())
                ,cont ,store ,Σ*_0))
-   ev-slbcm]
+   ev-slbsm]
 
   [(InExpand (ζ stx_exp '• '• (Σ* Σ_2 _ _))
              `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
@@ -223,7 +225,7 @@
                     `((0 . ,scps_p) (1 . ,scps_u)))
               (,id_arg) ,(Defs scp_defs 𝓁)) '() loc_new)
      ,store_1 ,(Σ* Σ_2 scps_p (set)))
-   ev-slbcm2]
+   ev-slbsm2]
 
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(,(Stx (Sym 'syntax-local-bind-syntaxes2)
@@ -241,12 +243,12 @@
                                              (extend-ξ ξ_defs nam_new val_exp))
                                            scps_p scps_u)
    `(,(Pair id_defs (Null)) ,cont ,store ,Σ*_4)
-   ev-slbcm3]
+   ev-slbsm3]
 
   ;; local expand
   [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
             `(,(Prim 'local-expand _)
-              ,(? Stx? stx) ,val_contextv ,val_idstops) '())
+              ,(? stx? stx) ,val_contextv ,val_idstops) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    #:with ξ_unstops :=    (make-immutable-hash
                             (map (λ (p) (cons (car p) (unstop (cdr p))))
@@ -275,7 +277,7 @@
   ;;   definition context's scope and using its environment
   [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
             `(,(Prim 'local-expand _)
-              ,(? Stx? stx) ,val_contextv ,val_idstops ,(Defs scp_defs 𝓁)) '())
+              ,(? stx? stx) ,val_contextv ,val_idstops ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    #:with    ξ_defs :=<1> (def-ξ-lookup Σ 𝓁)
    #:with ξ_unstops :=    (make-immutable-hash
@@ -374,7 +376,9 @@
 (define-unit-from-reduction red@ -->)
 
 (define-mixed-unit eval@
-  (import (only env^
+  (import (only domain^
+                val?)
+          (only env^
                 init-env)
           (only store^
                 init-store)

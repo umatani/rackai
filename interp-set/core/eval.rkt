@@ -6,11 +6,10 @@
  (only-in "../../term.rkt" use-terms)
 
  (only-in "../../signatures.rkt"
-          env^ store^ cont^ eval^)
+          domain^ env^ store^ cont^ eval^)
  (only-in "../../interp-base/core/terms.rkt" #%term-forms
           Var% Fun% App% If% Bool% VFun% Prim%
-          AstEnv% KApp% KIf% SApp% SIf%
-          val?)
+          AstEnv% KApp% KIf% SApp% SIf%)
  (only-in "../../interp-base/core/eval.rkt" [--> base:-->]))
 (provide --> red@ eval@)
 
@@ -18,7 +17,9 @@
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta) #:super (base:--> delta <-)
-  #:within-signatures [(only env^
+  #:within-signatures [(only domain^
+                             val?)
+                       (only env^
                              lookup-env extend-env)
                        (only store^
                              lookup-store update-store* alloc-loc*)
@@ -28,7 +29,9 @@
 (define-unit-from-reduction red@ -->)
 
 (define-mixed-unit eval@
-  (import (only env^
+  (import (only domain^
+                val?)
+          (only env^
                 init-env)
           (only store^
                 init-store))

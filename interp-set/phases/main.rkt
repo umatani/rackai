@@ -3,11 +3,11 @@
  "../../test/suites.rkt"
  
  ;;;; Signatures
- (only-in "../../signatures.rkt" run^ domain^ debug^)
+ (only-in "../../signatures.rkt" domain^ run^ debug^)
 
  ;; Units
  (only-in "../../units.rkt"                    io@)
- (only-in "../units.rkt"                       env@ store@ domain@ menv@ mstore@
+ (only-in "../units.rkt"                       domain@ env@ store@ menv@ mstore@
                                                bind@ run@)
  (only-in "../../interp-base/units.rkt"        cont@ mcont@)
  (only-in "../../interp-base/phases/units.rkt" syntax@ debug@ expander@)
@@ -17,13 +17,10 @@
 
 (define-values/invoke-unit
   (compound-unit/infer
-   (import) (export run^ debug^)
-   (link syntax@ env@ store@ cont@ eval@
+   (import) (export domain^ run^ debug^)
+   (link domain@ syntax@ env@ store@ cont@ eval@
          menv@ mstore@ bind@ mcont@ parser@ expand@ expander@ io@ run@ debug@))
-  (import) (export run^ debug^))
-
-(define-values/invoke-unit domain@
-  (import) (export domain^))
+  (import) (export domain^ run^ debug^))
 
 (define (main [mode 'check])
   (run-suite run delta (suite 'core)   mode α set=? #;≤a)

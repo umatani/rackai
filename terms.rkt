@@ -199,45 +199,22 @@
                                  syntax-local-make-definition-context
                                  syntax-local-bind-syntaxes)))
 
-(define (val? x)
-  (or (Val? x)
-      (and (Pair? x) (val? (Pair-a x)) (val? (Pair-d x)))
-      (stx? x)))
-
-(define (stx? x)
-  (or (and (Stx? x) (Atom? (Stx-e x)))
-      (and (Stx? x) (prim? (Stx-e x)))
-      (and (Stx? x) (Pair? (Stx-e x))
-           (stx? (Pair-a (Stx-e x)))
-           (stl? (Pair-d (Stx-e x))))
-      (and (Stx? x) (proper-stl? (Stx-e x)))
-      (Stxξ? x)
-      (Hole? x)
-      (and (Stx? x) (Hole? (Stx-e x)))))
-
-(define (stl? x)
-  (or (Null? x) (stx? x)
-      (and (Pair? x) (stx? (Pair-a x)) (stl? (Pair-d x)))
-      (Hole? x)))
-
-(define (proper-stl? x)
-  (or (Null? x)
-      (and (Pair? x) (stx? (Pair-a x)) (proper-stl? (Pair-d x)))))
-
 ;; syntax->datum (especially useful for displaying κ)
 
 (define (stx->datum stx)
   (cond
     [(Hole? stx) (Sym '□)]
     [(Stxξ? stx) (stx->datum (Stxξ-stx stx))]
-    [else (let ([e (Stx-e stx)])
-            (cond
-              [(prim? e) (Sym e)]
-              [(Stx? e)  (stx->datum e)]
-              [(Atom? e) e]
-              [(Null? e) (Null)]
-              [(Pair? e) (Pair (stx->datum (Pair-a e))
-                               (stl->datum (Pair-d e)))]))]))
+    [(Stx? stx) (let ([e (Stx-e stx)])
+                  (cond
+                    [(prim? e) (Sym e)]
+                    [(Stx? e)  (stx->datum e)]
+                    [(Atom? e) e]
+                    [(Null? e) (Null)]
+                    [(Pair? e) (Pair (stx->datum (Pair-a e))
+                                     (stl->datum (Pair-d e)))]
+                    [else e]))]
+    [else stx]))
 
 (define (stl->datum stl)
   (cond
@@ -245,4 +222,5 @@
     [(Null? stl) (Null)]
     [(Stx? stl)  (stx->datum stl)]
     [(Pair? stl) (Pair (stx->datum (Pair-a stl))
-                       (stl->datum (Pair-d stl)))]))
+                       (stl->datum (Pair-d stl)))]
+    [else stl]))

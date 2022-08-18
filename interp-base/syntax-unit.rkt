@@ -5,12 +5,12 @@
  "../set.rkt"
  (only-in "../term.rkt" use-terms)
  
- (only-in "../signatures.rkt" syntax^)
+ (only-in "../signatures.rkt" domain^ syntax^)
  (only-in "../terms.rkt" #%term-forms
-          Stx% Null% Pair% Hole% StoBind%
-          stx?))
+          Stx% Null% Pair% Hole% StoBind%))
 
-(import)
+(import (only domain^
+              stx?))
 (export syntax^)
 
 (use-terms Stx Null Pair Hole StoBind)

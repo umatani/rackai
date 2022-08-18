@@ -1,12 +1,14 @@
 #lang racket
 (require
+ "../../mix.rkt"
  "../../reduction.rkt"
+ (only-in "../../term.rkt" use-terms)
  "../../test/suites.rkt"
 
  (only-in "../../signatures.rkt"
-          syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^ parser^
-          domain^ run^ debug^)
- (only-in "../../interp-base/full/terms.rkt"
+          domain^ syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^ parser^
+          run^ debug^)
+ (only-in "../../interp-base/full/terms.rkt" #%term-forms
           Var% Fun% App% If% VFun% Atom% Bool% Sym% Stx% List%
           Null% Pair% Prim%
           KApp% KIf% SApp% SIf% AstEnv% κ% Stxξ% ζ% 𝓁% Σ% Σ*% Hole%
@@ -17,7 +19,9 @@
  (only-in "../../interp-set/full/eval.rkt" [--> set:-->])
  (only-in "../../interp-set/full/expander.rkt" [==> set:==>])
  (only-in "../full.rkt" main-minus@)
- (only-in "domain.rkt" domain@ val-⊤ atom-⊤ stx-⊤ val? proper-stl?))
+ (only-in "domain.rkt" domain@
+          val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤ list-⊤)
+ (only-in "parse.rkt" parse@))
 (provide run delta α ≤a)
 
 
@@ -47,6 +51,37 @@
    `(,val-⊤ ,cont ,store ,Σ*_0)
    ev-lval-abs]
 
+  ;; (syntax-local-identifier-as-binding <abs>)
+  [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
+            `(,(Prim 'syntax-local-identifier-as-binding _) ,id) '())
+     ,cont ,store ,(and Σ*_0 (Σ* _ _ scps_u)))
+   #:when (or (equal? id val-⊤)
+              (equal? id atom-⊤)
+              (equal? id stx-⊤)
+              (and (Stx? id) (equal? (Stx-e id) sym-⊤)))
+   `(,stx-⊤ ,cont ,store ,Σ*_0)
+   ev-lbinder-abs]
+
+  ;; (syntax-local-bind-syntaxes <abs> <abs> <abs>)
+  [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
+            `(,(Prim 'syntax-local-bind-syntaxes _)
+              ,ids ,rhs ,defs) '()) ,cont ,store ,Σ*_0)
+   #:when (or (or (equal? ids list-⊤)
+                  (and (Pair? ids) (Null? (Pair-d ids))
+                       (let ([id (Pair-a ids)])
+                         (or (equal? id val-⊤)
+                             (equal? id atom-⊤)
+                             (equal? id stx-⊤)
+                             (and (Stx? id) (equal? (Stx-e id) sym-⊤))))))
+              (or (equal? rhs (Bool #f))
+                  (equal? rhs val-⊤)
+                  (equal? rhs atom-⊤)
+                  (equal? rhs stx-⊤))
+              (or (equal? defs val-⊤)
+                  (equal? defs atom-⊤)))
+   `(,list-⊤ ,cont ,store ,Σ*_0)
+   ev-slbs-abs]
+  
   ;; (local-expand <abs> contextv idstops defs?)
   [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
             `(,(Prim 'local-expand _)
@@ -58,7 +93,6 @@
    `(,stx-⊤ ,cont ,store ,Σ*_0)
    ev-lexpand-abs]
 
-
   ;; β (<abs> ...)
   [`(,(SApp _lbl `(,_ph ,_maybe-scp_i ,_ξ) (cons f _) '()) ,cont ,store ,Σ*)
    #:when (equal? f val-⊤)
@@ -66,13 +100,25 @@
    ev-β-abs]
 
   ;; (if <abs> ...)
-  [`(,(SIf _lbl (? (λ (v) (or (equal? v val-⊤) (equal? v atom-⊤))))
-           _ tm_else) ,cont ,store ,Σ*)
+  [`(,(SIf _lbl v _ tm_else) ,cont ,store ,Σ*)
+   #:when (or (equal? v val-⊤)
+              (equal? v atom-⊤))
    `(,tm_else ,cont ,store ,Σ*)
-   ev-if-abs-#f]
-  )
+   ev-if-abs-#f])
 
 (define-unit-from-reduction ev:red@ -->)
+
+
+(define-mixed-unit parser@
+  (import)
+  (export parser^)
+  (inherit [parse@ [super:parse parse] parse*])
+  (use-terms Σ*)
+
+  (define parse (super:parse super:parse parse*))
+
+  ; parser : Stx Σ* -> (SetM Ast)
+  (define (parser stx Σ*) (parse #:phase 0 stx (Σ*-Σ Σ*))))
 
 
 (define-reduction (==> -->) #:super (set:==> -->)
@@ -94,18 +140,24 @@
                        (only parser^
                              parse)]
   
-  [(InEval (list (? Stx? stx_exp) '• store_0 Σ*)
+  [(InEval (list stx_exp '• store_0 Σ*)
            (ζ (Stxξ ph (Stx #f ctx_i) ξ) '∘ κ _))
-   (if (equal? stx_exp stx-⊤)
-       (ζ (Stxξ ph stx_exp ξ) '∘ κ Σ*)
-       (let ([scp_i (car (set->list (at-phase ctx_i ph)))])
-         (ζ (Stxξ ph (flip ph stx_exp scp_i) ξ) '∘ κ Σ*)))
-   ex-macapp-flip]
+   #:when (or (equal? stx_exp val-⊤)
+              (equal? stx_exp atom-⊤)
+              (equal? stx_exp stx-⊤))
+   (ζ (Stxξ ph stx_exp ξ) '∘ κ Σ*)
+   ex-macapp-flip-abs]
 
-  ;; stx-⊤
-  [(ζ (Stxξ ph (and stx (Stx 'stx-⊤ _)) ξ) '∘ κ Σ*)
-   (ζ stx '• κ Σ*)
-   ex-stx-⊤])
+  ;; abstract value
+  [(ζ (Stxξ ph val ξ) '∘ κ Σ*)
+   #:when (or (equal? val val-⊤)
+              (equal? val atom-⊤)
+              (equal? val num-⊤)
+              (equal? val sym-⊤)
+              (equal? val stx-⊤)
+              (equal? val list-⊤))
+   (ζ val '• κ Σ*)
+   ex-abs-⊤])
 
 (define-unit-from-reduction ex:red@ ==>)
 
@@ -113,16 +165,15 @@
 
 (define-values/invoke-unit
   (compound-unit/infer
-   (import) (export run^ debug^)
-   (link main-minus@
+   (import) (export domain^ run^ debug^)
+   (link domain@ main-minus@
          (() eval/red@   ev) (([ev : red^]) ev:red@)
+         parser@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
-  (import) (export run^ debug^))
-
-(define-values/invoke-unit domain@
-  (import) (export domain^))
+  (import) (export domain^ run^ debug^))
 
 (define (main [mode 'check])
   (run-suite run delta (suite 'core)   mode α ≤a)
+  (run-suite run delta (suite 'finite)   mode α ≤a)
   (run-suite run delta (suite 'phases) mode α ≤a)
   (run-suite run delta (suite 'full)   mode α ≤a))

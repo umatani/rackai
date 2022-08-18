@@ -7,14 +7,14 @@
  "../test/suites.rkt"
 
  (only-in "../signatures.rkt"
-          syntax^ env^ store^ cont^ domain^ eval^
+          domain^ syntax^ env^ store^ cont^ eval^
           menv^ mstore^ mcont^ bind^ parser^ expand^ expander^ io^ run^ debug^)
 
  (only-in "../interp-base/core/terms.rkt" #%term-forms
           Var% Fun% App% If% Val% VFun% List% Null% Pair% Atom% Bool% Sym%
           Stx% Prim% Hole% Stxξ%
           AstEnv% TVar% ζ% κ% InEval%
-          Lst id? lst->list snoc prim? val? stx? proper-stl?)
+          Lst id? lst->list snoc prim?)
 
  (only-in "../units.rkt"                  io@)
  (only-in "../interp-base/units.rkt"      cont@ mcont@)
@@ -99,22 +99,20 @@
 ;; Main
 
 (define-compound-unit/infer main-minus@
-  (import eval^ expand^)
+  (import domain^ eval^ parser^ expand^)
   (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^
-          parser^ run^ debug^)
+          run^ debug^)
   (link   syntax@ env@ store@ cont@ menv@ mstore@ bind@ mcont@
-          parser@ expander@ io@ run@ debug@))
+          expander@ io@ run@ debug@))
 
 (define-values/invoke-unit
   (compound-unit/infer
-   (import) (export run^ debug^)
-   (link main-minus@
+   (import) (export domain^ run^ debug^)
+   (link domain@ main-minus@
          (() eval/red@ ev)   (([ev : red^]) ev:red@)
+         parser@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
-  (import) (export run^ debug^))
-
-(define-values/invoke-unit domain@
-  (import) (export domain^))
+  (import) (export domain^ run^ debug^))
 
 ;; run example
 (define (main [mode 'check])

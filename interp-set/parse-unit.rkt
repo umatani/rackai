@@ -6,12 +6,14 @@
  (only-in "../term.rkt"  use-terms)
 
  (only-in "../signatures.rkt"
-          syntax^ menv^ bind^ parse^)
+          domain^ syntax^ menv^ bind^ parse^)
  (only-in "../terms.rkt" #%term-forms
           Var% Fun% App% If% Val% Atom% Stx% List% Null% Pair% Prim%
-          Lst lst->list id? prim? proper-stl?))
+          Lst lst->list id? prim?))
 
-(import (only syntax^
+(import (only domain^
+              proper-stl?)
+        (only syntax^
               unzip strip)
         (only menv^
               init-ξ)
@@ -34,19 +36,16 @@
           (pure (cons (Var nam) vs)))))
 
 ; parse : Ph Stx Σ -> (SetM Ast)
-(define (parse #:phase [ph #f] stx Σ)
+(define ((parse prs prs*) #:phase [ph #f] stx Σ)
   (define (id=? nam) (λ (id) (b:id=? #:phase ph id nam #:ξ (init-ξ) Σ)))
 
   (match stx
-    ;; TODO: move to abs
-    [(Stx 'stx-⊤ _) (pure (Val))] ;; (Val) = val-⊤
-
     ; (lambda (id ...) stx_body)
     [(Stx (Lst (? id? (? (id=? 'lambda)))
                (Stx stl_ids _)
                stx_body) _)
      (do vs <- (build-var-list #:phase ph (lst->list stl_ids) Σ)
-         b  <- (parse          #:phase ph stx_body            Σ)
+         b  <- ((prs prs prs*)   #:phase ph stx_body            Σ)
          (pure (Fun vs b)))]
     
     ; (let ([id stx_rhs] ...) stx_body)
@@ -55,8 +54,8 @@
                stx_body) _)
      (do (values stl_ids stl_rhs) := (unzip stl_binds)
          vs <- (build-var-list #:phase ph (lst->list stl_ids) Σ)
-         as <- (parse*         #:phase ph stl_rhs             Σ)
-         b  <- (parse          #:phase ph stx_body            Σ)
+         as <- ((prs* prs prs*)  #:phase ph stl_rhs             Σ)
+         b  <- ((prs  prs prs*)  #:phase ph stx_body            Σ)
          (pure (App (gensym 'let) (Fun vs b) as)))]
 
     ; (quote stx)
@@ -73,15 +72,15 @@
     ; (#%app stx_fun stx_arg ...) stx-pair (cdr部もstx)であることに注意
     [(Stx (Pair (? id? (? (id=? '#%app)))
                 (Stx (Pair stx_fun stl_args) _)) _)
-     (do f  <- (parse  #:phase ph stx_fun  Σ)
-         as <- (parse* #:phase ph stl_args Σ)
+     (do f  <- ((prs  prs prs*) #:phase ph stx_fun  Σ)
+         as <- ((prs* prs prs*) #:phase ph stl_args Σ)
          (pure (App (gensym 'app) f as)))]
 
     ; (if stx stx stx)
     [(Stx (Lst (? id? (? (id=? 'if))) stx_test stx_then stx_else) _)
-     (do c <- (parse #:phase ph stx_test Σ)
-         t <- (parse #:phase ph stx_then Σ)
-         e <- (parse #:phase ph stx_else Σ)
+     (do c <- ((prs prs prs*) #:phase ph stx_test Σ)
+         t <- ((prs prs prs*) #:phase ph stx_then Σ)
+         e <- ((prs prs prs*) #:phase ph stx_else Σ)
          (pure (If (gensym 'if) c t e)))]
 
     ; reference
@@ -94,16 +93,16 @@
      (pure a)]))
 
 ; parse* : Ph Stl Σ -> (SetM (Listof Ast))
-(define (parse* #:phase [ph #f] stl Σ)
+(define ((parse* prs prs*) #:phase [ph #f] stl Σ)
   (match stl
     [(Null)
      (pure '())]
 
     [(Pair stx stl)
-     (do ast  <- (parse  #:phase ph stx Σ)
-         asts <- (parse* #:phase ph stl Σ)
+     (do ast  <- ((prs  prs prs*) #:phase ph stx Σ)
+         asts <- ((prs* prs prs*) #:phase ph stl Σ)
          (pure (cons ast asts)))]
 
     [(? Stx? stx)
-     (do ast <- (parse #:phase ph stx Σ)
+     (do ast <- ((prs prs prs*) #:phase ph stx Σ)
          (pure (list ast)))]))

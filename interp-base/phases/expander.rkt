@@ -6,12 +6,12 @@
  (only-in "../../term.rkt"  use-terms)
  
  (only-in "../../signatures.rkt"
-          syntax^ env^ store^ eval^ menv^ mstore^
+          domain^ syntax^ env^ store^ eval^ menv^ mstore^
           bind^ mcont^ parser^ expand^ expander^)
  (only-in "terms.rkt" #%term-forms
           App% Atom% Sym% Stx% List% Null% Pair% Hole% Stxξ%
           TVar% AstEnv% ζ% κ% InEval%
-          Lst lst->list snoc id? prim? val? proper-stl?))
+          Lst lst->list snoc id? prim?))
 (provide ==> red@ expand/red@ expand@ expander@)
 
 ;; ----------------------------------------
@@ -19,7 +19,9 @@
 
 ;; ==> :  ζ -> (Setof ζ)
 (define-reduction (==> :=<1> -->)
-  #:within-signatures [(only syntax^
+  #:within-signatures [(only domain^
+                             val? stx? proper-stl?)
+                       (only syntax^
                              empty-ctx zip unzip add flip union in-hole
                              alloc-scope prune at-phase)
                        (only env^
@@ -223,7 +225,7 @@
                ξ (union (set scp_u) scps_p)) '∘ κ0 Σ))
    ex-macapp-eval]
 
-  [(InEval (list (? Stx? stx_exp) '• store_0)
+  [(InEval (list (? stx? stx_exp) '• store_0)
            (ζ (Stxξ ph (Stx #f ctx_i) ξ scps_p) '∘ κ0 Σ))
    #:with scp_i := (car (set->list (at-phase ctx_i ph)))
    (ζ (Stxξ ph (flip ph stx_exp scp_i) ξ scps_p) '∘ κ0 Σ)
@@ -355,7 +357,7 @@
   ;; (#%seq (done ...) exp0 exp ...) -->
   ;;   (#%seq (done ... (expand exp0)) exp ...)
   [(ζ (Stxξ ph (and stx (Stx (Lst (? id? id_seq)
-                                    (Stx (? proper-stl? val_dones) _)
+                                    (Stx val_dones _)
                                     stx_exp0
                                     . stl_exps)
                                ctx))
@@ -373,8 +375,8 @@
 
   [(ζ (Stx (Lst (Stxξ ph (? id? id_seq) ξ scps_p)
                  (Stx (Lst (? id? id_snoc)
-                           (Stx (? proper-stl? val_dones) ctx_1)
-                           (? Stx? stx_done)) _)
+                           (Stx val_dones ctx_1)
+                           (? val? stx_done)) _)
                  . stl_exps)
             ctx) '∘ κ0 Σ)
    #:when (and (id=? #:phase ph id_seq  '#%seq  Σ)
@@ -387,7 +389,7 @@
 
   ;; (#%seq (done ...)) --> (done ...)
   [(ζ (Stxξ ph (Stx (Lst (? id? id_seq)
-                           (Stx (? proper-stl? val_dones) _))
+                           (Stx val_dones _))
                       ctx) ξ scps_p)
        '∘ κ0 Σ)
    #:when (id=? #:phase ph id_seq '#%seq Σ)
@@ -422,7 +424,7 @@
         (cons stx_new Σ_new)))))
 
 (define-compound-unit/infer expand@
-  (import syntax^ env^ store^ eval^
+  (import domain^ syntax^ env^ store^ eval^
           menv^ mstore^ mcont^ bind^ parser^)
   (export expand^)
   (link expand/red@ red@))

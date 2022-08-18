@@ -3,11 +3,11 @@
  ;"../../test/suites.rkt"
 
  ;;;; Signatures
- (only-in "../../signatures.rkt" run^ domain^ debug^)
+ (only-in "../../signatures.rkt" domain^ run^ debug^)
 
  ;;;; Units
  (only-in "../../units.rkt" io@)
- (only-in "../units.rkt"    env@ store@ cont@ domain@ menv@ mstore@ mcont@
+ (only-in "../units.rkt"    domain@ env@ store@ cont@ menv@ mstore@ mcont@
                             run@)
  (only-in "units.rkt"       syntax@ eval@ bind@ parser@
                             expand@ expander@ debug@))
@@ -15,13 +15,10 @@
 
 (define-values/invoke-unit
   (compound-unit/infer
-   (import) (export run^ debug^)
-   (link syntax@ env@ store@ cont@ eval@
+   (import) (export domain^ run^ debug^)
+   (link domain@ syntax@ env@ store@ cont@ eval@
          menv@ mstore@ bind@ mcont@ parser@ expand@ expander@ io@ run@ debug@))
-  (import) (export run^ debug^))
-
-(define-values/invoke-unit domain@
-  (import) (export domain^))
+  (import) (export domain^ run^ debug^))
 
 ;; run example
 ;; comment-out to avoid cyclic dependency from test/run.rkt

@@ -3,12 +3,14 @@
  racket/match
  (only-in "../term.rkt"  use-terms)
  
- (only-in "../signatures.rkt" syntax^ menv^ bind^ parse^)
+ (only-in "../signatures.rkt" domain^ syntax^ menv^ bind^ parse^)
  (only-in "../terms.rkt" #%term-forms
           Var% Fun% App% If% Atom% Bool% Num% Sym% Stx% Null% Pair% Prim%
-          Lst lst->list id? prim? proper-stl?))
+          Lst lst->list id? prim?))
 
 (import
+ (only domain^
+       proper-stl?)
  (only syntax^
        strip unzip)
  (only menv^

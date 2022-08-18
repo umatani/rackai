@@ -9,12 +9,12 @@
  (only-in "../../term.rkt"  use-terms)
 
  (only-in "../../signatures.rkt"
-          syntax^ env^ store^ eval^
+          domain^ syntax^ env^ store^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^ expander^)
  (only-in "terms.rkt" #%term-forms
           App% Atom% Sym% Stx% Stxξ% List% Null% Pair% Hole%
           AstEnv% TVar% κ% InEval% ζ%
-          Lst lst->list snoc id? prim? val? stx? proper-stl?))
+          Lst lst->list snoc id? prim?))
 (provide ==> red@ expand/red@ expand@ expander@)
 
 ;; ----------------------------------------
@@ -22,7 +22,9 @@
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> --> :=<1>)
-  #:within-signatures [(only syntax^
+  #:within-signatures [(only domain^
+                             val? stx? proper-stl?)
+                       (only syntax^
                              empty-ctx zip unzip in-hole alloc-scope add flip)
                        (only env^
                              init-env)
@@ -335,7 +337,7 @@
   ;; (#%seq (done ...) exp0 exp ...) -->
   ;;   (#%seq (done ... (expand exp0)) exp ...)
   [(ζ (Stxξ (and stx (Stx (Lst (? id? id_seq)
-                                 (Stx (? proper-stl? val_dones) _)
+                                 (Stx val_dones _)
                                  stx_exp0 . stl_exps) ctx)) ξ) '∘ κ0 Σ)
    #:when (id=? id_seq '#%seq Σ)
    #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
@@ -352,8 +354,8 @@
 
   [(ζ (Stx (Lst (Stxξ (? id? id_seq) ξ)
                  (Stx (Lst (? id? id_snoc)
-                           (Stx (? proper-stl? val_dones) ctx_1)
-                           (? stx? stx_done)) _)
+                           (Stx val_dones ctx_1)
+                           (? val? stx_done)) _)
                  . stl_exps)
             ctx) '∘ κ Σ)
    #:when (and (id=? id_seq '#%seq Σ) (id=? id_snoc '#%snoc Σ))
@@ -364,7 +366,7 @@
   
   ;; (#%seq (done ...)) --> (done ...)
   [(ζ (Stxξ (Stx (Lst (? id? id_seq)
-                        (Stx (? proper-stl? val_dones) _)) ctx) ξ) '∘ κ Σ)
+                        (Stx val_dones _)) ctx) ξ) '∘ κ Σ)
    #:when (id=? id_seq '#%seq Σ)
    (ζ (Stx val_dones ctx) '• κ Σ)
    ex-seq-nil]
@@ -397,7 +399,7 @@
         (cons stx_new Σ_new)))))
 
 (define-compound-unit/infer expand@
-  (import syntax^ env^ store^ eval^ menv^ mstore^
+  (import domain^ syntax^ env^ store^ eval^ menv^ mstore^
           mcont^ bind^ parser^)
   (export expand^)
   (link expand/red@ red@))

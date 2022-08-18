@@ -5,11 +5,10 @@
  "../../mix.rkt"
  (only-in "../../term.rkt" use-terms)
 
- (only-in "../../signatures.rkt" env^ store^ cont^ eval^)
+ (only-in "../../signatures.rkt" domain^ env^ store^ cont^ eval^)
  (only-in "terms.rkt" #%term-forms
           Var% Fun% App% If% Bool% VFun% Prim%
-          AstEnv% KApp% KIf% SApp% SIf%
-          val?))
+          AstEnv% KApp% KIf% SApp% SIf%))
 (provide --> eval@)
 
 ;; ----------------------------------------
@@ -17,7 +16,9 @@
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta :=<1>)
-  #:within-signatures [(only env^
+  #:within-signatures [(only domain^
+                             val?)
+                       (only env^
                              lookup-env extend-env)
                        (only store^
                              lookup-store alloc-loc* update-store*)
@@ -115,8 +116,12 @@
 (define-unit-from-reduction red@ -->)
 
 (define-mixed-unit eval@
-  (import (only env^         init-env)
-          (only store^       init-store))
+  (import (only domain^
+                val?)
+          (only env^
+                init-env)
+          (only store^
+                init-store))
   (export eval^)
   (inherit [red@ reducer])
 

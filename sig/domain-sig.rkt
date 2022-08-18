@@ -6,3 +6,8 @@
 delta
 α
 ≤a
+
+val?
+stx?
+stl?
+proper-stl?

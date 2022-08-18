@@ -6,18 +6,18 @@
  (only-in "../term.rkt" use-terms)
  "../test/suites.rkt"
 
- (only-in "../signatures.rkt" syntax^ env^ store^ cont^ domain^ eval^
+ (only-in "../signatures.rkt" domain^ syntax^ env^ store^ cont^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^ run^ debug^)
  (only-in "../interp-base/phases/terms.rkt" #%term-forms
           App% List% Pair% Null% Atom% Sym% Stx% Hole% Stxξ%
           AstEnv% TVar% ζ% κ% InEval%
-          Lst snoc lst->list id? prim? val? proper-stl?)
+          Lst snoc lst->list id? prim?)
 
  (only-in "../units.rkt"                      io@)
  (only-in "../interp-base/units.rkt"          cont@ mcont@)
  (only-in "../interp-base/phases/units.rkt"
           debug@ [syntax@ super:syntax@] expander@)
- (only-in "../interp-set/units.rkt"           env@ domain@ menv@ run@)
+ (only-in "../interp-set/units.rkt"           domain@ env@ menv@ run@)
  (only-in "../interp-set/core/units.rkt"      ev:red@)
  (only-in "../interp-set/phases/units.rkt"    parser@ expand/red@)
  (only-in "../interp-set/phases/expander.rkt" [==> set:==>])
@@ -70,22 +70,21 @@
 ;; Main
 
 (define-compound-unit/infer main-minus@
-  (import eval^ expand^)
+  (import domain^ eval^ parser^ expand^)
   (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^
-          parser^ run^ debug^)
+          run^ debug^)
   (link   syntax@ env@ store@ cont@ menv@ mstore@ bind@ mcont@
-          parser@ expander@ io@ run@ debug@))
+          expander@ io@ run@ debug@))
 
 (define-values/invoke-unit
   (compound-unit/infer
-   (import) (export run^ debug^)
-   (link main-minus@
+   (import) (export domain^ run^ debug^)
+   (link domain@ main-minus@
          (() eval/red@ ev)   (([ev : red^]) ev:red@)
+         parser@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
-  (import) (export run^ debug^))
+  (import) (export domain^ run^ debug^))
 
-(define-values/invoke-unit domain@
-  (import) (export domain^))
 
 ;; run example
 (define (main [mode 'check])

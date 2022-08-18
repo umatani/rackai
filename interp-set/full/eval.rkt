@@ -6,19 +6,21 @@
  (only-in "../../term.rkt" use-terms)
  
  (only-in "../../signatures.rkt"
-          syntax^ env^ store^ cont^ eval^
+          domain^ syntax^ env^ store^ cont^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^)
  (only-in "../../interp-base/full/terms.rkt" #%term-forms
           Var% Fun% App% If% Bool% VFun% Sym% Stx% Null% Pair% Prim% Defs% 𝓁%
           Stxξ%
           KApp% KIf% SApp% SIf% AstEnv% Σ% ζ% Σ*% TVar% TStop% InExpand%
-          lst->list id? stx-prim? val?)
+          lst->list id? stx-prim?)
  (only-in "../../interp-base/full/eval.rkt" [--> base:-->]))
 (provide --> red@ eval/red@ eval@)
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta ==>) #:super (base:--> delta ==> <-)
-  #:within-signatures [(only syntax^
+  #:within-signatures [(only domain^
+                             val? stx?)
+                       (only syntax^
                              add flip union alloc-scope prune)
                        (only env^
                              init-env lookup-env extend-env)
@@ -58,7 +60,9 @@
 (define-unit-from-reduction red@ -->)
 
 (define-unit eval/red@
-  (import (only env^
+  (import (only domain^
+                val?)
+          (only env^
                 init-env)
           (only store^
                 init-store)
@@ -91,6 +95,6 @@
       (car val+Σ*))))
 
 (define-compound-unit/infer eval@
-  (import syntax^ env^ store^ cont^ menv^ mstore^ bind^ expand^ parser^)
+  (import domain^ syntax^ env^ store^ cont^ menv^ mstore^ bind^ expand^ parser^)
   (export eval^)
   (link eval/red@ red@))

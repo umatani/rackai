@@ -2,7 +2,7 @@
 (require
  "../../mix.rkt"
  (only-in "../../signatures.rkt"
-          syntax^ menv^ bind^ parse^ parser^)
+          domain^ syntax^ menv^ bind^ parse^ parser^)
 
  (only-in "../units.rkt" parse@))
 (provide parser@)

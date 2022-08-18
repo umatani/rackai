@@ -5,7 +5,7 @@
              syntax/parse syntax/stx syntax/id-set)
  (only-in "../../mix.rkt" define-mixed-unit)
 
- (only-in "../../signatures.rkt" syntax^ menv^ bind^ parse^ parser^)
+ (only-in "../../signatures.rkt" domain^ syntax^ menv^ bind^ parse^ parser^)
  (only-in "../units.rkt" parse@ bind@ run@))
 (provide parser@)
 

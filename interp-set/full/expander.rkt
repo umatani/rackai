@@ -6,17 +6,19 @@
  (only-in "../../term.rkt"  use-terms)
 
  (only-in "../../signatures.rkt"
-          syntax^ env^ store^ eval^ menv^ mstore^ bind^ mcont^
+          domain^ syntax^ env^ store^ eval^ menv^ mstore^ bind^ mcont^
           parser^ expand^ expander^)
  (only-in "../../interp-base/full/terms.rkt" #%term-forms
           App% Atom% Sym% Stx% List% Null% Pair% Hole% Stxξ%
           AstEnv% TVar% TStop% ζ% κ% Σ*% InEval% InExpand%
-          Lst lst->list snoc id? prim? val? proper-stl?)
+          Lst lst->list snoc id? prim?)
  (only-in "../../interp-base/full/expander.rkt" [==> base:==>]))
 (provide ==> red@ expand/red@ expand@)
 
 (define-reduction (==> -->) #:super (base:==> --> <-)
-  #:within-signatures [(only syntax^
+  #:within-signatures [(only domain^
+                             val? stx? proper-stl?)
+                       (only syntax^
                              empty-ctx zip unzip add flip union in-hole
                              alloc-scope prune at-phase)
                        (only env^
@@ -93,6 +95,6 @@
         (list->set (map cons stx_new Σ*_new))))))
 
 (define-compound-unit/infer expand@
-  (import syntax^ env^ store^ eval^ menv^ mstore^ mcont^ bind^ parser^)
+  (import domain^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^ bind^ parser^)
   (export expand^)
   (link expand/red@ red@))

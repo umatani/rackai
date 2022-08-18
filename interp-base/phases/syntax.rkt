@@ -5,7 +5,7 @@
  "../../mix.rkt"
  (only-in "../../term.rkt" use-terms)
 
- (only-in "../../signatures.rkt" syntax^)
+ (only-in "../../signatures.rkt" domain^ syntax^)
  (only-in "terms.rkt" #%term-forms
           Atom% Stx% Null% Pair% Hole%
           Stxξ%
