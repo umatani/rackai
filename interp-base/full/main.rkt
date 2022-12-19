@@ -1,5 +1,6 @@
 #lang racket
 (require
+ "../../interpreter.rkt"
  ;"../../test/suites.rkt"
 
  ;;;; Signatures
@@ -11,7 +12,7 @@
                             run@)
  (only-in "units.rkt"       syntax@ eval@ bind@ parser@
                             expand@ expander@ debug@))
-(provide run delta α ≤a)
+(provide interp)
 
 (define-values/invoke-unit
   (compound-unit/infer
@@ -19,6 +20,8 @@
    (link domain@ syntax@ env@ store@ cont@ eval@
          menv@ mstore@ bind@ mcont@ parser@ expand@ expander@ io@ run@ debug@))
   (import) (export domain^ run^ debug^))
+
+(define interp (interpreter 'base:full run delta α ≤a #f))
 
 ;; run example
 ;; comment-out to avoid cyclic dependency from test/run.rkt

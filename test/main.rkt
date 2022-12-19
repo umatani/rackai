@@ -1,6 +1,6 @@
 #lang racket
 (require
- (only-in "run.rkt" fail-count)
+ "../interpreter.rkt"
 
  (prefix-in b:c: "../interp-base/core/main.rkt")
  (prefix-in b:p: "../interp-base/phases/main.rkt")
@@ -17,48 +17,73 @@
 
  "suites.rkt")
 
-
-(struct interp (name run delta α ≤a) #:transparent)
-
 (define interpreters
-  (list (interp 'base:core    b:c:run b:c:delta b:c:α b:c:≤a)
-        (interp 'base:phases  b:p:run b:p:delta b:p:α b:p:≤a)
-        (interp 'base:full    b:f:run b:f:delta b:f:α b:f:≤a)
-        (interp 'set:core     s:c:run s:c:delta s:c:α s:c:≤a)
-        (interp 'set:phases   s:p:run s:p:delta s:p:α s:p:≤a)
-        (interp 'set:full     s:f:run s:f:delta s:f:α s:f:≤a)
-        (interp 'abs:core     a:c:run a:c:delta a:c:α s:c:≤a)
-        (interp 'abs:phases   a:p:run a:p:delta a:p:α s:p:≤a)
-        (interp 'abs:full     a:f:run a:f:delta a:f:α s:f:≤a)
-        (interp 'naive:core   n:c:run n:c:delta n:c:α n:c:≤a)
-        (interp 'naive:phases n:p:run n:p:delta n:p:α n:p:≤a)
-        (interp 'naive:full   n:f:run n:f:delta n:f:α n:f:≤a)
-        ))
+  (list
+   b:c:interp b:p:interp b:f:interp
+   s:c:interp s:p:interp s:f:interp
+   a:c:interp a:p:interp a:f:interp
+   n:c:interp n:p:interp n:f:interp
+   ))
 
 (define test-suites
-  (hasheq 'base:core    (map suite '[core             finite])
-          'base:phases  (map suite '[core phases      finite])
-          'base:full    (map suite '[core phases full finite])
-          'set:core     (map suite '[core             finite])
-          'set:phases   (map suite '[core phases      finite])
-          'set:full     (map suite '[core phases full finite])
-          'abs:core     (map suite '[core                   ])
-          'abs:phases   (map suite '[core phases            ])
-          'abs:full     (map suite '[core phases full       ])
-          'naive:core   (map suite '[core             finite])
-          'naive:phases (map suite '[core phases      finite])
-          'naive:full   (map suite '[core phases full finite])
-          ))
+  (hasheq
+   'base:core    (map suite '[core             finite])
+   'base:phases  (map suite '[core phases      finite])
+   'base:full    (map suite '[core phases full finite])
+
+   'set:core     (map suite '[core             finite])
+   'set:phases   (map suite '[core phases      finite])
+   'set:full     (map suite '[core phases full finite])
+
+   'abs:core     (map suite '[core                   ])
+   'abs:phases   (map suite '[core phases            ])
+   'abs:full     (map suite '[core phases full       ])
+
+   'naive:core   (map suite '[core             finite])
+   'naive:phases (map suite '[core phases      finite])
+   'naive:full   (map suite '[core phases full finite])
+   ))
 
 
-(define ((run-all interpreters) [mode 'check])
-  (parameterize ([fail-count (if (eq? mode 'check) 0 -1)])
-    (for ([interpreter (in-list interpreters)])
-      (match-define (interp name run delta α ≤a) interpreter)
-      (printf "\n[~a]\n" name)
-      (for ([suite (in-list (hash-ref test-suites name))])
-        (run-suite run delta suite mode α ≤a)))
-    (when (>= (fail-count) 0)
-      (printf "\nfail-count: ~a\n" (fail-count)))))
+(define ((run-all interpreters) [mode 'check-with-raw])
+  (for ([interp (in-list interpreters)])
+    (define name (interpreter-name interp))
+    (printf "\n[~a]\n" name)
+
+    (when (or (equal? mode 'check) (equal? mode 'check-with-raw))
+      (set-interpreter-result!
+       interp
+       (make-hasheq '([exact . 0] [inexact . 0] [unsound . 0] [fail . 0]))))
+
+    (for ([suite (in-list (hash-ref test-suites name))])
+      (run-suite suite interp mode))
+
+    (when (or (equal? mode 'check) (equal? mode 'check-with-raw))
+      (let* ([result  (interpreter-result interp)]
+             [exact   (hash-ref result 'exact)]
+             [inexact (hash-ref result 'inexact)]
+             [unsound (hash-ref result 'unsound)]
+             [fail    (hash-ref result 'fail)])
+        (printf "\n  (Summary)\n  - OK: ~a (~a exact)\n  - NG: ~a (~a fail)\n"
+                (+ exact inexact) exact (+ unsound fail) fail))))
+
+  (when (or (equal? mode 'check) (equal? mode 'check-with-raw))
+    (for/fold ([exact 0]
+               [inexact 0]
+               [unsound 0]
+               [fail 0]
+               #:result
+               (begin (printf "\n(Total Summary)\n")
+                      (printf "  - OK: ~a (~a exact)\n  - NG: ~a (~a fail)\n"
+                              (+ exact inexact) exact (+ unsound fail) fail)))
+              ([interp (in-list interpreters)])
+      (let* ([result  (interpreter-result interp)]
+             [e (hash-ref result 'exact)]
+             [i (hash-ref result 'inexact)]
+             [u (hash-ref result 'unsound)]
+             [f (hash-ref result 'fail)])
+        (values (+ exact e) (+ inexact i) (+ unsound u) (+ fail f))))))
 
 (define main (run-all interpreters))
+
+;(main)

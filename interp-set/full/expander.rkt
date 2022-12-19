@@ -90,7 +90,7 @@
                               (and (not (InEval? ζ0))
                                    (eq? (ζ-ex? ζ0) '•)))
                             (set->list ζs)))
-      (printf "expand: ~a ~a\n" (set-count ζs) (length succs))
+      ;(printf "expand: ~a ~a\n" (set-count ζs) (length succs))
       (match-let ([(list (ζ stx_new '• '• Σ*_new) ...) succs])
         (list->set (map cons stx_new Σ*_new))))))
 

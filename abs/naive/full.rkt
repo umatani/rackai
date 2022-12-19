@@ -2,8 +2,9 @@
 (require
  "../../mix.rkt"
  "../../reduction.rkt"
+ "../../interpreter.rkt"
  (only-in "../../term.rkt" use-terms)
- "../../test/suites.rkt"
+ ;"../../test/suites.rkt"
 
  (only-in "../../signatures.rkt"
           domain^ syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^ parser^
@@ -22,7 +23,7 @@
  (only-in "domain.rkt" domain@
           val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤ list-⊤)
  (only-in "parse.rkt" parse@))
-(provide run delta α ≤a)
+(provide interp)
 
 
 (define-reduction (--> delta ==>) #:super (set:--> delta ==>)
@@ -172,6 +173,9 @@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export domain^ run^ debug^))
 
+(define interp (interpreter 'naive:full run delta α ≤a #f))
+
+#;
 (define (main [mode 'check])
   (run-suite run delta (suite 'core)   mode α ≤a)
   (run-suite run delta (suite 'finite)   mode α ≤a)

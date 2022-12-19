@@ -284,6 +284,7 @@
                 (set-add! all-states next)
                 (enqueue! worklist next))))
         (loop (and steps (sub1 steps)))))
+    (set-add! all-states s)
     (enqueue! worklist s)
     (loop steps)
     (if steps all-states normal-forms)))

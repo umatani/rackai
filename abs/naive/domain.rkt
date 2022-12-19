@@ -26,18 +26,18 @@
 (define (≤e v1 v2)
   (or (equal? v1 v2)
       (match* (v1 v2)
-        [(_         val-⊤)  #t]
-        [((? Atom?) atom-⊤) #t]
-        [(val-⊤     atom-⊤) #f]
-        [((? Num?)  num-⊤)  #t]
-        [(_         num-⊤)  #f]
-        [((? Sym?)  sym-⊤)  #t]
-        [(_         sym-⊤)  #f]
-        [((? Stx?)  stx-⊤)  #t]
-        [(_         stx-⊤)  #f]
-        [((? List?) list-⊤) #t]
-        [(_         list-⊤) #f]
-        [(_ _) #f])))
+        [(_         (? (λ (x) (equal? x val-⊤))))  #t]
+        [((? Atom?) (? (λ (x) (equal? x atom-⊤)))) #t]
+        [((Val)     (? (λ (x) (equal? x atom-⊤)))) #f]
+        [((? Num?)  (Num 'num-⊤))                  #t]
+        [(_         (Num 'num-⊤))                  #f]
+        [((? Sym?)  (Sym 'sym-⊤))                  #t]
+        [(_         (Sym 'sym-⊤))                  #f]
+        [((? Stx?)  (Stx 'stx-⊤ (set)))            #t]
+        [(_         (Stx 'stx-⊤ (set)))            #f]
+        [((? List?) (? (λ (x) (equal? x list-⊤)))) #t]
+        [(_         (? (λ (x) (equal? x list-⊤)))) #f]
+        [(_                        _)              #f])))
 
 (define-unit domain@
   (import)
@@ -45,8 +45,10 @@
   
   (define (α vs) vs)
   (define (≤a vs1 vs2)
-    (define ((∈a vs) v1) (ormap (λ (v2) (≤e v1 v2)) vs))
-    (andmap (∈a (set->list vs2)) (set->list vs1)))
+    (define vs1* (set->list vs1))
+    (define vs2* (set->list vs2))
+    (define (∈a v1) (ormap (λ (v2) (≤e v1 v2)) vs2*))
+    (andmap ∈a vs1*))
 
   ; delta : Prim (Listof Val) -> (SetM Val)
   (define (delta p vs)
@@ -153,7 +155,8 @@
     (or (Val? x)
         (and (Pair? x) (val? (Pair-a x)) (val? (Pair-d x)))
         (stx? x)
-        (equal? x stx-⊤)))
+        (equal? x stx-⊤) ;; added
+        ))
 
   (define (stx? x)
     (or (and (Stx? x) (Atom? (Stx-e x)))

@@ -1,13 +1,14 @@
 #lang racket
 (require
  "../set.rkt"
+ "../interpreter.rkt"
  (only-in "../term.rkt" use-terms)
  (only-in racket [eval r:eval])
- (prefix-in base: (only-in "../interp-base/full/main.rkt" run delta))
+ (prefix-in base: (only-in "../interp-base/full/main.rkt" interp))
  (only-in "../terms.rkt" #%term-forms
-           Bool% Num% Sym% Null% Pair%))
-(provide
- fail-count run-examples)
+          Bool% Num% Sym% Null% Pair%
+          lst->list/recur))
+(provide run-examples)
 
 (use-terms Bool Num Sym Null Pair)
 
@@ -26,44 +27,39 @@
 
 ;;;; Base evaluator
 ;; base-eval: Sexp -> (Setof Val)
+(match-define (interpreter _ base:run base:delta _ _ _) base:interp)
 (define (base-eval sexp)
   (base:run base:delta sexp 'eval))
 
+
 ;;;; Example runner
 
-(define fail-count (make-parameter -1))
+(define (runner form interp mode)
+  (match-define (interpreter name run delta α ≤a rlt) interp)
+  (case mode
+    [(raw) (lst->list/recur (raw-eval form))]
+    [(check check-with-raw)
+     (define opponent (case mode
+                        [(check)          base-eval]
+                        [(check-with-raw) raw-eval]))
 
-(define (runner run delta example mode α ≤a)
-  (pretty-print
-   (case mode
-     [(raw) (raw-eval example)]
-     [(check)
-      (fail-count (if (< (fail-count) 0) 0 (fail-count)))
-      (let* ([c (base-eval example)]
-             [a (run delta example 'eval)]
-             [result (≤a (α c) a)])
-        (unless result
-          (fail-count (+ (fail-count) 1)))
-        result)]
-     [(check-with-raw)
-      (fail-count (if (< (fail-count) 0) 0 (fail-count)))
-      (let* ([c (raw-eval example)]
-             [a (run delta example 'eval)]
-             [result (≤a (α c) a)])
-        (unless result
-          (fail-count (+ (fail-count) 1)))
-        result)]
+     (with-handlers ([exn:fail? (λ (_)
+                                  (hash-update! rlt 'fail add1) 'fail)])
+       (let ([c (α (with-handlers ([exn:fail?
+                                     (λ (e)
+                                       (printf "error in opponent: ~a" e))])
+                      (opponent form)))]
+             [a (run delta form 'eval)])
+         (cond
+           [(and (≤a c a)
+                 (≤a a c)) (hash-update! rlt 'exact   add1) 'exact]
+           [(≤a c a)       (hash-update! rlt 'inexact add1) 'inexact]
+           [else           (hash-update! rlt 'unsound add1) 'unsound])))]
+    [else (lst->list/recur (run delta form mode))]))
 
-     [else (run delta example mode)])))
-
-(define (run-example run delta examples name
-                     [mode 'check] [α identity] [≤a subset?])
-  (let ([example (assoc name examples)])
-    (when example
-      (runner run delta (cadr example) mode α ≤a))))
-
-(define (run-examples run delta examples
-                      [mode 'check] [α identity] [≤a subset?])
+(define (run-examples examples interp mode)
   (for ([example (in-list examples)])
-    (printf "~a: " (car example))
-    (runner run delta (cadr example) mode α ≤a)))
+    (match-define (list name form) example)
+    (printf "  ~a: " name)
+    (pretty-display
+     (runner form interp mode))))

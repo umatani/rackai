@@ -21,6 +21,6 @@
               #:abort-if (eq? mode 'expand) (lst->list/recur (stx->datum stx*))
               ast <- (parser stx* Σ)
               #:abort-if (eq? mode 'parse) ast
-              ast* <- (lift (evaluate delta ast))
-              #:abort-if (eq? mode 'eval) (lst->list/recur ast*)
+              val <- (lift (evaluate delta ast))
+              #:abort-if (eq? mode 'eval) val
               (error 'run "unknown mode: ~e" mode))))

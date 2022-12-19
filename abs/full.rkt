@@ -3,8 +3,9 @@
  "../set.rkt"
  "../reduction.rkt"
  "../mix.rkt"
+ "../interpreter.rkt"
  (only-in "../term.rkt" use-terms)
- "../test/suites.rkt"
+ ;"../test/suites.rkt"
 
  (only-in "../signatures.rkt" domain^ syntax^ env^ store^ cont^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^ run^ debug^)
@@ -19,7 +20,8 @@
  (only-in "../interp-set/units.rkt"       domain@ env@ menv@ run@)
  (only-in "../interp-set/full/units.rkt"  eval@ parser@ expand@)
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
-(provide syntax@ main-minus@ run delta α ≤a)
+(provide syntax@ main-minus@
+         interp)
 
 (define-mixed-unit syntax@
   (import)
@@ -46,7 +48,9 @@
          eval@ parser@ expand@))
   (import) (export domain^ run^ debug^))
 
+(define interp (interpreter 'abs:full run delta α ≤a #f))
 
+#;
 (define (main [mode 'check])
   (run-suite run delta (suite 'core)   mode α ≤a)
   (run-suite run delta (suite 'phases) mode α ≤a)

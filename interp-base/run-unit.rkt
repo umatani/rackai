@@ -23,5 +23,5 @@
               ast := (parser stx* Σ)
               #:abort-if (eq? mode 'parse) ast
               val := (evaluate delta ast)
-              #:abort-if (eq? mode 'eval) (lst->list/recur val)
+              #:abort-if (eq? mode 'eval) val
               (error 'run "unknown mode: ~e" mode))))

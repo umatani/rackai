@@ -3,8 +3,9 @@
  "../set.rkt"
  "../reduction.rkt"
  "../mix.rkt"
+ "../interpreter.rkt"
  (only-in "../term.rkt" use-terms)
- "../test/suites.rkt"
+ ;"../test/suites.rkt"
 
  (only-in "../signatures.rkt"
           domain^ syntax^ env^ store^ cont^ eval^
@@ -25,7 +26,7 @@
  (only-in "../interp-set/core/expander.rkt" [==> set:==>])
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
 (provide syntax@ eval/red@ ==> main-minus@
-         run delta α ≤a eval-->* expand==>*)
+         interp eval-->* expand==>*)
 
 (use-terms Val Atom)
 
@@ -114,7 +115,10 @@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export domain^ run^ debug^))
 
+(define interp (interpreter 'abs:core run delta α ≤a #f))
+
 ;; run example
+#;
 (define (main [mode 'check])
   (run-suite run delta (suite 'core) mode α ≤a))
 

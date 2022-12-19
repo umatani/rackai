@@ -2,7 +2,8 @@
 (require
  "../../mix.rkt"
  "../../reduction.rkt"
- "../../test/suites.rkt"
+ "../../interpreter.rkt"
+ ;"../../test/suites.rkt"
 
  (only-in "../../signatures.rkt" domain^ syntax^ env^ store^
           menv^ mstore^ bind^ mcont^ parser^ run^ debug^)
@@ -16,7 +17,7 @@
  (only-in "domain.rkt" domain@ val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤ list-⊤)
  (only-in "core.rkt" ev:red@)
  (only-in "parse.rkt" parse@))
-(provide run delta α ≤a)
+(provide interp)
 
 
 (define-mixed-unit parser@
@@ -81,7 +82,10 @@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export domain^ run^ debug^))
 
+(define interp (interpreter 'naive:phases run delta α ≤a #f))
+
 ;; run example
+#;
 (define (main [mode 'check])
   (run-suite run delta (suite 'core)   mode α ≤a)
   (run-suite run delta (suite 'finite) mode α ≤a)

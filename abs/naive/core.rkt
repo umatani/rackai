@@ -3,8 +3,9 @@
  "../../set.rkt"
  "../../reduction.rkt"
  "../../mix.rkt"
+ "../../interpreter.rkt"
  (only-in "../../term.rkt" use-terms)
- "../../test/suites.rkt"
+ ;"../../test/suites.rkt"
 
  (only-in "../../signatures.rkt"
           domain^ syntax^ env^ store^ cont^ eval^
@@ -21,7 +22,7 @@
  (only-in "parse.rkt" parse@)
  (only-in "domain.rkt"
           domain@ val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤ list-⊤))
-(provide ev:red@ run delta α ≤a)
+(provide ev:red@ interp)
 
 ;; Revise --> to interpret abstract values (val-⊤, stx-⊤, etc.)
 ;; --> : State -> (Setof State)
@@ -108,7 +109,10 @@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export domain^ run^ debug^))
 
+(define interp (interpreter 'naive:core run delta α ≤a #f))
+
 ;; run example
+#;
 (define (main [mode 'check])
   (run-suite run delta (suite 'core) mode α ≤a)
   (run-suite run delta (suite 'finite) mode α ≤a))
