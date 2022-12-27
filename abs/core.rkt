@@ -11,19 +11,19 @@
           domain^ syntax^ env^ store^ cont^ eval^
           menv^ mstore^ mcont^ bind^ parser^ expand^ expander^ io^ run^ debug^)
 
- (only-in "../interp-base/core/terms.rkt" #%term-forms
+ (only-in "../conc/core/terms.rkt" #%term-forms
           Var% Fun% App% If% Val% VFun% List% Null% Pair% Atom% Bool% Sym%
           Stx% Prim% Hole% Stxξ%
           AstEnv% TVar% ζ% κ% InEval%
           Lst id? lst->list snoc prim?)
 
- (only-in "../units.rkt"                  io@)
- (only-in "../interp-base/units.rkt"      cont@ mcont@)
- (only-in "../interp-base/core/units.rkt" debug@ expander@
+ (only-in "../units.rkt"             io@)
+ (only-in "../conc/units.rkt"        cont@ mcont@)
+ (only-in "../conc/core/units.rkt"   debug@ expander@
           [syntax@ super:syntax@])
- (only-in "../interp-set/units.rkt"       domain@ env@ menv@ run@)
- (only-in "../interp-set/core/units.rkt"  ev:red@ parser@ expand/red@)
- (only-in "../interp-set/core/expander.rkt" [==> set:==>])
+ (only-in "../set/units.rkt"         domain@ env@ menv@ run@)
+ (only-in "../set/core/units.rkt"    ev:red@ parser@ expand/red@)
+ (only-in "../set/core/expander.rkt" [==> set:==>])
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
 (provide syntax@ eval/red@ ==> main-minus@
          interp eval-->* expand==>*)

@@ -1,7 +1,7 @@
 #lang racket
 (require redex
          "rewrites.rkt"
-         slideshow/pict)
+         (except-in slideshow/pict explain))
 
 (define-language mini
   

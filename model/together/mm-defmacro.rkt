@@ -2,7 +2,7 @@
 (require redex
          "rewrites.rkt"
          "define-example.rkt"
-         slideshow/pict)
+         (except-in slideshow/pict explain))
 
 (define-language mini
   

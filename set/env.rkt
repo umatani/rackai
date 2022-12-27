@@ -4,7 +4,7 @@
  "../mix.rkt"
 
  (only-in "../signatures.rkt" env^)
- (only-in "../interp-base/units.rkt" [env@ base:env@]))
+ (only-in "../conc/units.rkt" [env@ base:env@]))
 (provide env@)
 
 (define-mixed-unit env@

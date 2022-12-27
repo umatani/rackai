@@ -10,14 +10,14 @@
  (only-in "../../signatures.rkt"
           domain^ syntax^ env^ store^ cont^ eval^
           menv^ mstore^ mcont^ bind^ parser^ expand^ run^ debug^)
- (only-in "../../interp-base/core/terms.rkt" #%term-forms
+ (only-in "../../conc/core/terms.rkt" #%term-forms
           Var% Fun% App% If% Val% Atom% List% VFun% Bool% Sym%
           Stx% Stxξ% Null% Pair% Prim% Hole%
           SApp% SIf% KApp% KIf% AstEnv% TVar% ζ% κ% InEval%
           Lst snoc id? prim? stx->datum)
 
- (only-in "../../interp-set/core/units.rkt" expand/red@)
- (only-in "../../interp-set/core/eval.rkt" [--> set:-->])
+ (only-in "../../set/core/units.rkt" expand/red@)
+ (only-in "../../set/core/eval.rkt" [--> set:-->])
  (only-in "../core.rkt" eval/red@ [==> abs:==>] main-minus@)
  (only-in "parse.rkt" parse@)
  (only-in "domain.rkt"

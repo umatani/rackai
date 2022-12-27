@@ -8,12 +8,12 @@
  (only-in "../../signatures.rkt"
           domain^ syntax^ env^ store^ cont^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^)
- (only-in "../../interp-base/full/terms.rkt" #%term-forms
+ (only-in "../../conc/full/terms.rkt" #%term-forms
           Var% Fun% App% If% Bool% VFun% Sym% Stx% Null% Pair% Prim% Defs% 𝓁%
           Stxξ%
           KApp% KIf% SApp% SIf% AstEnv% Σ% ζ% Σ*% TVar% TStop% InExpand%
           lst->list id? stx-prim?)
- (only-in "../../interp-base/full/eval.rkt" [--> base:-->]))
+ (only-in "../../conc/full/eval.rkt" [--> base:-->]))
 (provide --> red@ eval/red@ eval@)
 
 ;; --> : State -> (Setof State)

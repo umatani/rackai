@@ -8,11 +8,11 @@
  (only-in "../../signatures.rkt"
           domain^ syntax^ env^ store^ eval^ menv^ mstore^ bind^ mcont^
           parser^ expand^ expander^)
- (only-in "../../interp-base/full/terms.rkt" #%term-forms
+ (only-in "../../conc/full/terms.rkt" #%term-forms
           App% Atom% Sym% Stx% List% Null% Pair% Hole% Stxξ%
           AstEnv% TVar% TStop% ζ% κ% Σ*% InEval% InExpand%
           Lst lst->list snoc id? prim?)
- (only-in "../../interp-base/full/expander.rkt" [==> base:==>]))
+ (only-in "../../conc/full/expander.rkt" [==> base:==>]))
 (provide ==> red@ expand/red@ expand@)
 
 (define-reduction (==> -->) #:super (base:==> --> <-)

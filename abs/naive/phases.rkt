@@ -7,11 +7,11 @@
 
  (only-in "../../signatures.rkt" domain^ syntax^ env^ store^
           menv^ mstore^ bind^ mcont^ parser^ run^ debug^)
- (only-in "../../interp-base/phases/terms.rkt"
+ (only-in "../../conc/phases/terms.rkt"
           App% Atom% Sym% Stx% List% Null% Pair% AstEnv%
           Stxξ% κ% ζ% TVar% InEval% Hole%
           Lst lst->list snoc id? prim?)
- (only-in "../../interp-set/phases/units.rkt" expand/red@)
+ (only-in "../../set/phases/units.rkt" expand/red@)
  (only-in "../core.rkt" eval/red@)
  (only-in "../phases.rkt" [==> abs:==>] main-minus@)
  (only-in "domain.rkt" domain@ val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤ list-⊤)

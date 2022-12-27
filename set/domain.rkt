@@ -9,7 +9,7 @@
  (only-in "../terms.rkt" #%term-forms
           Atom% Bool% Num% Sym% Stx% Null% Pair% Prim%
           lst->list/recur stx->datum)
- (only-in "../interp-base/domain-unit.rkt" [domain@ base:domain@]))
+ (only-in "../conc/domain-unit.rkt" [domain@ base:domain@]))
 (provide domain@)
 
 ;; ----------------------------------------

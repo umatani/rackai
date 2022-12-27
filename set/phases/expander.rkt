@@ -9,11 +9,11 @@
  (only-in "../../signatures.rkt"
           domain^ syntax^ env^ store^ eval^ menv^ mstore^ bind^ mcont^
           parser^ expand^ expander^)
- (only-in "../../interp-base/phases/terms.rkt" #%term-forms
+ (only-in "../../conc/phases/terms.rkt" #%term-forms
           App% Atom% Sym% Stx% List% Null% Pair% Hole% Stxξ%
           AstEnv% TVar% ζ% κ% InEval%
           Lst lst->list snoc id? prim?)
- (only-in "../../interp-base/phases/expander.rkt" [==> base:==>] expander@))
+ (only-in "../../conc/phases/expander.rkt" [==> base:==>] expander@))
 (provide ==> expand/red@ expand@)
 
 ;; ==> : ζ -> (Setof ζ)

@@ -7,10 +7,10 @@
 
  (only-in "../../signatures.rkt"
           domain^ env^ store^ cont^ eval^)
- (only-in "../../interp-base/core/terms.rkt" #%term-forms
+ (only-in "../../conc/core/terms.rkt" #%term-forms
           Var% Fun% App% If% Bool% VFun% Prim%
           AstEnv% KApp% KIf% SApp% SIf%)
- (only-in "../../interp-base/core/eval.rkt" [--> base:-->]))
+ (only-in "../../conc/core/eval.rkt" [--> base:-->]))
 (provide --> red@ eval@)
 
 ;; Revised reduction rules

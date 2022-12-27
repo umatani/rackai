@@ -4,7 +4,7 @@
  "../interpreter.rkt"
  (only-in "../term.rkt" use-terms)
  (only-in racket [eval r:eval])
- (prefix-in base: (only-in "../interp-base/full/main.rkt" interp))
+ (prefix-in base: (only-in "../conc/full/main.rkt" interp))
  (only-in "../terms.rkt" #%term-forms
           Bool% Num% Sym% Null% Pair%
           lst->list/recur))

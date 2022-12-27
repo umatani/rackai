@@ -9,9 +9,9 @@
  ;; Units
  (only-in "../../units.rkt"      io@)
  (only-in "../units.rkt"         domain@ env@ store@ menv@ mstore@ run@)
- (only-in "../../interp-base/units.rkt"      cont@ mcont@)
- (only-in "../../interp-base/full/units.rkt" syntax@ expander@ debug@)
- (only-in "units.rkt"                        eval@ bind@ parser@ expand@))
+ (only-in "../../conc/units.rkt" cont@ mcont@)
+ (only-in "../../conc/full/units.rkt" syntax@ expander@ debug@)
+ (only-in "units.rkt"            eval@ bind@ parser@ expand@))
 (provide interp)
 
 (define-values/invoke-unit

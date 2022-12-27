@@ -7,7 +7,7 @@
 
  (only-in "../../signatures.rkt"
           syntax^ menv^ mstore^ bind^)
- (only-in "../../interp-base/full/terms.rkt" #%term-forms
+ (only-in "../../conc/full/terms.rkt" #%term-forms
           TStop%)
  (only-in "../units.rkt" [bind@ super:bind@]))
 (provide bind@)

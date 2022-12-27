@@ -9,7 +9,7 @@
  (only-in "../signatures.rkt" store^)
  (only-in "../terms.rkt" #%term-forms
           Store%)
- (rename-in "../interp-base/units.rkt" [store@ base:store@]))
+ (rename-in "../conc/units.rkt" [store@ base:store@]))
 (provide store@)
 
 (define-mixed-unit store@

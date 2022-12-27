@@ -9,16 +9,16 @@
  (only-in "../../signatures.rkt"
           domain^ syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^ parser^
           run^ debug^)
- (only-in "../../interp-base/full/terms.rkt" #%term-forms
+ (only-in "../../conc/full/terms.rkt" #%term-forms
           Var% Fun% App% If% VFun% Atom% Bool% Sym% Stx% List%
           Null% Pair% Prim%
           KApp% KIf% SApp% SIf% AstEnv% κ% Stxξ% ζ% 𝓁% Σ% Σ*% Hole%
           TVar% TStop% Defs% InEval% InExpand%
           Lst lst->list snoc id? prim? stx-prim?)
  
- (only-in "../../interp-set/full/units.rkt" eval/red@ expand/red@)
- (only-in "../../interp-set/full/eval.rkt" [--> set:-->])
- (only-in "../../interp-set/full/expander.rkt" [==> set:==>])
+ (only-in "../../set/full/units.rkt" eval/red@ expand/red@)
+ (only-in "../../set/full/eval.rkt" [--> set:-->])
+ (only-in "../../set/full/expander.rkt" [==> set:==>])
  (only-in "../full.rkt" main-minus@)
  (only-in "domain.rkt" domain@
           val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤ list-⊤)

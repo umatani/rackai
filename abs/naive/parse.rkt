@@ -3,7 +3,7 @@
  "../../nondet.rkt"
  "../../mix.rkt"
  (only-in "../../signatures.rkt" domain^ syntax^ menv^ bind^ parse^)
- (only-in "../../interp-set/parse-unit.rkt" [parse@ set:parse@])
+ (only-in "../../set/parse-unit.rkt" [parse@ set:parse@])
  (only-in "domain.rkt" val-⊤ atom-⊤ stx-⊤))
 (provide parse@)
 

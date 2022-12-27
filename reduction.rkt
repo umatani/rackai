@@ -197,60 +197,7 @@
                             def-stxes*
                             (cons body #;body*
                                   exprs*)
-                            (cdr bodies))]))))
-
-
-      #;
-      (for/fold ([ids* '()]
-                 [def-vals* '()]
-                 [def-stxes* '()]
-                 [exprs* '()]
-                 #:result (values ids* def-vals* def-stxes* exprs*))
-                ([body (syntax->list do-bodies)])
-        (let ([body* (local-expand body '()
-                                   (list #'define-values #'define-syntaxes)
-                                   def-cxt)])
-          (printf "do: ~a\n" (syntax->datum body*))
-          (syntax-parse body*
-            #:literal-sets (kernel-literals)
-            [(define-values (id:id ...) e:expr)
-             #:with (id* ...) (stx-map splice-binding-identifier #'(id ...))
-             (if (check-duplicate/sub #'(id* ...))
-                 (values ids* def-vals* def-stxes* exprs*)
-                 (begin
-                   (syntax-local-bind-syntaxes
-                    (syntax->list #'(id* ...)) #f def-cxt)
-                   (with-syntax
-                     ([e* (internal-definition-context-introduce
-                           def-cxt
-                           (local-expand #'e '()
-                                         (list #'define-values
-                                               #'define-syntaxes)
-                                         def-cxt))])
-                     (values (append ids* (syntax->list #'(id* ...)))
-                             (cons #'(define-values (id* ...) e*) def-vals*)
-                             def-stxes*
-                             exprs*))))]
-            [(define-syntaxes (id:id ...) e:expr)
-             #:with (id* ...) (stx-map splice-binding-identifier #'(id ...))
-             (if (check-duplicate/sub #'(id* ...))
-                 (values ids* def-vals* def-stxes* exprs*)
-                 (begin
-                   (syntax-local-bind-syntaxes
-                    (syntax->list #'(id ...)) #f def-cxt)
-                   (with-syntax
-                     ([e* (internal-definition-context-introduce
-                           def-cxt
-                           (local-expand #'e '()
-                                         (list #'define-values
-                                               #'define-syntaxes)
-                                         def-cxt))])
-                     (values (append ids* (syntax->list #'(id* ...)))
-                             def-vals*
-                             (cons #'(define-syntaxes (id* ...) e*) def-stxes*)
-                             exprs*))))]
-            [else
-             (values ids* def-vals* def-stxes* (cons body* exprs*))]))))
+                            (cdr bodies))])))))
     (define check (check-duplicate-identifier ids*))
     (if check
         (raise-syntax-error 'define-reduction
@@ -363,7 +310,7 @@
     (call-with-values (λ () (unit-static-signatures unit-id err-syntax))
                       (λ (_a expts) (map pair->tagged-sig-id expts)))))
 
-;; reductionとは直接関係のない unit の便利ユーティリティ
+;; unit utility
 (define-syntax (compose-unit stx)
   (syntax-parse stx
     [(_ unit-id ...)

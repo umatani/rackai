@@ -2,12 +2,12 @@
 (require
  "../interpreter.rkt"
 
- (prefix-in b:c: "../interp-base/core/main.rkt")
- (prefix-in b:p: "../interp-base/phases/main.rkt")
- (prefix-in b:f: "../interp-base/full/main.rkt")
- (prefix-in s:c: "../interp-set/core/main.rkt")
- (prefix-in s:p: "../interp-set/phases/main.rkt")
- (prefix-in s:f: "../interp-set/full/main.rkt")
+ (prefix-in b:c: "../conc/core/main.rkt")
+ (prefix-in b:p: "../conc/phases/main.rkt")
+ (prefix-in b:f: "../conc/full/main.rkt")
+ (prefix-in s:c: "../set/core/main.rkt")
+ (prefix-in s:p: "../set/phases/main.rkt")
+ (prefix-in s:f: "../set/full/main.rkt")
  (prefix-in a:c: "../abs/core.rkt")
  (prefix-in a:p: "../abs/phases.rkt")
  (prefix-in a:f: "../abs/full.rkt")

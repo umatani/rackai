@@ -6,8 +6,8 @@
  (only-in "../signatures.rkt" syntax^ store^ mstore^ bind^)
  (only-in "../terms.rkt" #%term-forms
           Sym% Stx% 𝓁% Σ% StoBind%)
- (only-in "../interp-set/store.rkt" [store@ super:store@])
- (only-in "../interp-set/units.rkt"
+ (only-in "../set/store.rkt" [store@ super:store@])
+ (only-in "../set/units.rkt"
           [mstore@ super:mstore@]
           [bind@   super:bind@]))
 (provide store::fin-alloc@  store@

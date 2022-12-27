@@ -10,8 +10,8 @@
  (only-in "../../units.rkt"                    io@)
  (only-in "../units.rkt"                       domain@ env@ store@ menv@ mstore@
                                                bind@ run@)
- (only-in "../../interp-base/units.rkt"        cont@ mcont@)
- (only-in "../../interp-base/phases/units.rkt" syntax@ debug@ expander@)
+ (only-in "../../conc/units.rkt"        cont@ mcont@)
+ (only-in "../../conc/phases/units.rkt" syntax@ debug@ expander@)
  (only-in "../core/units.rkt"                  eval@)
  (only-in "units.rkt"                          parser@ expand@))
 (provide interp)

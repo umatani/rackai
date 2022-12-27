@@ -9,19 +9,19 @@
 
  (only-in "../signatures.rkt" domain^ syntax^ env^ store^ cont^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^ run^ debug^)
- (only-in "../interp-base/phases/terms.rkt" #%term-forms
+ (only-in "../conc/phases/terms.rkt" #%term-forms
           App% List% Pair% Null% Atom% Sym% Stx% Hole% Stxξ%
           AstEnv% TVar% ζ% κ% InEval%
           Lst snoc lst->list id? prim?)
 
  (only-in "../units.rkt"                      io@)
- (only-in "../interp-base/units.rkt"          cont@ mcont@)
- (only-in "../interp-base/phases/units.rkt"
-          debug@ [syntax@ super:syntax@] expander@)
- (only-in "../interp-set/units.rkt"           domain@ env@ menv@ run@)
- (only-in "../interp-set/core/units.rkt"      ev:red@)
- (only-in "../interp-set/phases/units.rkt"    parser@ expand/red@)
- (only-in "../interp-set/phases/expander.rkt" [==> set:==>])
+ (only-in "../conc/units.rkt"          cont@ mcont@)
+ (only-in "../conc/phases/units.rkt"   debug@ [syntax@ super:syntax@]
+                                       expander@)
+ (only-in "../set/units.rkt"           domain@ env@ menv@ run@)
+ (only-in "../set/core/units.rkt"      ev:red@)
+ (only-in "../set/phases/units.rkt"    parser@ expand/red@)
+ (only-in "../set/phases/expander.rkt" [==> set:==>])
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@)
  (only-in "core.rkt" eval/red@))
 (provide syntax@ ==> main-minus@ interp)

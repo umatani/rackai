@@ -5,8 +5,7 @@
 
  (only-in "../../signatures.rkt"
           domain^ syntax^ menv^ bind^ parse^ parser^)
- (only-in "../../interp-base/full/terms.rkt" #%term-forms
-          Σ*%)
+ (only-in "../../conc/full/terms.rkt" #%term-forms Σ*%)
  (only-in "../units.rkt" parse@))
 (provide parser@)
 

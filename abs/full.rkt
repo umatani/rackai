@@ -9,16 +9,16 @@
 
  (only-in "../signatures.rkt" domain^ syntax^ env^ store^ cont^ eval^
           menv^ mstore^ bind^ mcont^ parser^ expand^ run^ debug^)
- (only-in "../interp-base/full/terms.rkt" #%term-forms
+ (only-in "../conc/full/terms.rkt" #%term-forms
           Var% Fun% App% If% VFun% Null% Pair% Bool% Stx% Sym% Prim% 𝓁% Defs%
           lst->list id? stx-prim?)
  
  (only-in "../units.rkt"                  io@)
- (only-in "../interp-base/units.rkt"      cont@ mcont@)
- (only-in "../interp-base/full/units.rkt"
-          [syntax@ super:syntax@] expander@ debug@)
- (only-in "../interp-set/units.rkt"       domain@ env@ menv@ run@)
- (only-in "../interp-set/full/units.rkt"  eval@ parser@ expand@)
+ (only-in "../conc/units.rkt"      cont@ mcont@)
+ (only-in "../conc/full/units.rkt" [syntax@ super:syntax@]
+                                   expander@ debug@)
+ (only-in "../set/units.rkt"       domain@ env@ menv@ run@)
+ (only-in "../set/full/units.rkt"  eval@ parser@ expand@)
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
 (provide syntax@ main-minus@
          interp)

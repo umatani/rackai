@@ -6,7 +6,7 @@
  "../mix.rkt"
  
  (only-in "../signatures.rkt" menv^)
- (rename-in "../interp-base/units.rkt" [menv@ base:menv@]))
+ (rename-in "../conc/units.rkt" [menv@ base:menv@]))
 (provide menv@)
 
 (define-mixed-unit menv@
