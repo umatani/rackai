@@ -16,8 +16,8 @@
           SApp% SIf% KApp% KIf% AstEnv% TVar% ζ% κ% InEval%
           Lst snoc id? prim? stx->datum)
 
- (only-in "../../set/core/units.rkt" expand/red@)
- (only-in "../../set/core/eval.rkt" [--> set:-->])
+ (only-in "../../mult/core/units.rkt" expand/red@)
+ (only-in "../../mult/core/eval.rkt" [--> set:-->])
  (only-in "../core.rkt" eval/red@ [==> abs:==>] main-minus@)
  (only-in "parse.rkt" parse@)
  (only-in "domain.rkt"

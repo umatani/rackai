@@ -16,9 +16,9 @@
           TVar% TStop% Defs% InEval% InExpand%
           Lst lst->list snoc id? prim? stx-prim?)
  
- (only-in "../../set/full/units.rkt" eval/red@ expand/red@)
- (only-in "../../set/full/eval.rkt" [--> set:-->])
- (only-in "../../set/full/expander.rkt" [==> set:==>])
+ (only-in "../../mult/full/units.rkt" eval/red@ expand/red@)
+ (only-in "../../mult/full/eval.rkt" [--> set:-->])
+ (only-in "../../mult/full/expander.rkt" [==> set:==>])
  (only-in "../full.rkt" main-minus@)
  (only-in "domain.rkt" domain@
           val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤ list-⊤)

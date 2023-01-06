@@ -5,9 +5,9 @@
  (prefix-in b:c: "../conc/core/main.rkt")
  (prefix-in b:p: "../conc/phases/main.rkt")
  (prefix-in b:f: "../conc/full/main.rkt")
- (prefix-in s:c: "../set/core/main.rkt")
- (prefix-in s:p: "../set/phases/main.rkt")
- (prefix-in s:f: "../set/full/main.rkt")
+ (prefix-in m:c: "../mult/core/main.rkt")
+ (prefix-in m:p: "../mult/phases/main.rkt")
+ (prefix-in m:f: "../mult/full/main.rkt")
  (prefix-in a:c: "../abs/core.rkt")
  (prefix-in a:p: "../abs/phases.rkt")
  (prefix-in a:f: "../abs/full.rkt")
@@ -20,7 +20,7 @@
 (define interpreters
   (list
    b:c:interp b:p:interp b:f:interp
-   s:c:interp s:p:interp s:f:interp
+   m:c:interp m:p:interp m:f:interp
    a:c:interp a:p:interp a:f:interp
    n:c:interp n:p:interp n:f:interp
    ))
@@ -31,9 +31,9 @@
    'base:phases  (map suite '[core phases      finite])
    'base:full    (map suite '[core phases full finite])
 
-   'set:core     (map suite '[core             finite])
-   'set:phases   (map suite '[core phases      finite])
-   'set:full     (map suite '[core phases full finite])
+   'mult:core    (map suite '[core             finite])
+   'mult:phases  (map suite '[core phases      finite])
+   'mult:full    (map suite '[core phases full finite])
 
    'abs:core     (map suite '[core                   ])
    'abs:phases   (map suite '[core phases            ])

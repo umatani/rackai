@@ -244,45 +244,42 @@
      #:with ((def-val* ...) (def-stx* ...) (expr* ...))
      (expand-all-do-bodies #'(do-body ...) #'super-red-id
                            '() (syntax-local-make-definition-context))
-     (define result-stx
-       #`(begin
-           (define-syntax red-id
-             (reduction-desc
-              #'red-unit-id
-              #'(param ...)
-              #'super-red-id
-              #'(arg ...)
-              #'(within-sig-id ...)
-              #'(do-body ...)
-              (make-clause-map (list #'((... ...) clause) ...))))
-           (define-unit red-unit-id
-             (import within-signature ...)
-             (export red^)
+     #`(begin
+         (define-syntax red-id
+           (reduction-desc
+            #'red-unit-id
+            #'(param ...)
+            #'super-red-id
+            #'(arg ...)
+            #'(within-sig-id ...)
+            #'(do-body ...)
+            (make-clause-map (list #'((... ...) clause) ...))))
+         (define-unit red-unit-id
+           (import within-signature ...)
+           (export red^)
 
-             #,@(datum->syntax #'red-unit-id (syntax->datum #'(def-val* ...)))
-             #,@(datum->syntax #'red-unit-id (syntax->datum #'(def-stx* ...)))
-             #,@(datum->syntax #'red-unit-id (syntax->datum #'(expr* ...)))
+           #,@(datum->syntax #'red-unit-id (syntax->datum #'(def-val* ...)))
+           #,@(datum->syntax #'red-unit-id (syntax->datum #'(def-stx* ...)))
+           #,@(datum->syntax #'red-unit-id (syntax->datum #'(expr* ...)))
 
-             (define-signature M^
-               ((define-values (-->) (#%reducer))
-                (define-syntaxes (#%reducer)
-                  (λ (stx)
-                    #`(λ (param ...)
-                        (λ (s)
-                          #,(make-reducer-body #'red-id
-                                               (syntax-local-value #'red-id)
-                                               #'s #f '())))))))
-             (define-unit M@ (import) (export M^))
+           (define-signature M^
+             ((define-values (-->) (#%reducer))
+              (define-syntaxes (#%reducer)
+                (λ (stx)
+                  #`(λ (param ...)
+                      (λ (s)
+                        #,(make-reducer-body #'red-id
+                                             (syntax-local-value #'red-id)
+                                             #'s #f '())))))))
+           (define-unit M@ (import) (export M^))
 
-             (define reducer (invoke-unit
-                              (compound-unit
-                               (import) (export)
-                               (link (([m : M^]) M@)
-                                     (() (unit (import M^) (export)
-                                           -->) m)))))
-             reducer)))
-     ;(pretty-print (syntax->datum result-stx))
-     result-stx]))
+           (define reducer (invoke-unit
+                            (compound-unit
+                             (import) (export)
+                             (link (([m : M^]) M@)
+                                   (() (unit (import M^) (export)
+                                         -->) m)))))
+           reducer))]))
 
 (define-syntax (reduction->unit stx)
   (syntax-parse stx

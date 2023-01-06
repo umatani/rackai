@@ -38,26 +38,21 @@
 
 ; resolve : Ph Id Σ -> (SetM Nam)
 (define (resolve #:phase [ph #f] id Σ0)
-  ;(printf "SET RESOLVE\n")
   (match-let ([(Stx (Sym nam) ctx) id])
     (let* ([sbss (filter set? (set->list (results (lookup-Σ Σ0 nam))))]
-           ;[_ (printf "sbss: ~a\n" sbss)]
            [scpsss
             (map (λ (sbs) (set-map sbs (λ (sb) (StoBind-scps sb))))
                  sbss)]
-           ;[_ (printf "scpsss: ~a\n" scpsss)]
            [scps_biggests (map (λ (scpss)
                                  (biggest-subset
                                   (if ph (at-phase ctx ph) ctx)
                                   scpss))
                                scpsss)]
-           ;[_ (printf "scps_biggests: ~a\n" scps_biggests)]
            [nam_biggests
             (filter identity
                     (for*/list ([sbs (in-list sbss)]
                                 [scps_biggest (in-list scps_biggests)])
                       (binding-lookup sbs scps_biggest)))])
-      ;(printf "nam_biggests: ~a\n" nam_biggests)
       (lift (if (null? nam_biggests)
                 (set nam)
                 (list->set nam_biggests))))))

@@ -21,9 +21,9 @@
  (only-in "../conc/units.rkt"        cont@ mcont@)
  (only-in "../conc/core/units.rkt"   debug@ expander@
           [syntax@ super:syntax@])
- (only-in "../set/units.rkt"         domain@ env@ menv@ run@)
- (only-in "../set/core/units.rkt"    ev:red@ parser@ expand/red@)
- (only-in "../set/core/expander.rkt" [==> set:==>])
+ (only-in "../mult/units.rkt"         domain@ env@ menv@ run@)
+ (only-in "../mult/core/units.rkt"    ev:red@ parser@ expand/red@)
+ (only-in "../mult/core/expander.rkt" [==> mult:==>])
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
 (provide syntax@ eval/red@ ==> main-minus@
          interp eval-->* expand==>*)
@@ -67,7 +67,7 @@
 
 
 ;; ==> : ζ -> (Setof ζ)
-(define-reduction (==> -->) #:super (set:==> -->)
+(define-reduction (==> -->) #:super (mult:==> -->)
   #:within-signatures [(only syntax^
                              empty-ctx zip unzip alloc-scope add flip in-hole)
                        (only env^

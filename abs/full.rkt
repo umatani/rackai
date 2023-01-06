@@ -17,8 +17,8 @@
  (only-in "../conc/units.rkt"      cont@ mcont@)
  (only-in "../conc/full/units.rkt" [syntax@ super:syntax@]
                                    expander@ debug@)
- (only-in "../set/units.rkt"       domain@ env@ menv@ run@)
- (only-in "../set/full/units.rkt"  eval@ parser@ expand@)
+ (only-in "../mult/units.rkt"       domain@ env@ menv@ run@)
+ (only-in "../mult/full/units.rkt"  eval@ parser@ expand@)
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
 (provide syntax@ main-minus@
          interp)

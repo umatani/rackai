@@ -14,14 +14,14 @@
           AstEnv% TVar% ζ% κ% InEval%
           Lst snoc lst->list id? prim?)
 
- (only-in "../units.rkt"                      io@)
- (only-in "../conc/units.rkt"          cont@ mcont@)
- (only-in "../conc/phases/units.rkt"   debug@ [syntax@ super:syntax@]
-                                       expander@)
- (only-in "../set/units.rkt"           domain@ env@ menv@ run@)
- (only-in "../set/core/units.rkt"      ev:red@)
- (only-in "../set/phases/units.rkt"    parser@ expand/red@)
- (only-in "../set/phases/expander.rkt" [==> set:==>])
+ (only-in "../units.rkt"                io@)
+ (only-in "../conc/units.rkt"           cont@ mcont@)
+ (only-in "../conc/phases/units.rkt"    debug@ [syntax@ super:syntax@]
+                                        expander@)
+ (only-in "../mult/units.rkt"           domain@ env@ menv@ run@)
+ (only-in "../mult/core/units.rkt"      ev:red@)
+ (only-in "../mult/phases/units.rkt"    parser@ expand/red@)
+ (only-in "../mult/phases/expander.rkt" [==> mult:==>])
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@)
  (only-in "core.rkt" eval/red@))
 (provide syntax@ ==> main-minus@ interp)
@@ -38,7 +38,7 @@
 
 
 ;; ==> : ζ -> (Setof ζ)
-(define-reduction (==> -->) #:super (set:==> -->)
+(define-reduction (==> -->) #:super (mult:==> -->)
   #:within-signatures [(only syntax^
                              empty-ctx zip unzip add flip union in-hole
                              alloc-scope prune at-phase)

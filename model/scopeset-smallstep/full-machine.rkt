@@ -26,6 +26,7 @@
                   [run phases:run])
          (for-syntax racket/list
                      syntax/parse))
+(provide run)
 
 (define-extended-language Lfull Lph
   [maybe-scp ::= scp no-scope] ; new

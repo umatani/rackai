@@ -23,7 +23,7 @@
          menv@ mstore@ bind@ mcont@ parser@ expand@ expander@ io@ run@ debug@))
   (import) (export domain^ run^ debug^))
 
-(define interp (interpreter 'set:phases run delta α ≤a #f))
+(define interp (interpreter 'mult:phases run delta α ≤a #f))
 
 #;
 (define (main [mode 'check])
