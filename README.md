@@ -47,6 +47,6 @@
 │   ├── core.rkt            ### core言語
 │   ├── phases.rkt          ### full言語
 │   ├── full.rkt            ### full言語
-│   ├── naive               ### naive抽象解釈
+│   └── naive               ### naive抽象解釈
 └── test                    ## テストコード
 ```
