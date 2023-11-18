@@ -19,7 +19,7 @@
   #:within-signatures [(only domain^
                              val?)
                        (only env^
-                             lookup-env extend-env)
+                             lookup-env extend-env*)
                        (only store^
                              lookup-store alloc-loc* update-store*)
                        (only cont^
@@ -80,7 +80,7 @@
                                                   (cdr vals)))
    #:with                       nams := (map Var-nam vars)
    #:with      (values locs store_1) := (alloc-loc* nams store)
-   #:with                    env_new := (extend-env env vars locs)
+   #:with                    env_new := (extend-env* env vars locs)
    #:with                    store_2 := (update-store* store_1 locs vals)
    `(,(AstEnv ast env_new) ,cont ,store_2)
    ev-β]

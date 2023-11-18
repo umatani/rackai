@@ -30,7 +30,7 @@
   #:within-signatures [(only syntax^
                              add flip union alloc-scope prune)
                        (only env^
-                             init-env lookup-env extend-env)
+                             init-env lookup-env extend-env*)
                        (only store^
                              lookup-store update-store* alloc-loc*)
                        (only cont^

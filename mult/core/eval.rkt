@@ -20,7 +20,7 @@
   #:within-signatures [(only domain^
                              val?)
                        (only env^
-                             lookup-env extend-env)
+                             lookup-env extend-env*)
                        (only store^
                              lookup-store update-store* alloc-loc*)
                        (only cont^

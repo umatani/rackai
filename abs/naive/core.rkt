@@ -4,7 +4,7 @@
  "../../reduction.rkt"
  "../../mix.rkt"
  "../../interpreter.rkt"
- (only-in "../../term.rkt" use-terms)
+ ;(only-in "../../term.rkt" use-terms)
  ;"../../test/suites.rkt"
 
  (only-in "../../signatures.rkt"
@@ -28,7 +28,7 @@
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta) #:super (set:--> delta)
   #:within-signatures [(only env^
-                             extend-env lookup-env)
+                             extend-env* lookup-env)
                        (only store^
                              update-store* lookup-store alloc-loc*)
                        (only cont^

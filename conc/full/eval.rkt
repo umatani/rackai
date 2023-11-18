@@ -23,7 +23,7 @@
                        (only syntax^
                              alloc-scope add flip union prune)
                        (only env^
-                             init-env lookup-env extend-env)
+                             init-env lookup-env extend-env*)
                        (only store^
                              lookup-store update-store* alloc-loc*)
                        (only cont^
@@ -333,7 +333,7 @@
    #:with (cons (VFun vars ast env) vals) := vals
    #:with                            nams := (map Var-nam vars)
    #:with           (values locs store_1) := (alloc-loc* nams store)
-   #:with                         env_new := (extend-env env vars locs)
+   #:with                         env_new := (extend-env* env vars locs)
    #:with                         store_2 := (update-store* store_1 locs vals)
    `(,(AstEnv ph ast env_new maybe-scp_i ξ) ,cont ,store_2 ,Σ*)
    ev-β]

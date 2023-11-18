@@ -18,8 +18,8 @@
   (define (lookup-env env var)
     (lift (hash-ref env var (λ () (set)))))
 
-  ; extend-env : Env (Listof Var) (Listof Loc) -> Env
-  (define (extend-env env vars locs)
+  ; extend-env* : Env (Listof Var) (Listof Loc) -> Env
+  (define (extend-env* env vars locs)
     (foldl (λ (v l e)
              (hash-update e v (λ (old) (set-add old l)) (set)))
            env vars locs)))

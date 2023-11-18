@@ -14,6 +14,6 @@ update-Σ ; Σ Nam (Setof StoBind) -> Σ
 ;; ----------------------------------------
 ;; Alloc name & 𝓁 helpers for expander:
 
-alloc-name  ; Id  Σ -> (Values Nam Σ)
-alloc-𝓁     ; Stx Σ -> (Values 𝓁   Σ)
+alloc-name ; Id  Σ -> (Values Nam Σ)
+alloc-𝓁    ; Stx Σ -> (Values 𝓁   Σ)
 

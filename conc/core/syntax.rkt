@@ -30,7 +30,7 @@
 
   (define (empty-ctx) (set))
 
-  ; in-hole : Stx Stx -> Stl
+  ; in-hole : Stx Stx -> Stx
   (define (in-hole stx v)
     (match stx
       [(Stx (Pair stx stl) ctx)
