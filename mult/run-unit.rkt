@@ -3,7 +3,7 @@
  "../nondet.rkt"
 
  (only-in "../signatures.rkt"
-          eval^ parser^ expander^ io^ run^)
+           io^ expander^ parser^ eval^ run^)
  (only-in "../terms.rkt" lst->list/recur stx->datum))
 
 ;;;; runner

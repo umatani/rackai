@@ -29,7 +29,7 @@
      (Pair (Stx (Pair stx_left (Pair stx_right (Null))) ctx)
            (zip stl_lefts stl_rights ctx))]))
 
-; unzip : ∀ [A] ProperStl -> (Values ProperStl ProperStl)
+; unzip : ProperStl -> (Values ProperStl ProperStl)
 (define (unzip stl)
   (match stl
     [(Null) (values (Null) (Null))]
@@ -38,7 +38,7 @@
        (values (Pair stx_left  stl_lefts)
                (Pair stx_right stl_rights)))]))
 
-; in-hole : Stx Stx -> Stl
+; in-hole : Stx Stx -> Stx
 (define (in-hole . args) (error "must not be used"))
 
 ; in-hole-stl : Stl Stx -> Stl

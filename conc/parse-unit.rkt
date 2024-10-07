@@ -12,7 +12,7 @@
  (only domain^
        proper-stl?)
  (only syntax^
-       strip unzip)
+       unzip strip)
  (only menv^
        init-ξ)
  (rename (only bind^
@@ -20,11 +20,12 @@
          [b:id=? id=?]))
 (export parse^)
 
-(use-terms Var Fun App If Atom Bool Num Sym Stx Null Pair Prim)
+(use-terms Var Fun App If Atom Stx Null Pair Prim)
 
 ;; ----------------------------------------
 ;; Simple parsing of already-expanded code
 
+; parse : Ph Stx Σ -> Ast
 (define (parse #:phase [ph #f] stx Σ)
   (define (id=? nam) (λ (id) (b:id=? #:phase ph id nam #:ξ (init-ξ) Σ)))
 

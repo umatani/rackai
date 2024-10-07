@@ -29,21 +29,21 @@
 ## ディレクトリ構成
 
 ```shell
-.                           # 共通(model以外)
+.                           # フレームワーク共通コード
 ├── model                   ## 実行モデル
 │   ├── scopeset            ### スコープ集合モデル(先行研究)
 │   ├── scopeset-smallstep  ### スコープ集合モデル(small-step)
 │   └── together            ### 履歴モデル(先行研究)
-├── conc                    ## 具象解釈(共通)
+├── conc                    ## 「具象解釈」共通コード
 │   ├── core                ### core言語
 │   ├── phases              ### phases言語
 │   └── full                ### full言語
 ├── sig                     ## シグネチャ(モジュールインタフェース)群
-├── mult                    ## ヒープメモリ多重化(共通)
+├── mult                    ## 「ヒープメモリ多重化」共通コード
 │   ├── core                ### core言語
 │   ├── phases              ### phases言語
 │   └── full                ### full言語
-├── abs                     ## 抽象解釈(共通)
+├── abs                     ## 「抽象解釈」共通コード
 │   ├── core.rkt            ### core言語
 │   ├── phases.rkt          ### full言語
 │   ├── full.rkt            ### full言語

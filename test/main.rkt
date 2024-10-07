@@ -2,9 +2,9 @@
 (require
  "../interpreter.rkt"
 
- (prefix-in b:c: "../conc/core/main.rkt")
- (prefix-in b:p: "../conc/phases/main.rkt")
- (prefix-in b:f: "../conc/full/main.rkt")
+ (prefix-in c:c: "../conc/core/main.rkt")
+ (prefix-in c:p: "../conc/phases/main.rkt")
+ (prefix-in c:f: "../conc/full/main.rkt")
  (prefix-in m:c: "../mult/core/main.rkt")
  (prefix-in m:p: "../mult/phases/main.rkt")
  (prefix-in m:f: "../mult/full/main.rkt")
@@ -19,7 +19,7 @@
 
 (define interpreters
   (list
-   b:c:interp b:p:interp b:f:interp
+   c:c:interp c:p:interp c:f:interp
    m:c:interp m:p:interp m:f:interp
    a:c:interp a:p:interp a:f:interp
    n:c:interp n:p:interp n:f:interp

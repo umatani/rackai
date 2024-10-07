@@ -9,9 +9,7 @@
  (only-in "../terms.rkt" #%term-forms
           Sym% Stx% 𝓁% Σ%))
 
-(import
- (only syntax^
-       add biggest-subset binding-lookup))
+(import)
 (export mstore^)
 
 (use-terms Sym Stx 𝓁 Σ)

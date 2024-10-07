@@ -1,7 +1,7 @@
 #lang racket
 (require
  "../../interpreter.rkt"
- ;"../../test/suites.rkt"
+ "../../test/suites.rkt"
 
  ;;;; Signatures
  (only-in "../../signatures.rkt" domain^ run^ debug^)
@@ -21,10 +21,12 @@
          io@ run@ debug@))
   (import) (export domain^ run^ debug^))
 
-(define interp (interpreter 'base:core run delta α ≤a #f))
+(define interp (make-checking-interpreter 'base:core run delta α ≤a))
 
-;; run example
-#;
+(define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
+  (apply-interpreter interp form mode))
+
+;; run examples
 (define (main [mode 'check])
-  (run-suite run delta (suite 'core)   mode α set=? #;≤a)
-  (run-suite run delta (suite 'finite) mode α set=? #;≤a))
+  (run-suite (suite 'core)   interp mode)
+  (run-suite (suite 'finite) interp mode))

@@ -53,7 +53,7 @@
 (define-term Hole      ())
 
 
-;; Lst patter/constructor
+;; Lst pattern/constructor
 (define-match-expander Lst
   (λ (stx)
     (syntax-case stx (... ...)

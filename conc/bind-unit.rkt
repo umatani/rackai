@@ -35,7 +35,7 @@
 
 ;; resolve : Ph Id Σ -> Nam
 ;;   Ph is #f means called from core
-(define (resolve #:phase [ph #f] id Σ0) 
+(define (resolve #:phase [ph #f] id Σ0)
   (match-let ([(Stx (Sym nam) ctx) id])
     (let* ([sbs (lookup-Σ Σ0 nam)]
            [scpss (map (λ (sb) (StoBind-scps sb)) (set->list sbs))]

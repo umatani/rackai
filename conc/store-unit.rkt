@@ -46,9 +46,9 @@
 (define (alloc-loc* nams st)
   (match nams
     ['() (values '() st)]
-    [(list nam1 nams ...)
+    [(list nam_0 nams ...)
      (let* ([size (Store-size st)]
-            [loc_0 (string->symbol (format "~a:~a" nam1 size))])
+            [loc_0 (string->symbol (format "~a:~a" nam_0 size))])
        (let-values
            ([(locs_new store_new)
              (alloc-loc* nams (Store (add1 size) (Store-tbl st)))])

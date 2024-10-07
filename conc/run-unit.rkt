@@ -1,18 +1,17 @@
 #lang racket/unit
 (require
- (except-in racket do)
  "../nondet.rkt"
 
  (only-in "../signatures.rkt"
-          eval^ parser^ expander^ io^ run^)
+           io^ expander^ parser^ eval^ run^)
  (only-in "../terms.rkt" lst->list/recur stx->datum))
 
 ;;;; runner
 
-(import (only eval^      evaluate)
-        (only parser^    parser)
-        (only expander^  expander)
-        (only io^ reader printer))
+(import (only io^       reader printer)
+        (only expander^ expander)
+        (only parser^   parser)
+        (only eval^     evaluate))
 (export run^)
 
 (define (run delta form mode)

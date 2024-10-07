@@ -12,7 +12,7 @@
 (provide syntax@)
 
 (define-mixed-unit syntax@
-  (import)
+  (import domain^)
   (export syntax^)
   (inherit [super:syntax@ zip unzip in-hole-stl
             alloc-scope addremove strip subtract union
@@ -57,11 +57,7 @@
   (define (add-stl stl scp)
     (match stl
       [(Null) (Null)]
-      [(Stx (Pair stx stl) ctx)
-       (Stx (Pair (add stx scp) (add-stl stl scp))
-            (set-add ctx scp))]
-      [(Stx (? Atom? atom) ctx) (Stx atom (set-add ctx scp))]
-      [(Stx (? prim? prim) ctx) (Stx prim (set-add ctx scp))]
+      [(? stx? stx) (add stx scp)]
       [(Pair stx stl) (Pair (add stx scp) (add-stl stl scp))]))
 
   ;; Pushes flipping a scope down through a syntax object
@@ -80,11 +76,5 @@
   (define (flip-stl stl scp)
     (match stl
       [(Null) (Null)]
-      [(Stx (Pair stx stl) ctx)
-       (Stx (Pair (flip stx scp) (flip-stl stl scp))
-            (addremove scp ctx))]
-      [(Stx (? Atom? atom) ctx)
-       (Stx atom (addremove scp ctx))]
-      [(Stx (? prim? prim) ctx)
-       (Stx prim (addremove scp ctx))]
+      [(? stx? stx) (flip stx scp)]
       [(Pair stx stl) (Pair (flip stx scp) (flip-stl stl scp))])))
