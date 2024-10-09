@@ -1,6 +1,5 @@
 #lang racket
-(require racket/struct
-         (for-syntax racket racket/syntax
+(require (for-syntax racket racket/syntax
                      syntax/parse syntax/stx syntax/id-table))
 (provide (all-defined-out))
 
@@ -13,9 +12,10 @@
     (pattern [name:id default:expr]))
 
   (define (cls-of id . ids)
+    (define (→cls id) (format-id id "~a%" id))
     (if (null? ids)
-        (format-id id "~a%" id)
-        (map (λ (id) (format-id id "~a%" id)) (cons id ids)))))
+      (→cls id)
+      (map →cls (cons id ids)))))
 
 (define-syntax (define-term stx)
   (syntax-parse stx
@@ -26,8 +26,8 @@
     [(_ name:id super:maybe-id (f:field ...) #:remove [r:id ...])
      
      #:with super-cls (if (syntax->datum #'super)
-                          (cls-of #'super)
-                          #'object%)
+                        (cls-of #'super)
+                        #'object%)
      #`(define #,(cls-of #'name)
          (class* super-cls (#;writable<%>)
            (inspect #f)
@@ -62,21 +62,21 @@
          (define (accessor-id x) (get-field mfld x))
          ...
          #,@(if (free-identifier=? #'cname #'mname)
-                #'((define-match-expander cname
-                     (λ (stx) (syntax-case stx ()
-                                 [(_ mparam ...)
-                                  #'(? pred-id
-                                      (app accessor-id mparam) ...)]))
-                     (λ (stx) (syntax-case stx ()
-                                 [(_ cparam ...)
-                                  #'(new term [cfld cparam] ...)]))))
-                #'((define-match-expander mname
-                     (λ (stx) (syntax-case stx ()
-                                 [(_ mparam ...)
-                                  #'(? pred-id
-                                      (app accessor-id mparam) ...)])))
-                   (define (cname cparam ...)
-                     (new term [cfld cparam] ...)))))]))
+              #'((define-match-expander cname
+                   (λ (stx) (syntax-case stx ()
+                              [(_ mparam ...)
+                               #'(? pred-id
+                                   (app accessor-id mparam) ...)]))
+                   (λ (stx) (syntax-case stx ()
+                              [(_ cparam ...)
+                               #'(new term [cfld cparam] ...)]))))
+              #'((define-match-expander mname
+                   (λ (stx) (syntax-case stx ()
+                              [(_ mparam ...)
+                               #'(? pred-id
+                                   (app accessor-id mparam) ...)])))
+                 (define (cname cparam ...)
+                   (new term [cfld cparam] ...)))))]))
 
 (define-syntax (use-term stx)
   (syntax-parse stx

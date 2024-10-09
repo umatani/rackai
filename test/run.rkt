@@ -14,7 +14,7 @@
 
 ;;;; Host evaluater for checking
 ;; raw-eval: Sexp -> (Setof Val)
-(define (raw-eval sexp)
+(define (raw-eval form)
   (define (r->v raw)
     (match raw
       [(? null?)      (Null)]
@@ -22,20 +22,19 @@
       [(? real? n)    (Num n)]
       [(? symbol? s)  (Sym s)]
       [(cons a d)     (Pair (r->v a) (r->v d))]))
-  (set (r->v (first (call-with-values (λ () (r:eval sexp))
+  (set (r->v (first (call-with-values (λ () (r:eval form))
                                       (λ args args))))))
 
 ;;;; Base evaluator
-;; base-eval: Sexp -> (Setof Val)
-(match-define (interpreter _ base:run base:delta _ _ _) base:interp)
-(define (base-eval sexp)
-  (base:run base:delta sexp 'eval))
+;;;;   base-eval: Sexp -> (Setof Val)
+(define (base-eval form)
+  (match-define (interpreter _ run delta _ _ _) base:interp)
+  (run delta form 'eval))
 
 
 ;;;; Example runner
-
 (define (runner form interp mode)
-  (match-define (interpreter name run delta α ≤a rlt) interp)
+  (match-define (interpreter _name run delta α ≤α rslt) interp)
   (case mode
     [(raw) (lst->list/recur (raw-eval form))]
     [(check check-with-raw)
@@ -44,22 +43,22 @@
                         [(check-with-raw) raw-eval]))
 
      (with-handlers ([exn:fail? (λ (_)
-                                  (hash-update! rlt 'fail add1) 'fail)])
+                                  (hash-update! rslt 'fail add1)
+                                  'fail)])
        (let ([c (α (with-handlers ([exn:fail?
-                                     (λ (e)
-                                       (printf "error in opponent: ~a" e))])
-                      (opponent form)))]
+                                    (λ (e)
+                                      (printf "error in opponent: ~a\n" e))])
+                     (opponent form)))]
              [a (run delta form 'eval)])
          (cond
-           [(and (≤a c a)
-                 (≤a a c)) (hash-update! rlt 'exact   add1) 'exact]
-           [(≤a c a)       (hash-update! rlt 'inexact add1) 'inexact]
-           [else           (hash-update! rlt 'unsound add1) 'unsound])))]
+           [(and (≤α c a)
+                 (≤α a c)) (hash-update! rslt 'exact   add1) 'exact]
+           [(≤α c a)       (hash-update! rslt 'inexact add1) 'inexact]
+           [else           (hash-update! rslt 'unsound add1) 'unsound])))]
     [else (lst->list/recur (run delta form mode))]))
 
 (define (run-examples examples interp mode)
   (for ([example (in-list examples)])
     (match-define (list name form) example)
     (printf "  ~a: " name)
-    (pretty-display
-     (runner form interp mode))))
+    (pretty-display (runner form interp mode))))

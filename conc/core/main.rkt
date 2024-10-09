@@ -21,7 +21,7 @@
          io@ run@ debug@))
   (import) (export domain^ run^ debug^))
 
-(define interp (make-checking-interpreter 'base:core run delta α ≤a))
+(define interp (interpreter 'base:core run delta α ≤a #f))
 
 (define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
   (apply-interpreter interp form mode))
