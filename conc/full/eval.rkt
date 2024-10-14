@@ -1,19 +1,10 @@
 #lang racket
 (require
+ (only-in "../../set.rkt" set)
+ (only-in "../../mix.rkt" define-mixed-unit)
  "../../reduction.rkt"
- "../../set.rkt"
- "../../mix.rkt"
- (only-in "../../term.rkt"   use-terms)
-
- (only-in "../../signatures.rkt"
-          domain^ syntax^ env^ store^ cont^ eval^
-          menv^ mstore^ bind^ parser^ expand^)
- (only-in "terms.rkt" #%term-forms
-          Var% Fun% App% If% VFun% Bool% Sym% Stx% Null% Pair% Prim% Defs% 𝓁%
-          Stxξ%
-          KApp% KIf% SApp% SIf% AstEnv% TVar% TStop%
-          Σ% Σ*% ζ% InExpand%
-          lst->list id? stx-prim?))
+ "../../signatures.rkt"
+ "terms.rkt")
 (provide --> eval@)
 
 ;; --> : State -> (Setof State)
@@ -36,7 +27,8 @@
                              bind resolve)
                        (only parser^
                              parse)]
-  #:do [(use-terms Var Fun App If VFun Bool Sym Stx Null Pair Prim Defs 𝓁
+  #:do [#;
+        (use-terms Var Fun App If VFun Bool Sym Stx Null Pair Prim Defs 𝓁
                    KApp KIf SApp SIf AstEnv TVar TStop Stxξ Σ Σ* ζ InExpand)
         ;; resolve* : Ph (Listof Id) Σ -> (Listof Nam))
         (define (resolve* ph ids Σ)
@@ -391,7 +383,7 @@
   (export eval^)
   (inherit [red@ reducer])
 
-  (use-terms AstEnv Σ*)
+  ;(use-terms AstEnv Σ*)
 
   (define (--> delta) (λ () (reducer delta (==> delta) :=)))
 

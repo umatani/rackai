@@ -1,8 +1,8 @@
 #lang racket/unit
 (require
- (only-in "../signatures.rkt" cont^ store^))
+ "../signatures.rkt")
 
-(import (only store^ alloc-loc update-store))
+(import (only store^    alloc-loc update-store))
 (export cont^)
 
 

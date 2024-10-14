@@ -1,13 +1,9 @@
 #lang racket
 (require
- "../../mix.rkt"
- (only-in "../../term.rkt" use-terms)
-
- (only-in "../../signatures.rkt"
-          domain^ syntax^ menv^ bind^ parse^ parser^)
- (only-in "../units.rkt" parse@)
- (only-in "terms.rkt" #%term-forms
-          Σ*%))
+ (only-in "../../mix.rkt" define-mixed-unit)
+ "../../signatures.rkt"
+ "terms.rkt"
+ (only-in "../units.rkt"  parse@))
 (provide parser@)
 
 ;; ----------------------------------------
@@ -17,6 +13,5 @@
   (import)
   (export parser^)
   (inherit [parse@ parse])
-  (use-terms Σ*)
 
   (define (parser stx Σ*) (parse #:phase 0 stx (Σ*-Σ Σ*))))

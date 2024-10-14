@@ -1,15 +1,12 @@
 #lang racket
 (require
- "../nondet.rkt"
- "../mix.rkt"
- (only-in "../term.rkt" use-terms)
- (only-in "../signatures.rkt" syntax^ store^ mstore^ bind^)
- (only-in "../terms.rkt" #%term-forms
-          Sym% Stx% 𝓁% Σ% StoBind%)
- (only-in "../mult/store.rkt" [store@ super:store@])
- (only-in "../mult/units.rkt"
-          [mstore@ super:mstore@]
-          [bind@   super:bind@]))
+ (only-in "../nondet.rkt"     results lift)
+ (only-in "../mix.rkt"        define-mixed-unit)
+ "../signatures.rkt"
+ "../terms.rkt"
+ (only-in "../mult/units.rkt" [store@  super:store@]
+                              [mstore@ super:mstore@]
+                              [bind@   super:bind@]))
 (provide store::fin-alloc@  store@
          mstore::fin-alloc@ mstore@
          syntax::fin-alloc@
@@ -60,7 +57,6 @@
 (define-unit mstore::fin-alloc@
   (import)
   (export mstore^)
-  (use-terms Sym Stx 𝓁 Σ)
 
   (define (init-Σ        . args) (error "to be implemented"))
   (define (lookup-Σ      . args) (error "to be implemented"))
@@ -102,7 +98,6 @@
 (define-unit syntax::fin-alloc@
   (import)
   (export syntax^)
-  (use-terms StoBind)
 
   (define (empty-ctx      . args) (error "to be implemented"))
   (define (zip            . args) (error "to be implemented"))
@@ -157,13 +152,10 @@
                              (set->list sbs)))))
 
 (define-mixed-unit bind@
-  (import (only syntax^
-                binding-lookup biggest-subset at-phase)
-          (only mstore^
-                lookup-Σ))
-  (export bind^)
+  (import  (only syntax^    binding-lookup biggest-subset at-phase)
+           (only mstore^    lookup-Σ))
+  (export  bind^)
   (inherit [super:bind@ bind])
-  (use-terms Stx Sym StoBind)
 
   ; resolve : Ph Id Σ -> (SetM Nam)
   (define (resolve #:phase [ph #f] id Σ0)

@@ -1,17 +1,14 @@
 #lang racket
 (require
- (except-in racket set do)
- "../set.rkt"
- "../nondet.rkt"
- "../mix.rkt"
- 
- (only-in "../signatures.rkt" menv^)
- (rename-in "../conc/units.rkt" [menv@ base:menv@]))
+ (only-in "../nondet.rkt"     lift)
+ (only-in "../mix.rkt"        define-mixed-unit)
+ "../signatures.rkt"
+ (only-in "../conc/units.rkt" [menv@ base:menv@]))
 (provide menv@)
 
 (define-mixed-unit menv@
   (import)
-  (export menv^)
+  (export  menv^)
   (inherit [base:menv@ init-ξ])
 
   ;; Set-based ξ

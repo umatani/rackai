@@ -10,7 +10,7 @@
 
 (define (make-queue) (Queue '() '()))
 
-(define (queue-empty? q )
+(define (queue-empty? q)
   (and (null? (Queueof-head q)) (null? (Queueof-tail q))))
 
 (define (enqueue! q a)

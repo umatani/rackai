@@ -1,13 +1,11 @@
 #lang racket/unit
 (require
- racket/match (only-in racket/function identity) racket/pretty
- "../set.rkt"
- (only-in "../term.rkt" use-terms)
- 
- (only-in "../signatures.rkt" domain^)
- (only-in "../terms.rkt" #%term-forms
-          Val% Atom% Bool% Num% Sym% Stx% Null% Pair% Prim% Hole% Stxξ%
-          lst->list/recur stx->datum prim?))
+ (only-in racket/match    match*)
+ (only-in racket/function identity)
+ (only-in racket/pretty   pretty-print)
+ (only-in "../set.rkt"    subset?)
+ "../signatures.rkt"
+ "../terms.rkt")
 
 (import)
 (export domain^)
@@ -17,8 +15,6 @@
 
 (define α  identity)
 (define ≤a subset?)
-
-(use-terms Val Atom Bool Num Sym Stx Null Pair Prim Hole Stxξ)
 
 (define (plus . ns) (apply + ns))
 (define (minus n . ns) (apply - n ns))

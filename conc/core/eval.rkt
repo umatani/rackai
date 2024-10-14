@@ -1,14 +1,10 @@
 #lang racket
 (require
- "../../set.rkt"
  "../../reduction.rkt"
- "../../mix.rkt"
- (only-in "../../term.rkt" use-terms)
-
- (only-in "../../signatures.rkt" domain^ env^ store^ cont^ eval^)
- (only-in "terms.rkt" #%term-forms
-          Var% Fun% App% If% Bool% VFun% Prim%
-          AstEnv% KApp% KIf% SApp% SIf%))
+ (only-in "../../set.rkt" set)
+ (only-in "../../mix.rkt" define-mixed-unit)
+ "../../signatures.rkt"
+ "terms.rkt")
 (provide --> eval@)
 
 ;; ----------------------------------------
@@ -16,16 +12,10 @@
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta :=<1>)
-  #:within-signatures [(only domain^
-                             val?)
-                       (only env^
-                             lookup-env extend-env*)
-                       (only store^
-                             lookup-store alloc-loc* update-store*)
-                       (only cont^
-                             push-cont)]
-  #:do [(use-terms Var Fun App If Bool VFun Prim AstEnv KApp KIf SApp SIf)]
-
+  #:within-signatures [(only domain^    val?)
+                       (only    env^    lookup-env extend-env*)
+                       (only  store^    lookup-store alloc-loc* update-store*)
+                       (only   cont^    push-cont)]
   ;; propagate env into subterms
   [`(,(AstEnv (If lbl ast_test ast_then ast_else) env) ,cont ,store)
    `(,(SIf lbl
@@ -124,8 +114,6 @@
                 init-store))
   (export eval^)
   (inherit [red@ reducer])
-
-  (use-terms AstEnv)
 
   (define (--> delta) (reducer delta :=))
 

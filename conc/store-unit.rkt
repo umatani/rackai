@@ -1,16 +1,11 @@
 #lang racket/unit
 (require
- racket/match
- (only-in "../term.rkt" use-terms)
-
- (only-in "../signatures.rkt" store^)
- (only-in "../terms.rkt" #%term-forms
-          Store%))
+ (only-in racket/match match)
+ "../signatures.rkt"
+ "../terms.rkt")
 
 (import)
 (export store^)
-
-(use-terms Store)
 
 ;; ----------------------------------------
 ;; Store

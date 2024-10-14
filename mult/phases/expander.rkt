@@ -1,22 +1,14 @@
 #lang racket
 (require
- (except-in racket set do)
- "../../set.rkt"
+ (only-in "../../set.rkt"                  set)
+ (only-in "../../mix.rkt"                  define-mixed-unit)
  "../../reduction.rkt"
- "../../mix.rkt"
- (only-in "../../term.rkt"  use-terms)
-
- (only-in "../../signatures.rkt"
-          domain^ syntax^ env^ store^ eval^ menv^ mstore^ bind^ mcont^
-          parser^ expand^ expander^)
- (only-in "../../conc/phases/terms.rkt" #%term-forms
-          App% Atom% Sym% Stx% List% Null% Pair% Hole% Stxξ%
-          AstEnv% TVar% ζ% κ% InEval%
-          Lst lst->list snoc id? prim?)
+ "../../signatures.rkt"
+ "../../conc/phases/terms.rkt"
  (only-in "../../conc/phases/expander.rkt" [==> base:==>] expander@))
 (provide ==> expand/red@ expand@)
 
-;; ==> : ζ -> (Setof ζ)
+;; ==> : ζ → (Setof ζ)
 (define-reduction (==> -->) #:super (base:==> <- -->)
   #:within-signatures [(only domain^
                              val? stx? proper-stl?)
@@ -77,7 +69,6 @@
                 reducer))
   (export expand^)
   (inherit)
-  (use-terms Stxξ ζ)
   
   (define (==> delta) (reducer (--> delta)))
 

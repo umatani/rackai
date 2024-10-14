@@ -1,28 +1,18 @@
 #lang racket/unit
 (require
- racket/match
- (for-syntax racket)
- "../set.rkt"
- (only-in "../term.rkt" use-terms)
+ (only-in racket/match match-let)
+ (only-in "../set.rkt" set set-add set->list)
+ "../signatures.rkt"
+ "../terms.rkt")
 
- (only-in "../signatures.rkt"
-          syntax^ mstore^ bind^)
- (only-in "../terms.rkt" #%term-forms
-          Sym% Stx% Σ% StoBind%))
-
-(import
- (only syntax^
-       binding-lookup biggest-subset at-phase)
- (only mstore^
-       lookup-Σ))
+(import (only syntax^    binding-lookup biggest-subset at-phase)
+        (only mstore^    lookup-Σ))
 (export bind^)
 
-(use-terms Sym Stx Σ StoBind)
 
-
-;; Like one-phase `bind`, but extracts scopes at a given phase of
+;; Like one-phase `bind', but extracts scopes at a given phase of
 ;; the identifier
-;bind : Ph Σ Id Nam -> Σ
+; bind : Ph Σ Id Nam → Σ
 (define (bind #:phase [ph #f] Σ0 id nam)
   (match-let ([(Σ size tbl) Σ0]
               [(Stx (Sym nam_1) ctx_1) id])

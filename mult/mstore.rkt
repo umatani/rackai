@@ -1,22 +1,16 @@
 #lang racket
 (require
- (except-in racket do)
- "../nondet.rkt"
- "../mix.rkt"
- 
- (only-in "../term.rkt" use-terms)
- 
- (only-in "../signatures.rkt" syntax^ mstore^)
- (only-in "../terms.rkt" #%term-forms
-          Σ%)
- (rename-in "../conc/units.rkt" [mstore@ base:mstore@]))
+ (only-in "../nondet.rkt"     lift)
+ (only-in "../mix.rkt"        define-mixed-unit)
+ "../signatures.rkt"
+ "../terms.rkt"
+ (only-in "../conc/units.rkt" [mstore@ base:mstore@]))
 (provide mstore@)
 
 (define-mixed-unit mstore@
   (import)
-  (export mstore^)
+  (export  mstore^)
   (inherit [base:mstore@ init-Σ alloc-name alloc-𝓁])
-  (use-terms Σ)
 
   ;; Set-based Σ
 

@@ -13,28 +13,26 @@
 (define-term If         (lbl tst thn els)) ; unique lbl is assigned at parse
 
 ;; Value
-; abstract term
+; abstract super terms
 (define-term Val        ())
 (define-term Atom Val   ())
 (define-term List Val   ())
 
-(define-term Prim Val   (nam stx))
-(define-term VFun Val   (vars ast env))
-;; LBind2 is used only in full
-(define-term LBind2 Val (scps_p scps_u))
+(define-term Prim Val   (nam stx))       ;; primitive functions
+(define-term VFun Val   (vars ast env))  ;; lambda
+(define-term LBind2 Val (scps_p scps_u)) ;; used only in full
 
 ;; Literal values
 (define-term Bool Atom  (b))
 (define-term Num  Atom  (n))
 (define-term Sym  Atom  (nam))
+
 (define-term Null List  ())
 (define-term Pair List  (a d))
 
 ;; Defs, 𝓁 is used only in full
-(define-term Defs Atom  (scp 𝓁))
-
-;(define-term 𝓁    Atom (nam))
-(define 𝓁% (class* Atom% (equal<%>)
+(define-term Defs Atom (scp 𝓁))
+(define 𝓁% (class* Atom% (equal<%>) ;(define-term 𝓁    Atom (nam))
              (inspect #f)
              (init-field nam)
              (super-new)
@@ -44,10 +42,9 @@
                (eq-hash-code nam))
              (define/public (equal-secondary-hash-code-of hash-code)
                (eq-hash-code nam))))
+(define-term Stx Atom (e ctx)) ;; Syntax objects (a subset of values)
 
-;; Syntax objects (a subset of values)
-(define-term Stx Atom  (e ctx))
-(define-term Stxξ      (stx ξ))
+(define-term Stxξ     (stx ξ))
 
 ;; Expand-time continuation
 (define-term Hole      ())
@@ -64,18 +61,15 @@
            [(_) #'(Null)]
            [(_ p ps ...) #'(Pair p (Lst ps ...))]
 
-           [(_ . x:id) #'(? List? x)]
-           [(_ p ps ... . x:id) #'(Pair p (Lst ps ... . x))]
+           [(_ . xs:id) #'(? List? xs)]
+           [(_ p ps ... . xs:id) #'(Pair p (Lst ps ... . xs))])]))
+  (λ (stx)
+    (syntax-parse stx
+      [(_) #'(Null)]
+      [(_ x xs ...) #'(Pair x (Lst xs ...))]
 
-           [p (syntax-case #'p (... ...)
-                [(_ p (... ...))
-                 #'(? List? (app lst->list (list p (... ...))))])])]))
-  (λ (stx) (syntax-parse stx
-              [(_) #'(Null)]
-              [(_ x xs ...) #'(Pair x (Lst xs ...))]
-
-              [(_ . xs:id)  #'(and (List? xs) xs)]
-              [(_ y ys ... . x:id)  #'(Pair y (Lst ys ... . x))])))
+      [(_ . xs:id)  #'(and (List? xs) xs)]
+      [(_ y ys ... . xs:id)  #'(Pair y (Lst ys ... . xs))])))
 
 
 ;;;; ----------------------------------------
@@ -84,12 +78,11 @@
 ;; Eval-time continuation, environment, and store
 (define-term AstEnv  (ast env))
 (define-term Store   (size tbl))
-(define-term KApp    (lbl vals tms loc))
-(define-term KIf     (lbl thn els loc))
+(define-term KApp    (lbl vals tms loc))  ;; (v ... □ t ...)
+(define-term KIf     (lbl thn els loc))   ;; (if □ t t)
 (define-term SApp    (lbl vals tms))
 (define-term SIf     (lbl tst thn els))
-;; SSeq is used only in full
-(define-term SSeq    (tms))
+(define-term SSeq    (tms))               ;; used only in full
 
 ;; Expand-time environment
 (define-term TVar    (id))
@@ -107,6 +100,7 @@
 (define-term ζ       (stx ex? κ Σ))
 
 
+;; for compact use-term(s)
 (define-syntax #%term-forms
   (append '((Var     nam)
             (Fun     vars ast)
@@ -126,7 +120,6 @@
             (Defs    scp 𝓁)
             (𝓁       nam)
             (Stx     e ctx)
-            (Stxξ    stx ξ)
             (Hole))
           '((AstEnv  ast env)
             (Store   size tbl)
@@ -144,15 +137,17 @@
             (InEval  state ξ)
             (ζ       stx ex? κ Σ))))
 
+(use-terms Var Fun App If VFun LBind2 Val Atom List Bool Num Sym Prim Null
+           Pair Defs 𝓁 Stx Hole AstEnv Store KApp KIf SApp SIf SSeq
+           TVar TStop Σ StoBind Stxξ κ InEval ζ)
 
 ;;;; Extra utils
 
-(use-terms Val Atom Sym List Null Pair Stx Stxξ Hole)
 
 ;; Additional constructor
 (define (id nam ctx) (Stx (Sym nam) ctx))
 
-;; Additional matcher & List utils
+;; List utils
 
 (define (lst->list l)
   (match l
@@ -185,7 +180,8 @@
     [_ #f]))
 
 (define (prim? x)
-  (or (member x '(syntax-e syntax->datum
+  (or (member x '(syntax-e
+                  syntax->datum
                   datum->syntax + - * / < = eq?
                   cons car cdr list second third fourth
                   printe ;; for debug
@@ -193,11 +189,12 @@
       (stx-prim? x)))
 
 (define (stx-prim? x)
-  (member x '(syntax-local-value local-expand
-                                 syntax-local-identifier-as-binding
-                                 box unbox set-box!
-                                 syntax-local-make-definition-context
-                                 syntax-local-bind-syntaxes)))
+  (member x '(syntax-local-value 
+              local-expand
+              syntax-local-identifier-as-binding
+              box unbox set-box!
+              syntax-local-make-definition-context
+              syntax-local-bind-syntaxes)))
 
 ;; syntax->datum (especially useful for displaying κ)
 

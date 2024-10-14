@@ -1,25 +1,18 @@
 #lang racket
 (require
- racket/match racket/dict
- "../../set.rkt"
- "../../mix.rkt"
- (only-in "../../term.rkt" use-terms)
-
- (only-in "../../signatures.rkt" domain^ syntax^)
- (only-in "terms.rkt" #%term-forms
-          Atom% Stx% Null% Pair% Hole%
-          Stxξ%
-          prim?)
- (only-in "../units.rkt" [syntax@ super:syntax@]))
+ (only-in "../../mix.rkt" define-mixed-unit)
+ "../../signatures.rkt"
+ "terms.rkt"
+ (only-in "../units.rkt"  [syntax@ super:syntax@]))
 (provide syntax@)
 
 (define-mixed-unit syntax@
   (import)
-  (export syntax^)
+  (export  syntax^)
   (inherit [super:syntax@ addremove strip subtract union in-hole-stl
                           alloc-scope binding-lookup biggest-subset zip unzip])
 
-  (use-terms Atom Stx Null Pair Hole Stxξ)
+  ;(use-terms Atom Stx Null Pair Hole Stxξ)
 
   (define (empty-ctx) (make-immutable-hash))
 

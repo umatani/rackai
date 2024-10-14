@@ -1,12 +1,8 @@
 #lang racket
 (require
- (for-syntax racket/unit-exptime
-             racket/syntax
-             syntax/parse syntax/stx syntax/id-set)
- (only-in "../../mix.rkt" define-mixed-unit)
-
- (only-in "../../signatures.rkt" domain^ syntax^ menv^ bind^ parse^ parser^)
- (only-in "../units.rkt" parse@ bind@ run@))
+ (only-in "../../mix.rkt"   define-mixed-unit)
+ "../../signatures.rkt"
+ (only-in    "../units.rkt" parse@))
 (provide parser@)
 
 

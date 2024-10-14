@@ -1,20 +1,13 @@
 #lang racket
 (require
- "../../set.rkt"
- "../../nondet.rkt"
- (only-in "../../term.rkt" use-terms)
- 
- (only-in "../../signatures.rkt" domain^)
-
- (only-in "../../terms.rkt" #%term-forms
-          Val% Atom% List% Bool% Num% Sym% Stx% Stxξ% Null% Pair% Prim% Hole%
-          lst->list/recur prim?))
+ (only-in "../../set.rkt"    set)
+ (only-in "../../nondet.rkt" pure lift)
+ "../../signatures.rkt"
+ "../../terms.rkt")
 (provide domain@ val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤ list-⊤ ≤e)
 
 ;; ----------------------------------------
 ;; Implementation of Domains:
-
-(use-terms Val Atom List Bool Num Sym Stx Stxξ Null Pair Prim Hole)
 
 (define val-⊤  (Val))
 (define atom-⊤ (Atom))

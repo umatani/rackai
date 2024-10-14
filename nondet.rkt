@@ -9,20 +9,20 @@
 (define := (gensym ':=))
 (define <- (gensym '<-))
 
-(define (pure x)  (cons (set x) (set)))
-(define (lift xs) (cons xs (set)))
-(define (break x) (cons (set) (set x)))
-(define (bind r k)
-  (let ([r2 (set-map (car r) k)])
-    (cons (apply set-union (set) (map car r2))
-          (apply set-union (cdr r) (map cdr r2)))))
-
+;; non-deterministic & failure monad
+(define (pure  x) (cons (set x) (set)))
+(define (lift xs) (cons xs      (set)))
+(define (break x) (cons (set)   (set x)))
 (define (results m) (car m))
-(define (aborts m)  (cdr m))
+(define (aborts  m) (cdr m))
 
+(define (bind r k)
+  (let ([r′ (set-map (car r) k)])
+    (cons (apply set-union (set)   (map car r′))
+          (apply set-union (cdr r) (map cdr r′)))))
 
 (define (gen-bind kind r k #:multi-values? [is-mv #f])
-  (cond 
+  (cond
     [(and (eq? kind :=) is-mv) (call-with-values r k)]
     [(eq? kind :=) (k r)]
     [(eq? kind <-) (bind r k)]
@@ -30,31 +30,31 @@
 
 (begin-for-syntax
   (define-syntax-class assign
-    #:description "set-monad := operator"
+    #:description "set-monad := operators"
     (pattern s:id #:when (string-prefix? (symbol->string (syntax-e #'s))
                                          ":=")))
   (define-syntax-class elem
-    #:description "set-monad <- operator"
+    #:description "set-monad <- operators"
     (pattern s:id #:when (string-prefix? (symbol->string (syntax-e #'s))
                                          "<-"))))
 
 (define-syntax (do stx)
   (syntax-parse stx
-    #:literals [values]
+    #:literals [do values]
     [(do s) #'s]
-    [(do (values pat ...) assign-id:assign e s1 s ...)
+    [(do (values pat ...) assign-id:assign e s₀ s ...)
      #'(gen-bind assign-id (λ () e)
-                 (match-lambda** [(pat ...) (do s1 s ...)])
+                 (match-lambda** [(pat ...) (do s₀ s ...)])
                  #:multi-values? #t)]
-    [(do pat assign-id:assign e s1 s ...)
+    [(do pat assign-id:assign e s₀ s ...)
      #'(gen-bind assign-id e
-                 (match-lambda [pat (do s1 s ...)]))]
-    [(do pat elem-id:elem e s1 s ...)
+                 (match-lambda [pat (do s₀ s ...)]))]
+    [(do pat elem-id:elem e s₀ s ...)
      #'(gen-bind elem-id e
-                 (match-lambda [pat (do s1 s ...)]))]
+                 (match-lambda [pat (do s₀ s ...)]))]
     [(do #:abort-if t e s ...)
      #'(if t
-           (break e)
-           (do s ...))]
-    [(do s1 s ...)
-     #'(begin s1 (do s ...))]))
+         (break e)
+         (do s ...))]
+    [(do s₀ s ...)
+     #'(begin s₀ (do s ...))]))

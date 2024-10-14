@@ -2,15 +2,12 @@
 (require
  "../../interpreter.rkt"
  ;"../../test/suites.rkt"
-
- ;;;; Signatures
- (only-in "../../signatures.rkt" domain^ run^ debug^)
-
+ "../../signatures.rkt"
  ;;;; Units
  (only-in "../../units.rkt" io@)
- (only-in "../units.rkt"    domain@ env@ store@ cont@ menv@ mstore@ mcont@
+ (only-in    "../units.rkt" domain@ env@ store@ cont@ menv@ mstore@ mcont@
                             run@)
- (only-in "units.rkt"       syntax@ eval@ bind@ parser@
+ (only-in       "units.rkt" syntax@ eval@ bind@ parser@
                             expand@ expander@ debug@))
 (provide interp)
 
@@ -22,6 +19,10 @@
   (import) (export domain^ run^ debug^))
 
 (define interp (interpreter 'base:full run delta α ≤a #f))
+
+(define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
+  (apply-interpreter interp form mode))
+
 
 ;; run example
 ;; comment-out to avoid cyclic dependency from test/run.rkt

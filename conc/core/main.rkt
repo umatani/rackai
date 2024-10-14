@@ -1,11 +1,8 @@
 #lang racket
 (require
  "../../interpreter.rkt"
- "../../test/suites.rkt"
-
- ;;;; Signatures
- (only-in "../../signatures.rkt" domain^ run^ debug^)
-
+ ;;"../../test/suites.rkt"
+ "../../signatures.rkt"
  ;;;; Units
  (only-in "../../units.rkt" io@)
  (only-in    "../units.rkt" domain@ env@ store@ cont@ menv@ mstore@ mcont@
@@ -27,6 +24,7 @@
   (apply-interpreter interp form mode))
 
 ;; run examples
+#;
 (define (main [mode 'check])
   (run-suite (suite 'core)   interp mode)
   (run-suite (suite 'finite) interp mode))

@@ -1,67 +1,47 @@
 #lang racket/unit
 (require
- racket/match
- (only-in "term.rkt" use-terms)
-
- (only-in "signatures.rkt" syntax^ io^)
- (only-in "terms.rkt"
-          Var% VFun% Atom% Bool% Num% Sym% Stx% Null% Pair% Defs% 𝓁%
-          prim?
-          #%term-forms))
+ (only-in racket/match match match-λ)
+ "signatures.rkt"
+ "terms.rkt")
 
 ;;;; reader & printer
 
-(import (only syntax^
-              empty-ctx))
+(import (only syntax^    empty-ctx))
 (export io^)
-
-(use-terms Var VFun Atom Stx Bool Num Sym Null Pair Defs 𝓁)
-
-(define (read-atom x)
-  (match x
-    [(? null?)    (Null)]
-    [(? boolean?) (Bool x)]
-    [(? real?)    (Num  x)]
-    [(? symbol?)  (Sym  x)]))
 
 (define reader
   (letrec
       ([read-stx
-        (λ (x)
-          (match x
-            [(? prim?)    (Stx x        (empty-ctx))]
-            [(? null?)    (Stx (Null)   (empty-ctx))]
-            [(? boolean?) (Stx (Bool x) (empty-ctx))]
-            [(? real?)    (Stx (Num  x) (empty-ctx))]
-            [(? symbol?)  (Stx (Sym  x) (empty-ctx))]
-            [(? pair?)    
-             (let ([stl (read-stl x)])
-               (match stl
-                 [(Null)       (Stx (Null) (empty-ctx))]
-                 [(Pair a d)   (Stx (Pair a d) (empty-ctx))]
-                 [(? Stx? stx) stx]))]
-            [_ (error 'reader "not supported: ~a" x)]))]
+        (match-λ
+         [(? prim?    p) (Stx p        (empty-ctx))]
+         [(? boolean? b) (Stx (Bool b) (empty-ctx))]
+         [(? real?    r) (Stx (Num  r) (empty-ctx))]
+         [(? symbol?  s) (Stx (Sym  s) (empty-ctx))]
+         [(? null?)      (Stx (Null)   (empty-ctx))]
+         [(? pair?    p) (let ([stl (read-stl p)])
+                           (match stl
+                             [(Pair a d)   (Stx (Pair a d) (empty-ctx))]
+                             [(? Stx? stx) stx]))]
+         [x (error 'reader "not supported: ~a" x)])]
        [read-stl
-        (λ (xs)
-          (match xs
-            ['()            (Null)]
-            [(cons y ys)    (Pair (read-stx y) (read-stl ys))]
-            [(? Atom? atom) (read-stx atom)]))])
+        (match-λ
+         ['()            (Null)]
+         [(cons a d)     (Pair (read-stx a) (read-stl d))]
+         [(? Atom? atom) (read-stx atom)])])
     read-stx))
 
 (define (print-atom a)
   (match a
-    [(Null)     '()]
-    [(Bool b)   b]
-    [(Num  n)   n]
-    [(Sym  nam) nam]
-    [(𝓁 nam) nam]
+    [(Bool b)     b]
+    [(Num  n)     n]
+    [(Sym  nam)   nam]
+    [(𝓁 nam)      nam]
     [(Defs scp 𝓁) '(Defs)]))
 
 (define (printer val)
   (match val
-    [(Null) '()]
     [(? Atom? atom) (print-atom atom)]
-    [(Pair v1 v2) (cons (printer v1) (printer v2))]
-    [(VFun `(,(Var nams) ...) ast env) `(VFun ,@nams)]
-    [(Stx a c) (vector 'stx (printer a))]))
+    [(Null) '()]
+    [(Pair a d) (cons (printer a) (printer d))]
+    [(VFun `(,(Var nams) ...) _ast _env) `(VFun ,@nams)]
+    [(Stx e _c) (vector 'stx (printer e))]))

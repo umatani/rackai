@@ -1,18 +1,12 @@
 #lang racket/unit
 (require
- racket/match
- (for-syntax racket)
- "../set.rkt"
- (only-in "../term.rkt" use-terms)
-
- (only-in "../signatures.rkt" syntax^ menv^ mstore^)
- (only-in "../terms.rkt" #%term-forms
-          Sym% Stx% 𝓁% Σ%))
+ (only-in racket/match match-let)
+ (only-in "../set.rkt" set)
+ "../signatures.rkt"
+ "../terms.rkt")
 
 (import)
 (export mstore^)
-
-(use-terms Sym Stx 𝓁 Σ)
 
 ;; ----------------------------------------
 ;; Expand-time store operations:

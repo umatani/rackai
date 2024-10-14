@@ -1,22 +1,16 @@
 #lang racket
 (require
- (except-in racket set do)
- "../set.rkt"
- "../nondet.rkt"
- "../mix.rkt"
- (only-in "../term.rkt" use-terms)
-
- (only-in "../signatures.rkt" store^)
- (only-in "../terms.rkt" #%term-forms
-          Store%)
- (rename-in "../conc/units.rkt" [store@ base:store@]))
+ (only-in "../nondet.rkt"     lift)
+ (only-in "../mix.rkt"        define-mixed-unit)
+ "../signatures.rkt"
+ "../terms.rkt"
+ (only-in "../conc/units.rkt" [store@ base:store@]))
 (provide store@)
 
 (define-mixed-unit store@
   (import)
-  (export store^)
+  (export  store^)
   (inherit [base:store@ init-store alloc-loc alloc-loc*])
-  (use-terms Store)
 
   ;; Set-based heap
 

@@ -1,15 +1,14 @@
 #lang racket
 (require
- "../nondet.rkt"
- "../mix.rkt"
-
- (only-in "../signatures.rkt" env^)
+ (only-in "../nondet.rkt"     lift)
+ (only-in "../mix.rkt"        define-mixed-unit)
+ "../signatures.rkt"
  (only-in "../conc/units.rkt" [env@ base:env@]))
 (provide env@)
 
 (define-mixed-unit env@
   (import)
-  (export env^)
+  (export  env^)
   (inherit [base:env@ init-env])
 
   ;; Set-based Environment

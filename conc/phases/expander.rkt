@@ -1,17 +1,10 @@
 #lang racket
 (require
- "../../set.rkt"
+ (only-in "../../set.rkt" set)
+ (only-in "../../mix.rkt" define-mixed-unit)
  "../../reduction.rkt"
- "../../mix.rkt"
- (only-in "../../term.rkt"  use-terms)
- 
- (only-in "../../signatures.rkt"
-          domain^ syntax^ env^ store^ eval^ menv^ mstore^
-          bind^ mcont^ parser^ expand^ expander^)
- (only-in "terms.rkt" #%term-forms
-          App% Atom% Sym% Stx% List% Null% Pair% Hole% Stxξ%
-          TVar% AstEnv% ζ% κ% InEval%
-          Lst lst->list snoc id? prim?))
+ "../../signatures.rkt"
+ "terms.rkt")
 (provide ==> red@ expand/red@ expand@ expander@)
 
 ;; ----------------------------------------
@@ -38,7 +31,8 @@
                              push-κ)
                        (only parser^
                              parse)]
-  #:do [(use-terms App Atom Sym Stx List Null Pair Hole
+  #:do [#;
+        (use-terms App Atom Sym Stx List Null Pair Hole
                    TVar AstEnv ζ Stxξ κ InEval)
 
         ;; Constants:
@@ -411,7 +405,7 @@
                 reducer))
   (export expand^)
   (inherit)
-  (use-terms ζ Stxξ)
+  ;(use-terms ζ Stxξ)
 
   (define (==> delta) (reducer := (--> delta)))
 
@@ -430,11 +424,9 @@
   (link expand/red@ red@))
 
 (define-unit expander@
-  (import (only menv^
-                init-ξ)
-          (only mstore^
-                init-Σ)
-          expand^)
+  (import (only   menv^ init-ξ)
+          (only mstore^ init-Σ)
+                expand^)
   (export expander^)
 
   (define (expander delta stx)

@@ -1,20 +1,10 @@
 #lang racket
 (require
- racket/match
- (for-syntax syntax/parse)
- "../../set.rkt"
  "../../reduction.rkt"
- "../../mix.rkt"
-
- (only-in "../../term.rkt"  use-terms)
-
- (only-in "../../signatures.rkt"
-          domain^ syntax^ env^ store^ eval^
-          menv^ mstore^ bind^ mcont^ parser^ expand^ expander^)
- (only-in "terms.rkt" #%term-forms
-          App% Atom% Sym% Stx% Stxξ% List% Null% Pair% Hole%
-          AstEnv% TVar% κ% InEval% ζ%
-          Lst lst->list snoc id? prim?))
+ (only-in "../../set.rkt" set)
+ (only-in "../../mix.rkt" define-mixed-unit)
+ "../../signatures.rkt"
+ "terms.rkt")
 (provide ==> red@ expand/red@ expand@ expander@)
 
 ;; ----------------------------------------
@@ -22,28 +12,17 @@
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> --> :=<1>)
-  #:within-signatures [(only domain^
-                             val? stx? proper-stl?)
-                       (only syntax^
-                             empty-ctx zip unzip in-hole alloc-scope add flip)
-                       (only env^
-                             init-env)
-                       (only store^
-                             init-store)
-                       (only menv^
-                             init-ξ lookup-ξ extend-ξ)
-                       (only mstore^
-                             lookup-Σ alloc-name)
-                       (only bind^
-                             bind resolve id=?)
-                       (only mcont^
-                             push-κ)
-                       (only parser^
-                             parse)]
-  #:do [(use-terms App Atom Sym Stx List Null Pair Stxξ Hole
-                   AstEnv TVar κ InEval ζ)
-
-        ;; Constants:
+  #:within-signatures [(only domain^    val? stx? proper-stl?)
+                       (only syntax^    empty-ctx zip unzip in-hole alloc-scope
+                                        add flip)
+                       (only    env^    init-env)
+                       (only  store^    init-store)
+                       (only   menv^    init-ξ lookup-ξ extend-ξ)
+                       (only mstore^    lookup-Σ alloc-name)
+                       (only   bind^    bind resolve id=?)
+                       (only  mcont^    push-κ)
+                       (only parser^    parse)]
+  #:do [;; Constants:
         (define id-kont (Stx (Sym '#%kont) (empty-ctx)))
         (define id-seq  (Stx (Sym '#%seq)  (empty-ctx)))
         (define id-snoc (Stx (Sym '#%snoc) (empty-ctx)))
@@ -386,7 +365,6 @@
                 reducer))
   (export expand^)
   (inherit)
-  (use-terms Stxξ ζ)
 
   (define (==> delta) (reducer (--> delta) :=))
 
@@ -405,12 +383,9 @@
   (link expand/red@ red@))
 
 (define-unit expander@
-  (import (only menv^
-                init-ξ)
-          (only mstore^
-                init-Σ)
-          (only expand^
-                expand))
+  (import (only   menv^    init-ξ)
+          (only mstore^    init-Σ)
+          (only expand^    expand))
   (export expander^)
 
   (define (expander delta stx)

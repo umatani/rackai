@@ -1,8 +1,7 @@
 #lang racket
 (require
- "../../term.rkt"
-
- (rename-in "../phases/terms.rkt"
+ (only-in "../../term.rkt" define-term use-terms)
+ (rename-in (except-in "../phases/terms.rkt" Stxξ AstEnv KApp SApp κ ζ)
             [#%term-forms phases:#%term-forms]
             [Stxξ%        phases:Stxξ%]
             [AstEnv%      phases:AstEnv%]
@@ -10,8 +9,7 @@
             [SApp%        phases:SApp%]
             [κ%           phases:κ%]
             [ζ%           phases:ζ%]))
-(provide #%term-forms
-         Stxξ% AstEnv% Σ*% KApp% SApp% InExpand% κ% ζ%
+(provide (all-defined-out)
          (except-out (all-from-out "../phases/terms.rkt")
                      phases:Stxξ%
                      phases:AstEnv%
@@ -49,3 +47,5 @@
             (κ        stx ex? Σ* 𝓁)
             (ζ        stx ex? κ Σ*))
           (syntax-local-value #'phases:#%term-forms)))
+
+(use-terms Stxξ AstEnv Σ* KApp SApp InExpand κ ζ)

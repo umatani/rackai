@@ -1,34 +1,22 @@
 #lang racket
 (require
- "../set.rkt"
- "../reduction.rkt"
- "../mix.rkt"
  "../interpreter.rkt"
- (only-in "../term.rkt" use-terms)
  ;"../test/suites.rkt"
-
- (only-in "../signatures.rkt"
-          domain^ syntax^ env^ store^ cont^ eval^
-          menv^ mstore^ mcont^ bind^ parser^ expand^ expander^ io^ run^ debug^)
-
- (only-in "../conc/core/terms.rkt" #%term-forms
-          Var% Fun% App% If% Val% VFun% List% Null% Pair% Atom% Bool% Sym%
-          Stx% Prim% Hole% Stxξ%
-          AstEnv% TVar% ζ% κ% InEval%
-          Lst id? lst->list snoc prim?)
-
- (only-in "../units.rkt"             io@)
- (only-in "../conc/units.rkt"        cont@ mcont@)
- (only-in "../conc/core/units.rkt"   debug@ expander@
-          [syntax@ super:syntax@])
+ (only-in "../set.rkt"                set)
+ (only-in "../mix.rkt"                define-mixed-unit)
+ "../reduction.rkt"
+ "../signatures.rkt"
+ "../conc/core/terms.rkt"
+ (only-in "../units.rkt"              io@)
+ (only-in "../conc/units.rkt"         cont@ mcont@)
+ (only-in "../conc/core/units.rkt"    debug@ expander@ [syntax@ super:syntax@])
  (only-in "../mult/units.rkt"         domain@ env@ menv@ run@)
  (only-in "../mult/core/units.rkt"    ev:red@ parser@ expand/red@)
  (only-in "../mult/core/expander.rkt" [==> mult:==>])
- (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
+ (only-in "alloc.rkt"                 store@ mstore@ syntax::fin-alloc@ bind@))
 (provide syntax@ eval/red@ ==> main-minus@
          interp eval-->* expand==>*)
 
-(use-terms Val Atom)
 
 (define-mixed-unit syntax@
   (import)
@@ -50,7 +38,6 @@
           (only red^
                 reducer))
   (export eval^)
-  (use-terms AstEnv)
 
   (define (--> delta) (reducer delta))
 
@@ -117,6 +104,10 @@
 
 (define interp (interpreter 'abs:core run delta α ≤a #f))
 
+(define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
+  (apply-interpreter interp form mode))
+
+
 ;; run example
 #;
 (define (main [mode 'check])
@@ -131,13 +122,13 @@
 ;; concと同じ {1} だけに戻るはず．
 
 (module+ test1
-  (run delta '(let ([z 1])
-                ((let-syntax ([x (lambda (stx) #'z)])
-                   (lambda (z) (x))) 2)) 'eval)
+  (process '(let ([z 1])
+              ((let-syntax ([x (lambda (stx) #'z)])
+                 (lambda (z) (x))) 2)))
 
-  (run delta '(let ([z 1])
-                ((let-syntax ([x (lambda (stx) #'z)])
-                   (lambda (z) z)) 2)) 'eval))
+  (process '(let ([z 1])
+              ((let-syntax ([x (lambda (stx) #'z)])
+                 (lambda (z) z)) 2))))
 
 ;; alloc-scope の duplicate による問題への対策
 ;; 別のlambda式の x が duplicate によって ambiguous 扱いとなる．
@@ -153,9 +144,9 @@
 ;; 精度が上がるはず(この例だと2つのbinding xで別々のscopeを生成)
 
 (module+ test2
-  (run delta '((lambda (f x) (f x))
-               (lambda (x) x)
-               100) 'eval))
+  (process '((lambda (f x) (f x))
+             (lambda (x) x)
+             100)))
 
 ;; resolveに関連して問題が発生している <- 上のTODOのようなalloc-scopeの解決
 ;; で十分？ctx部分の表現の工夫(PRO時点)はどう影響？

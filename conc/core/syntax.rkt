@@ -1,29 +1,21 @@
 #lang racket
 (require
- "../../set.rkt"
- "../../mix.rkt"
- (only-in "../../term.rkt" use-terms)
- 
- (only-in "../../signatures.rkt" domain^ syntax^)
- (only-in "terms.rkt" #%term-forms
-          Atom% Stx% Null% Pair% Hole%
-          prim?)
- (only-in "../units.rkt" [syntax@ super:syntax@]))
+ (only-in "../../mix.rkt"   define-mixed-unit)
+ "../../signatures.rkt"
+ "terms.rkt"
+ (only-in    "../units.rkt" [syntax@ super:syntax@]))
 (provide syntax@)
 
 (define-mixed-unit syntax@
   (import domain^)
   (export syntax^)
   (inherit [super:syntax@ zip unzip in-hole-stl
-            alloc-scope addremove strip subtract union
-            binding-lookup biggest-subset])
-
-  (use-terms Atom Stx Null Pair Hole)
-
+                          alloc-scope addremove strip subtract union
+                          binding-lookup biggest-subset])
   ;; not used in core
-  (define (at-phase .   args) (error "must not be used"))
-  (define (prune    .   args) (error "must not be used"))
-  (define (update-ctx . args) (error "must not be used"))
+  (define (at-phase   . _args) (error "must not be used"))
+  (define (prune      . _args) (error "must not be used"))
+  (define (update-ctx . _args) (error "must not be used"))
 
   ;; ----------------------------------------
   ;; stx utils

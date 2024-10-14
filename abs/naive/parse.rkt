@@ -1,15 +1,15 @@
 #lang racket
 (require
- "../../nondet.rkt"
- "../../mix.rkt"
- (only-in "../../signatures.rkt" domain^ syntax^ menv^ bind^ parse^)
+ (only-in "../../nondet.rkt"          pure)
+ (only-in "../../mix.rkt"             define-mixed-unit)
+ "../../signatures.rkt"
  (only-in "../../mult/parse-unit.rkt" [parse@ mult:parse@])
- (only-in "domain.rkt" val-⊤ atom-⊤ stx-⊤))
+ (only-in "domain.rkt"                val-⊤ atom-⊤ stx-⊤))
 (provide parse@)
 
 (define-mixed-unit parse@
   (import)
-  (export parse^)
+  (export  parse^)
   (inherit (mult:parse@ [mult:parse parse] parse*))
 
   ; parse : Ph Stx Σ -> (SetM Ast)

@@ -1,27 +1,17 @@
 #lang racket
 (require
- "../../set.rkt"
- "../../reduction.rkt"
- "../../mix.rkt"
  "../../interpreter.rkt"
- ;(only-in "../../term.rkt" use-terms)
  ;"../../test/suites.rkt"
-
- (only-in "../../signatures.rkt"
-          domain^ syntax^ env^ store^ cont^ eval^
-          menv^ mstore^ mcont^ bind^ parser^ expand^ run^ debug^)
- (only-in "../../conc/core/terms.rkt" #%term-forms
-          Var% Fun% App% If% Val% Atom% List% VFun% Bool% Sym%
-          Stx% Stxξ% Null% Pair% Prim% Hole%
-          SApp% SIf% KApp% KIf% AstEnv% TVar% ζ% κ% InEval%
-          Lst snoc id? prim? stx->datum)
-
+ (only-in "../../mix.rkt"             define-mixed-unit)
+ "../../reduction.rkt"
+ "../../signatures.rkt"
+ "../../conc/core/terms.rkt"
  (only-in "../../mult/core/units.rkt" expand/red@)
- (only-in "../../mult/core/eval.rkt" [--> set:-->])
- (only-in "../core.rkt" eval/red@ [==> abs:==>] main-minus@)
- (only-in "parse.rkt" parse@)
- (only-in "domain.rkt"
-          domain@ val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤ list-⊤))
+ (only-in "../../mult/core/eval.rkt"  [--> set:-->])
+ (only-in "../core.rkt"               eval/red@ [==> abs:==>] main-minus@)
+ (only-in "parse.rkt"                 parse@)
+ (only-in "domain.rkt"                domain@ val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤
+                                      list-⊤))
 (provide ev:red@ interp)
 
 ;; Revise --> to interpret abstract values (val-⊤, stx-⊤, etc.)
@@ -110,6 +100,9 @@
   (import) (export domain^ run^ debug^))
 
 (define interp (interpreter 'naive:core run delta α ≤a #f))
+
+(define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
+  (apply-interpreter interp form mode))
 
 ;; run example
 #;

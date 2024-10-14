@@ -1,14 +1,9 @@
 #lang racket
 (require
- "../set.rkt"
- "../nondet.rkt"
- "../mix.rkt"
- (only-in "../term.rkt" use-terms)
- 
- (only-in "../signatures.rkt" domain^)
- (only-in "../terms.rkt" #%term-forms
-          Atom% Bool% Num% Sym% Stx% Null% Pair% Prim%
-          lst->list/recur stx->datum)
+ (only-in "../nondet.rkt"           pure do <-)
+ (only-in "../mix.rkt"              define-mixed-unit)
+ "../signatures.rkt"
+ "../terms.rkt"
  (only-in "../conc/domain-unit.rkt" [domain@ base:domain@]))
 (provide domain@)
 
@@ -22,8 +17,6 @@
 
   (define α  identity)
   (define ≤a subset?)
-
-  (use-terms Atom Bool Num Sym Stx Null Pair Prim)
 
   (define (plus . ns) (apply + ns))
   (define (minus n . ns) (apply - n ns))

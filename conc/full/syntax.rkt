@@ -1,12 +1,8 @@
 #lang racket
 (require
- racket/match
- "../../mix.rkt"
- (only-in "../../term.rkt" use-terms)
-
- (only-in "../../signatures.rkt" domain^ syntax^)
- (only-in "terms.rkt" #%term-forms
-          Stx% Pair% Hole% Stxξ%)
+ (only-in "../../mix.rkt"       define-mixed-unit)
+ "../../signatures.rkt"
+ "terms.rkt"
  (only-in "../units.rkt"        [syntax@ super:syntax@])
  (only-in "../phases/units.rkt" [syntax@ phases:syntax@]))
 (provide syntax@)
@@ -20,7 +16,6 @@
                            binding-lookup biggest-subset]
            [phases:syntax@ empty-ctx add add-stl flip flip-stl
                            at-phase update-ctx prune])
-  (use-terms Stx Pair Hole Stxξ)
 
   ; in-hole : Stx Stx -> Stx
   (define (in-hole stx v)

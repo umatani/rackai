@@ -1,19 +1,11 @@
 #lang racket
 (require
- "../set.rkt"
- "../reduction.rkt"
- "../mix.rkt"
  "../interpreter.rkt"
- (only-in "../term.rkt" use-terms)
  ;"../test/suites.rkt"
-
- (only-in "../signatures.rkt" domain^ syntax^ env^ store^ cont^ eval^
-          menv^ mstore^ bind^ mcont^ parser^ expand^ run^ debug^)
- (only-in "../conc/phases/terms.rkt" #%term-forms
-          App% List% Pair% Null% Atom% Sym% Stx% Hole% Stxξ%
-          AstEnv% TVar% ζ% κ% InEval%
-          Lst snoc lst->list id? prim?)
-
+ (only-in "../mix.rkt"                  define-mixed-unit)
+ "../reduction.rkt"
+ "../signatures.rkt"
+ "../conc/phases/terms.rkt"
  (only-in "../units.rkt"                io@)
  (only-in "../conc/units.rkt"           cont@ mcont@)
  (only-in "../conc/phases/units.rkt"    debug@ [syntax@ super:syntax@]
@@ -23,7 +15,7 @@
  (only-in "../mult/phases/units.rkt"    parser@ expand/red@)
  (only-in "../mult/phases/expander.rkt" [==> mult:==>])
  (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@)
- (only-in "core.rkt" eval/red@))
+ (only-in "core.rkt"  eval/red@))
 (provide syntax@ ==> main-minus@ interp)
 
 
@@ -88,6 +80,9 @@
 
 (define interp (interpreter 'abs:phases run delta α ≤a #f))
 
+(define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
+  (apply-interpreter interp form mode))
+
 ;; run example
 #;
 (define (main [mode 'check])
@@ -95,15 +90,15 @@
   (run-suite run delta (suite 'phases) mode α ≤a))
 
 (module+ test1
-  (run delta '(let ([z 1])
-                ((let-syntax ([x (lambda (stx) #'z)])
-                   (lambda (z) (x))) 2)) 'eval)
+  (process '(let ([z 1])
+              ((let-syntax ([x (lambda (stx) #'z)])
+                 (lambda (z) (x))) 2)))
 
-  (run delta '(let ([z 1])
-                ((let-syntax ([x (lambda (stx) #'z)])
-                   (lambda (z) z)) 2)) 'eval))
+  (process '(let ([z 1])
+              ((let-syntax ([x (lambda (stx) #'z)])
+                 (lambda (z) z)) 2))))
 
 (module+ test2
-  (run delta '((lambda (f x) (f x))
-               (lambda (x) x)
-               100) 'eval))
+  (process '((lambda (f x) (f x))
+             (lambda (x) x)
+             100)))

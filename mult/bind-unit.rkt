@@ -1,24 +1,16 @@
 #lang racket/unit
 (require
- (only-in racket identity)
- (for-syntax racket)
- racket/match
- "../set.rkt"
- "../nondet.rkt"
- (only-in "../term.rkt" use-terms)
+ (only-in racket          identity)
+ (only-in racket/match    match-let)
+ (only-in "../set.rkt"    set for/set in-set set? subset? set-add set-map
+                          list->set set->list)
+ (only-in "../nondet.rkt" results lift)
+ "../signatures.rkt"
+ "../terms.rkt")
 
- (only-in "../signatures.rkt"
-          syntax^ mstore^ bind^)
- (only-in "../terms.rkt" #%term-forms
-          Sym% Stx% Σ% StoBind%))
-
-(import (only syntax^
-              binding-lookup biggest-subset at-phase)
-        (only mstore^
-              lookup-Σ))
+(import (only syntax^    binding-lookup biggest-subset at-phase)
+        (only mstore^    lookup-Σ))
 (export bind^)
-
-(use-terms Sym Stx Σ StoBind)
 
 ;; ph is #f means called from core
 

@@ -1,25 +1,18 @@
 #lang racket
 (require
- "../set.rkt"
- "../reduction.rkt"
- "../mix.rkt"
  "../interpreter.rkt"
- (only-in "../term.rkt" use-terms)
  ;"../test/suites.rkt"
-
- (only-in "../signatures.rkt" domain^ syntax^ env^ store^ cont^ eval^
-          menv^ mstore^ bind^ mcont^ parser^ expand^ run^ debug^)
- (only-in "../conc/full/terms.rkt" #%term-forms
-          Var% Fun% App% If% VFun% Null% Pair% Bool% Stx% Sym% Prim% 𝓁% Defs%
-          lst->list id? stx-prim?)
- 
- (only-in "../units.rkt"                  io@)
+ (only-in "../mix.rkt"             define-mixed-unit)
+ "../reduction.rkt"
+ "../signatures.rkt"
+ "../conc/full/terms.rkt"
+ (only-in "../units.rkt"           io@)
  (only-in "../conc/units.rkt"      cont@ mcont@)
  (only-in "../conc/full/units.rkt" [syntax@ super:syntax@]
                                    expander@ debug@)
- (only-in "../mult/units.rkt"       domain@ env@ menv@ run@)
- (only-in "../mult/full/units.rkt"  eval@ parser@ expand@)
- (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@))
+ (only-in "../mult/units.rkt"      domain@ env@ menv@ run@)
+ (only-in "../mult/full/units.rkt" eval@ parser@ expand@)
+ (only-in "alloc.rkt"              store@ mstore@ syntax::fin-alloc@ bind@))
 (provide syntax@ main-minus@
          interp)
 
@@ -50,6 +43,9 @@
 
 (define interp (interpreter 'abs:full run delta α ≤a #f))
 
+(define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
+  (apply-interpreter interp form mode))
+
 #;
 (define (main [mode 'check])
   (run-suite run delta (suite 'core)   mode α ≤a)
@@ -57,18 +53,18 @@
   (run-suite run delta (suite 'full)   mode α ≤a))
 
 (module+ test1
-  (run delta '(let ([z 1])
-                ((let-syntax ([x (lambda (stx) #'z)])
-                   (lambda (z) (x))) 2)) 'eval)
+  (process '(let ([z 1])
+              ((let-syntax ([x (lambda (stx) #'z)])
+                 (lambda (z) (x))) 2)))
 
-  (run delta '(let ([z 1])
-                ((let-syntax ([x (lambda (stx) #'z)])
-                   (lambda (z) z)) 2)) 'eval))
+  (process '(let ([z 1])
+              ((let-syntax ([x (lambda (stx) #'z)])
+                 (lambda (z) z)) 2))))
 
 (module+ test2
-  (run delta '((lambda (f x) (f x))
-               (lambda (x) x)
-               100) 'eval))
+  (process '((lambda (f x) (f x))
+             (lambda (x) x)
+             100)))
 
 ;; aとbの引数の名前を別にしたり，zが定義されていないだけで問題は生じない．Why?
 ;; -->
@@ -84,24 +80,23 @@
 ;;   の一部(とくに κ の一部でもある) Stx 全体を有限化することで根本治療ができるはず．
 (module+ test3
   ;; これはbのlambda式のparseの時点で4つ結果が生じるが問題なし．
-  (run delta '(let-syntax ([z 1])
-                (let-syntax ([a (lambda (stx)
-                                  #'2)])
-                  (let-syntax ([b (lambda (stx)
-                                    stx)])
-                    3))) 'expand)
-  ;; こちらは問題あり．上と何が違う？
-  (run delta '(let-syntax ([z 1])
-                (let-syntax ([a (lambda (stx)
+  (process '(let-syntax ([z 1])
+              (let-syntax ([a (lambda (stx)
+                                #'2)])
+                (let-syntax ([b (lambda (stx)
                                   stx)])
-                  (let-syntax ([b (lambda (stx)
-                                    stx)])
-                    3))) 'expand)
+                  3))))
+  ;; こちらは問題あり．上と何が違う？
+  (process '(let-syntax ([z 1])
+              (let-syntax ([a (lambda (stx)
+                                stx)])
+                (let-syntax ([b (lambda (stx)
+                                  stx)])
+                  3))))
   ;; これもダメ．どうやらevalの結果が同じlambdaだとダメ？
-  (run delta '(let-syntax ([z 1])
-                (let-syntax ([a (lambda ()
+  (process '(let-syntax ([z 1])
+              (let-syntax ([a (lambda ()
+                                99)])
+                (let-syntax ([b (lambda ()
                                   99)])
-                  (let-syntax ([b (lambda ()
-                                    99)])
-                    3))) 'expand))
-
+                  3)))))

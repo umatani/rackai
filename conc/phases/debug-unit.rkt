@@ -1,36 +1,20 @@
 #lang racket/unit
 (require
- racket/match
- "../../set.rkt"
+ (only-in racket/match    match)
+ (only-in "../../set.rkt" set)
  "../../reduction.rkt"
- (only-in "../../term.rkt" use-terms)
+ "../../signatures.rkt"
+ "terms.rkt")
 
- (only-in "../../signatures.rkt"
-          env^ store^ eval^ menv^ mstore^ expand^ io^ run^ debug^)
- (only-in "terms.rkt" #%term-forms
-          Stxξ% AstEnv% ζ%
-          lst->list/recur stx->datum))
-
-(import
- (only env^
-       init-env)
- (only store^
-       init-store)
- (only eval^
-       -->)
- (only menv^
-       init-ξ)
- (only mstore^
-       init-Σ)
- (only expand^
-       ==>)
- (only io^
-       reader)
- (only run^
-       run))
+(import (only env^       init-env)
+        (only store^     init-store)
+        (only eval^      -->)
+        (only menv^      init-ξ)
+        (only mstore^    init-Σ)
+        (only expand^    ==>)
+        (only io^        reader)
+        (only run^       run))
 (export debug^)
-
-(use-terms AstEnv Stxξ ζ)
 
 ; eval--> : Sexp -> (Setof State)
 (define (eval--> delta form)

@@ -34,16 +34,16 @@
 ;; ----------------------------------------
 ;; Environment:
 (define-signature env^
-  (init-env    ; -> Env
-   lookup-env  ; Env Var -> Loc
-   extend-env* ; Env (Listof Var) (Listof Loc) -> Env
+  (init-env    ; → Env
+   lookup-env  ; Env Var → Loc
+   extend-env* ; Env (Listof Var) (Listof Loc) → Env
    ))
 
 ;; ----------------------------------------
 ;; Evaluating AST:
 (define-signature eval^
-  (-->      ; State -> (Setof State)
-   evaluate ; Ast -> Val
+  (-->      ; State → (Setof State)
+   evaluate ; Ast → Val
    ))
 
 ;; ----------------------------------------

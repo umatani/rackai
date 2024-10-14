@@ -1,20 +1,14 @@
 #lang racket/unit
 (require
- (except-in racket set)
- (for-syntax racket)
- "../set.rkt"
- (only-in "../term.rkt" use-terms)
- 
- (only-in "../signatures.rkt" domain^ syntax^)
- (only-in "../terms.rkt" #%term-forms
-          Stx% Null% Pair% Hole% StoBind%))
+ (only-in racket       empty? first second rest)
+ (only-in racket/match match match*)
+ (only-in "../set.rkt" set subset? set-member? set=? set-add set-remove
+                       set-union set-subtract set-count set->list)
+ "../signatures.rkt"
+ "../terms.rkt")
 
-(import (only domain^
-              stx?))
+(import (only domain^    stx?))
 (export syntax^)
-
-(use-terms Stx Null Pair Hole StoBind)
-
 
 ;; ----------------------------------------
 ;; Syntax-object operations:

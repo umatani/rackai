@@ -1,6 +1,6 @@
 #lang racket/unit
 (require
- (only-in "../signatures.rkt" menv^))
+ "../signatures.rkt")
 
 (import)
 (export menv^)

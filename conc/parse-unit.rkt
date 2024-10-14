@@ -1,26 +1,15 @@
 #lang racket/unit
 (require
- racket/match
- (only-in "../term.rkt"  use-terms)
- 
- (only-in "../signatures.rkt" domain^ syntax^ menv^ bind^ parse^)
- (only-in "../terms.rkt" #%term-forms
-          Var% Fun% App% If% Atom% Bool% Num% Sym% Stx% Null% Pair% Prim%
-          Lst lst->list id? prim?))
+ (only-in racket/match match)
+ "../signatures.rkt"
+ "../terms.rkt")
 
 (import
- (only domain^
-       proper-stl?)
- (only syntax^
-       unzip strip)
- (only menv^
-       init-ξ)
- (rename (only bind^
-               resolve id=?)
-         [b:id=? id=?]))
+ (only         domain^    proper-stl?)
+ (only         syntax^    unzip strip)
+ (only         menv^      init-ξ)
+ (rename (only bind^      resolve id=?) [b:id=? id=?]))
 (export parse^)
-
-(use-terms Var Fun App If Atom Stx Null Pair Prim)
 
 ;; ----------------------------------------
 ;; Simple parsing of already-expanded code

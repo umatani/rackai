@@ -1,22 +1,18 @@
 #lang racket
 (require
- "../../mix.rkt"
- "../../reduction.rkt"
  "../../interpreter.rkt"
  ;"../../test/suites.rkt"
-
- (only-in "../../signatures.rkt" domain^ syntax^ env^ store^
-          menv^ mstore^ bind^ mcont^ parser^ run^ debug^)
- (only-in "../../conc/phases/terms.rkt"
-          App% Atom% Sym% Stx% List% Null% Pair% AstEnv%
-          Stxξ% κ% ζ% TVar% InEval% Hole%
-          Lst lst->list snoc id? prim?)
+ (only-in "../../mix.rkt"               define-mixed-unit)
+ "../../reduction.rkt"
+ "../../signatures.rkt"
+ "../../conc/phases/terms.rkt"
  (only-in "../../mult/phases/units.rkt" expand/red@)
- (only-in "../core.rkt" eval/red@)
- (only-in "../phases.rkt" [==> abs:==>] main-minus@)
- (only-in "domain.rkt" domain@ val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤ list-⊤)
- (only-in "core.rkt" ev:red@)
- (only-in "parse.rkt" parse@))
+ (only-in "../core.rkt"                 eval/red@)
+ (only-in "../phases.rkt"               [==> abs:==>] main-minus@)
+ (only-in "domain.rkt"                  domain@ val-⊤ atom-⊤ num-⊤ sym-⊤
+                                        stx-⊤ list-⊤)
+ (only-in "core.rkt"                    ev:red@)
+ (only-in "parse.rkt"                   parse@))
 (provide interp)
 
 
@@ -83,6 +79,9 @@
   (import) (export domain^ run^ debug^))
 
 (define interp (interpreter 'naive:phases run delta α ≤a #f))
+
+(define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
+  (apply-interpreter interp form mode))
 
 ;; run example
 #;

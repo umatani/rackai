@@ -1,17 +1,10 @@
 #lang racket
 (require
- "../../set.rkt"
+ (only-in "../../set.rkt"                set)
+ (only-in "../../mix.rkt"                define-mixed-unit)
  "../../reduction.rkt"
- "../../mix.rkt"
- (only-in "../../term.rkt"  use-terms)
-
- (only-in "../../signatures.rkt"
-          domain^ syntax^ env^ store^ eval^
-          menv^ mstore^ bind^ mcont^ parser^ expand^ expander^)
- (only-in "../../conc/core/terms.rkt" #%term-forms
-          App% Atom% Sym% Stx% Stxξ% List% Null% Pair% Hole%
-          AstEnv% TVar% ζ% κ% InEval%
-          Lst lst->list snoc id? prim?)
+ "../../signatures.rkt"
+ "../../conc/core/terms.rkt"
  (only-in "../../conc/core/expander.rkt" [==> base:==>] expander@))
 (provide ==> red@ expand/red@ expand@)
 
@@ -70,14 +63,10 @@
 (define-unit-from-reduction red@ ==>)
 
 (define-mixed-unit expand/red@
-  (import (only eval^
-                -->)
-          (only red^
-                reducer))
+  (import (only eval^    -->)
+          (only  red^    reducer))
   (export expand^)
   (inherit)
-
-  (use-terms Stxξ ζ)
 
   (define (==> delta) (reducer (--> delta)))
 
