@@ -3,7 +3,8 @@
  (only-in "../../mix.rkt" define-mixed-unit)
  (only-in "../../nondet.rkt" pure do <- :=)
  "../../signatures.rkt"
- "../../conc/core/terms.rkt")
+ "../../conc/core/terms.rkt"
+ (only-in "../../conc/core/units.rkt" parser@))
 (provide parse@ parser@)
 
 ;; Non-deterministic parsing
@@ -13,7 +14,8 @@
    (only domain^    proper-stl?)
    (only syntax^    unzip strip)
    (only   menv^    init-ξ)
-   (only   bind^    resolve id=? core-form?))
+   (only   bind^    resolve)
+   (only     id^    id=? core-form?))
   (export parse^)
 
   ;; ----------------------------------------
@@ -99,10 +101,3 @@
 
   ; parse : Stx Σ -> (SetM Ast)
   (define parse (parse1 parse1 parse*)))
-
-(define-mixed-unit parser@
-  (import)
-  (export  parser^)
-  (inherit [parse@ parse])
-  
-  (define parser parse))

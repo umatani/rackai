@@ -2,18 +2,13 @@
 (provide (all-defined-out))
 
 
+;; Add a binding using the name and scopes of an identifier, mapping
+;; them to a given name in the binding store
 (define-signature bind^
-  ;; Add a binding using the name and scopes of an identifier, mapping
-  ;; them to a given name in the binding store
-  (bind       ;    Σ Id Nam   → Σ             (core)
-              ; Ph Σ Id Nam   → Σ             (phases, full)
-   resolve    ;    Σ Id       → Nam           (core)
-              ; Ph Σ Id       → Nam           (phases, full)
-   id=?       ;    Id Nam   Σ → Boolean       (core)
-              ; Ph Id Nam   Σ → Boolean       (phases)
-              ; Ph Id Nam ξ Σ → Boolean       (full)
-   core-form? ;       Nam   Σ → Id → Boolean  (core)
-              ; Ph    Nam   Σ → Id → Boolean  (phases, full)
+  (bind    ;    Σ Id Nam   → Σ             (core)
+           ; Ph Σ Id Nam   → Σ             (phases, full)
+   resolve ;    Σ Id       → Nam           (core)
+           ; Ph Σ Id       → Nam           (phases, full)
    ))
 
 ;; ----------------------------------------
@@ -64,6 +59,14 @@
 ;; The expander:
 (define-signature expander^
   (expander
+   ))
+
+(define-signature id^
+  (id=?       ;    Id Nam   Σ → Boolean       (core)
+              ; Ph Id Nam   Σ → Boolean       (phases)
+              ; Ph Id Nam ξ Σ → Boolean       (full)
+   core-form? ;       Nam   Σ → Id → Boolean  (core)
+              ; Ph    Nam   Σ → Id → Boolean  (phases, full)
    ))
 
 ;;;; reader & printer

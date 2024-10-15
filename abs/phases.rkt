@@ -12,7 +12,7 @@
  (only-in "../mult/units.rkt"           domain@ env@ menv@ run@)
  (only-in "../mult/core/units.rkt"      ev:red@)
  (only-in "../mult/phases/units.rkt"    parse@ parser@ expand/red@
-                                        [bind@ mult:bind@])
+                                        [bind@ mult:bind@] id@)
  (only-in "../mult/phases/expander.rkt" [==> mult:==>])
  (only-in "alloc.rkt"                   store@ mstore@
                                         biggest-subset binding-lookup)
@@ -55,15 +55,7 @@
                    (set nam)
                    (list->set nam_biggests))])
           ;(printf "resolve done: ~a\n" r)
-          (lift r)))))
-
-  ;; id=? : Ph Id Nam Σ -> Boolean (same as mult)
-  (define (id=? ph id nam Σ)
-    (subset? (set nam) (results (resolve ph id Σ))))
-
-  ;; core-form? : Ph Nam Σ → Id → Boolean (same as mult)
-  (define (core-form? ph nam Σ) (λ (id) (id=? ph id nam Σ)))
-  )
+          (lift r))))))
 
 
 ;; ==> : ζ -> (Setof ζ)
@@ -79,10 +71,9 @@
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
                              lookup-Σ alloc-name alloc-scope)
-                       (only bind^
-                             bind resolve id=?)
-                       (only mcont^
-                             push-κ)
+                       (only  bind^    bind resolve)
+                       (only    id^    id=?)
+                       (only mcont^    push-κ)
                        (only parse^    parse)]
   ;; reference
   [(ζ (Stxξ ph (and id (Stx (Sym nam) ctx)) ξ scps_p) '∘ κ0 Σ)
@@ -99,9 +90,9 @@
 
 (define-compound-unit/infer main-minus@
   (import domain^ eval^ parser^ expand^)
-  (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^
+  (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ id^ mcont^
           run^ debug^)
-  (link   syntax@ env@ store@ cont@ menv@ mstore@ bind@ mcont@
+  (link   syntax@ env@ store@ cont@ menv@ mstore@ bind@ id@ mcont@
           expander@ io@ run@ debug@))
 
 (define-values/invoke-unit

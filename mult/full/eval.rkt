@@ -23,8 +23,7 @@
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
                              alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
-                       (only bind^
-                             bind resolve)
+                       (only  bind^    bind resolve)
                        (only parse^    parse)]
   #:do [; resolve* : Ph (Listof Id) Σ -> (SetM (Listof Nam))
         (define (resolve* ph ids Σ)

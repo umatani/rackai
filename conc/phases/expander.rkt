@@ -25,10 +25,9 @@
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
                              lookup-Σ alloc-name alloc-scope)
-                       (only bind^
-                             bind resolve id=?)
-                       (only mcont^
-                             push-κ)
+                       (only  bind^    bind resolve)
+                       (only    id^    id=?)
+                       (only mcont^    push-κ)
                        (only parse^    parse)]
   #:do [#;
         (use-terms App Atom Sym Stx List Null Pair Hole
@@ -417,7 +416,7 @@
 
 (define-compound-unit/infer expand@
   (import domain^ syntax^ env^ store^ eval^
-          menv^ mstore^ mcont^ bind^ parse^)
+          menv^ mstore^ mcont^ bind^ id^ parse^)
   (export expand^)
   (link expand/red@ red@))
 

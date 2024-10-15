@@ -8,14 +8,14 @@
  (only-in "../units.rkt"              domain@ env@ store@ menv@ mstore@ run@)
  (only-in "../../conc/units.rkt"      cont@ mcont@)
  (only-in "../../conc/core/units.rkt" syntax@ expander@ debug@)
- (only-in "units.rkt"                 eval@ bind@ parse@ parser@ expand@))
+ (only-in "units.rkt"                 eval@ bind@ id@ parse@ parser@ expand@))
 (provide interp)
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export domain^ run^ debug^)
    (link domain@ syntax@ env@ store@ cont@ eval@
-         menv@ mstore@ bind@ mcont@ parse@ parser@ expand@ expander@
+         menv@ mstore@ bind@ id@ mcont@ parse@ parser@ expand@ expander@
          io@ run@ debug@))
   (import) (export domain^ run^ debug^))
 

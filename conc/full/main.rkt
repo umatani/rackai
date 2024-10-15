@@ -6,15 +6,16 @@
  ;;;; Units
  (only-in "../../units.rkt" io@)
  (only-in "../units.rkt" domain@ env@ store@ cont@ menv@ mstore@ mcont@ run@)
- (only-in "units.rkt" syntax@ eval@ bind@ parse@ parser@ expand@ expander@
-                      debug@))
+ (only-in "../phases/units.rkt" bind@)
+ (only-in "units.rkt" syntax@ eval@ id@ parse@ parser@ expand@ expander@
+          debug@))
 (provide interp)
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export domain^ run^ debug^)
    (link domain@ syntax@ env@ store@ cont@ eval@
-         menv@ mstore@ bind@ mcont@ parse@ parser@ expand@ expander@
+         menv@ mstore@ bind@ id@ mcont@ parse@ parser@ expand@ expander@
          io@ run@ debug@))
   (import) (export domain^ run^ debug^))
 

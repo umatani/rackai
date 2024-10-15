@@ -42,11 +42,3 @@
       (lift (if (null? nam_biggests)
               (set nam)
               (list->set nam_biggests))))))
-
-;; id=? : Id Nam ξ Σ → Boolean
-(define (id=? id nam Σ)
-  (subset? (set nam) (results (resolve id Σ))))
-
-;; core-form? : Nam Σ → Id → Boolean
-(define (core-form? nam Σ)
-  (λ (id) (id=? id nam Σ)))

@@ -13,8 +13,6 @@
         (only mstore^    lookup-Σ))
 (export bind^)
 
-;; ph is #f means called from core
-
 ;; bind : Ph Σ Id Nam → Σ
 (define (bind ph Σ0 id nam)
   (match-let ([(Σ size tbl) Σ0]
@@ -45,10 +43,3 @@
       (lift (if (null? nam_biggests)
               (set nam)
               (list->set nam_biggests))))))
-
-;; id=? : Ph Id Nam Σ -> Boolean
-(define (id=? ph id nam Σ)
-  (subset? (set nam) (results (resolve ph id Σ))))
-
-;; core-form? : Ph Nam Σ → Id → Boolean
-(define (core-form? ph nam Σ) (λ (id) (id=? ph id nam Σ)))

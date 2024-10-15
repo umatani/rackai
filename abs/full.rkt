@@ -10,37 +10,20 @@
  (only-in "../conc/units.rkt"      cont@ mcont@)
  (only-in "../conc/full/units.rkt" syntax@ debug@)
  (only-in "../mult/units.rkt"      domain@ env@ menv@ run@)
- (only-in "../mult/full/units.rkt" eval@ parse@ parser@ expand@ expander@)
+ (only-in "../mult/full/units.rkt" eval@ id@ parse@ parser@ expand@ expander@)
  (only-in "alloc.rkt"              store@ mstore@)
- (only-in "phases.rkt"             [bind@ phases:bind@]))
+ (only-in "phases.rkt"             bind@))
 (provide syntax@ main-minus@
          interp)
-
-;; same as mult
-(define-mixed-unit bind@
-  (import  (only menv^      init-ξ lookup-ξ))
-  (export  bind^)
-  (inherit [phases:bind@    bind resolve])
-
-  ;; id=? : Ph Id Nam ξ Σ → Boolean
-  (define (id=? ph id nam ξ Σ)
-    (let ([nam0 (results (resolve ph id Σ))])
-      (and (subset? (set nam) nam0)
-           (andmap (λ (at) (not (TStop? at)))
-                   (set->list (results (lookup-ξ ξ nam)))))))
-
-  ;; core-form? : Ph Nam Σ → Id → Boolean
-  (define (core-form? ph nam Σ) (λ (id) (id=? ph id nam (init-ξ) Σ)))
-  )
 
 
 ;; full/set's evaluate already filters out stuck states
 
 (define-compound-unit/infer main-minus@
   (import domain^ eval^ parser^ expand^)
-  (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^
+  (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ id^ mcont^
           run^ debug^)
-  (link   syntax@ env@ store@ cont@ menv@ mstore@ bind@ mcont@
+  (link   syntax@ env@ store@ cont@ menv@ mstore@ bind@ id@ mcont@
           expander@ io@ run@ debug@))
 
 (define-values/invoke-unit

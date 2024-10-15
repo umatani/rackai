@@ -21,10 +21,9 @@
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
                              lookup-Σ alloc-name alloc-scope)
-                       (only bind^
-                             bind resolve id=?)
-                       (only mcont^
-                             push-κ)
+                       (only  bind^    bind resolve)
+                       (only    id^    id=?)
+                       (only mcont^    push-κ)
                        (only parse^    parse)]
 
   ;; application (free var-ref, same as phases)
@@ -85,7 +84,8 @@
         (list->set (map cons stx_new Σ*_new))))))
 
 (define-compound-unit/infer expand@
-  (import domain^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^ bind^ parse^)
+  (import domain^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^
+          bind^ id^ parse^)
   (export expand^)
   (link expand/red@ red@))
 

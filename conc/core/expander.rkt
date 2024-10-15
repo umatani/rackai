@@ -18,7 +18,8 @@
                        (only  store^    init-store)
                        (only   menv^    init-ξ lookup-ξ extend-ξ)
                        (only mstore^    lookup-Σ alloc-name alloc-scope)
-                       (only   bind^    bind resolve id=?)
+                       (only   bind^    bind resolve)
+                       (only     id^    id=?)
                        (only  mcont^    push-κ)
                        (only  parse^    parse)]
   #:do [;; Constants:
@@ -377,7 +378,7 @@
 
 (define-compound-unit/infer expand@
   (import domain^ syntax^ env^ store^ eval^ menv^ mstore^
-          mcont^ bind^ parse^)
+          mcont^ bind^ id^ parse^)
   (export expand^)
   (link expand/red@ red@))
 

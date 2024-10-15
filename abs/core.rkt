@@ -12,7 +12,7 @@
  (only-in "../conc/core/units.rkt"    debug@ expander@ syntax@)
  (only-in "../mult/units.rkt"         domain@ env@ menv@ run@)
  (only-in "../mult/core/units.rkt"    ev:red@ parse@ parser@ expand/red@
-                                      [bind@ mult:bind@])
+                                      [bind@ mult:bind@] id@)
  (only-in "../mult/core/expander.rkt" [==> mult:==>])
  (only-in "alloc.rkt"                 store@ mstore@
                                       biggest-subset binding-lookup))
@@ -53,16 +53,7 @@
                    (set nam)
                    (list->set nam_biggests))])
           ;(printf "resolve done: ~a\n" r)
-          (lift r)))))
-
-  ;; id=? : Id Nam ξ Σ → Boolean (same as mult)
-  (define (id=? id nam Σ)
-    (subset? (set nam) (results (resolve id Σ))))
-
-  ;; core-form? : Nam Σ → Id → Boolean (same as mult)
-  (define (core-form? nam Σ)
-    (λ (id) (id=? id nam Σ)))
-  )
+          (lift r))))))
 
 
 ;; filter out stuck states
@@ -102,10 +93,9 @@
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
                              lookup-Σ alloc-name alloc-scope)
-                       (only bind^
-                             bind resolve id=?)
-                       (only mcont^
-                             push-κ)
+                       (only  bind^    bind resolve)
+                       (only    id^    id=?)
+                       (only mcont^    push-κ)
                        (only parse^    parse)]
   ;; reference
   [(ζ (Stxξ (and id (Stx (Sym nam) ctx)) ξ) '∘ κ Σ)
@@ -124,9 +114,9 @@
 
 (define-compound-unit/infer main-minus@
   (import domain^ eval^ parser^ expand^)
-  (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ mcont^
+  (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ id^ mcont^
           run^ debug^)
-  (link   syntax@ env@ store@ cont@ menv@ mstore@ bind@ mcont@
+  (link   syntax@ env@ store@ cont@ menv@ mstore@ bind@ id@ mcont@
           expander@ io@ run@ debug@))
 
 (define-values/invoke-unit

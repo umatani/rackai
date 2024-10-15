@@ -7,7 +7,7 @@
  "../../signatures.rkt"
  "../../conc/full/terms.rkt"
  (only-in "../../mult/full/units.rkt"    eval/red@ expand/red@
-                                         [parse@ mult:parse@])
+                                         [parse@ mult:parse@] parser@)
  (only-in "../../mult/full/eval.rkt"     [--> set:-->])
  (only-in "../../mult/full/expander.rkt" [==> set:==>])
  (only-in "../full.rkt"                  main-minus@)
@@ -31,8 +31,7 @@
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
                              alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
-                       (only bind^
-                             bind resolve)
+                       (only  bind^    bind resolve)
                        (only parse^    parse)]
   ;; (syntax-local-value <abs> _ ...)
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
@@ -119,14 +118,6 @@
   ; parse : Ph Stx Σ -> (SetM Ast)
   (define parse (parse1 parse1 parse*)))
 
-(define-mixed-unit parser@
-  (import)
-  (export  parser^)
-  (inherit [parse@ parse])
-
-  ; parser : Stx Σ → (SetM Ast)
-  (define (parser stx Σ) (parse 0 stx Σ)))
-
 
 ;;;; Expander
 
@@ -142,10 +133,9 @@
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
                              lookup-Σ alloc-name alloc-scope)
-                       (only bind^
-                             bind resolve id=?)
-                       (only mcont^
-                             push-κ)
+                       (only  bind^    bind resolve)
+                       (only    id^    id=?)
+                       (only mcont^    push-κ)
                        (only parse^    parse)]
   
   [(InEval (list stx_exp '• store_0 Σ*)

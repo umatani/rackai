@@ -6,7 +6,7 @@
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../conc/phases/terms.rkt"
- (only-in "../../mult/phases/units.rkt" expand/red@ [parse@ mult:parse@])
+ (only-in "../../mult/phases/units.rkt" expand/red@ [parse@ mult:parse@] parser@)
  (only-in "../core.rkt"                 eval/red@)
  (only-in "../phases.rkt"               [==> abs:==>] main-minus@)
  (only-in "domain.rkt"                  domain@ val-⊤ atom-⊤ num-⊤ sym-⊤
@@ -33,13 +33,6 @@
   ; parse : Ph Stx Σ -> (SetM Ast)
   (define parse (parse1 parse1 parse*)))
 
-(define-mixed-unit parser@
-  (import)
-  (export parser^)
-  (inherit [parse@    parse])
-
-  ; parser : Stx Σ -> (SetM Ast)
-  (define (parser stx Σ) (parse 0 stx Σ)))
 
 ;;;; Expander
 
@@ -56,10 +49,9 @@
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
                              lookup-Σ alloc-name alloc-scope)
-                       (only bind^
-                             bind resolve id=?)
-                       (only mcont^
-                             push-κ)
+                       (only  bind^    bind resolve)
+                       (only    id^    id=?)
+                       (only mcont^    push-κ)
                        (only parse^    parse)]
 
   [(InEval (list stx_exp '• store_0)

@@ -9,7 +9,8 @@
   (import
    (only domain^    proper-stl?)
    (only syntax^    unzip strip)
-   (only   bind^    resolve core-form?))
+   (only   bind^    resolve)
+   (only     id^    core-form?))
   (export parse^)
 
   ;; ----------------------------------------
@@ -80,10 +81,9 @@
   ;; parse : Ph Stx Σ → Ast
   (define parse parse1))
 
-(define-mixed-unit parser@
-  (import)
+(define-unit parser@
+  (import (only parse^    parse))
   (export  parser^)
-  (inherit [parse@ parse])
 
   ; parser : Stx Σ → Ast
   (define (parser stx Σ) (parse 0 stx Σ)))
