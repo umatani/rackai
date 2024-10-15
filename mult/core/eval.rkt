@@ -4,8 +4,8 @@
  "../../reduction.rkt"
  (only-in "../../mix.rkt"            define-mixed-unit)
  "../../signatures.rkt"
- "../../conc/core/terms.rkt"
- (only-in "../../conc/core/eval.rkt" [--> base:-->]))
+ "../../base/core/terms.rkt"
+ (only-in "../../base/core/eval.rkt" [--> base:-->]))
 (provide --> red@ eval@)
 
 ;; Revised reduction rules

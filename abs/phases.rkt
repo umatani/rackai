@@ -5,10 +5,10 @@
  (only-in "../mix.rkt"                  define-mixed-unit)
  "../reduction.rkt"
  "../signatures.rkt"
- "../conc/phases/terms.rkt"
+ "../base/phases/terms.rkt"
  (only-in "../units.rkt"                io@)
- (only-in "../conc/units.rkt"           cont@ mcont@)
- (only-in "../conc/phases/units.rkt"    debug@ syntax@ expander@)
+ (only-in "../base/units.rkt"           cont@ mcont@)
+ (only-in "../base/phases/units.rkt"    debug@ syntax@ expander@)
  (only-in "../mult/units.rkt"           domain@ env@ menv@ run@)
  (only-in "../mult/core/units.rkt"      ev:red@)
  (only-in "../mult/phases/units.rkt"    parse@ parser@ expand/red@

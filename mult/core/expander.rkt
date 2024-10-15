@@ -4,8 +4,8 @@
  (only-in "../../mix.rkt"                define-mixed-unit)
  "../../reduction.rkt"
  "../../signatures.rkt"
- "../../conc/core/terms.rkt"
- (only-in "../../conc/core/expander.rkt" [==> base:==>] expander@))
+ "../../base/core/terms.rkt"
+ (only-in "../../base/core/expander.rkt" [==> base:==>] expander@))
 (provide ==> red@ expand/red@ expand@)
 
 ;; Revised reduction rules

@@ -3,8 +3,8 @@
  (only-in "../../mix.rkt"    define-mixed-unit)
  (only-in "../../nondet.rkt" pure do <- :=)
  "../../signatures.rkt"
- "../../conc/phases/terms.rkt"
- (only-in "../../conc/phases/units.rkt" parser@))
+ "../../base/phases/terms.rkt"
+ (only-in "../../base/phases/units.rkt" parser@))
 (provide parse@ parser@)
 
 ;; Non-deterministic parsing

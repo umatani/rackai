@@ -3,7 +3,7 @@
  (only-in "../nondet.rkt"     lift)
  (only-in "../mix.rkt"        define-mixed-unit)
  "../signatures.rkt"
- (only-in "../conc/units.rkt" [env@ base:env@]))
+ (only-in "../base/units.rkt" [env@ base:env@]))
 (provide env@)
 
 (define-mixed-unit env@

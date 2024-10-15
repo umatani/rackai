@@ -6,7 +6,7 @@
                              set->list list->set set-map)
  (only-in "../../nondet.rkt" results lift)
  "../../signatures.rkt"
- "../../conc/core/terms.rkt"
+ "../../base/core/terms.rkt"
  (only-in "../../misc.rkt"   biggest-subset binding-lookup))
 
 (import (only mstore^    lookup-Σ))

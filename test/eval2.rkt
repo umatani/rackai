@@ -3,7 +3,7 @@
          (only-in redex/reduction-semantics
                   caching-enabled? current-cache-all?)
          "../interpreter.rkt"
-         (only-in  "../conc/full/main.rkt" interp)
+         (only-in  "../base/full/main.rkt" interp)
          (only-in "../model/scopeset-smallstep/full-machine.rkt" run)
          )
 

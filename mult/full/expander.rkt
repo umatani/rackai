@@ -3,8 +3,8 @@
  (only-in "../../mix.rkt"                define-mixed-unit)
  "../../reduction.rkt"
  "../../signatures.rkt"
- "../../conc/full/terms.rkt"
- (only-in "../../conc/full/expander.rkt" [==> base:==>]))
+ "../../base/full/terms.rkt"
+ (only-in "../../base/full/expander.rkt" [==> base:==>]))
 (provide ==> red@ expand/red@ expand@ expander@)
 
 (define-reduction (==> -->) #:super (base:==> --> <-)

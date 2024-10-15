@@ -6,7 +6,7 @@
                              set->list list->set set-map)
  (only-in "../../nondet.rkt" results lift)
  "../../signatures.rkt"
- "../../conc/phases/terms.rkt"
+ "../../base/phases/terms.rkt"
  (only-in "../../misc.rkt"   biggest-subset binding-lookup))
 
 (import (only syntax^    at-phase)

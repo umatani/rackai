@@ -3,7 +3,7 @@
  (only-in "../../set.rkt"    set subset? set->list)
  (only-in "../../nondet.rkt" results)
  "../../signatures.rkt"
- "../../conc/full/terms.rkt")
+ "../../base/full/terms.rkt")
 
 (import (only bind^    resolve)
         (only menv^    init-ξ lookup-ξ))

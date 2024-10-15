@@ -3,8 +3,8 @@
  (only-in "../../set.rkt"            set)
  "../../reduction.rkt"
  "../../signatures.rkt"
- "../../conc/full/terms.rkt"
- (only-in "../../conc/full/eval.rkt" [--> base:-->]))
+ "../../base/full/terms.rkt"
+ (only-in "../../base/full/eval.rkt" [--> base:-->]))
 (provide --> red@ eval/red@ eval@)
 
 ;; --> : State -> (Setof State)

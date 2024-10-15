@@ -34,7 +34,7 @@
 │   ├── scopeset            ### スコープ集合モデル(先行研究)
 │   ├── scopeset-smallstep  ### スコープ集合モデル(small-step)
 │   └── together            ### 履歴モデル(先行研究)
-├── conc                    ## 「具象解釈」共通コード
+├── base                    ## 「具象解釈」共通コード
 │   ├── core                ### core言語
 │   ├── phases              ### phases言語
 │   └── full                ### full言語

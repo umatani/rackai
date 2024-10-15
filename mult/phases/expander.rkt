@@ -4,8 +4,8 @@
  (only-in "../../mix.rkt"                  define-mixed-unit)
  "../../reduction.rkt"
  "../../signatures.rkt"
- "../../conc/phases/terms.rkt"
- (only-in "../../conc/phases/expander.rkt" [==> base:==>] expander@))
+ "../../base/phases/terms.rkt"
+ (only-in "../../base/phases/expander.rkt" [==> base:==>] expander@))
 (provide ==> expand/red@ expand@)
 
 ;; ==> : ζ → (Setof ζ)

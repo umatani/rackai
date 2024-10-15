@@ -6,10 +6,10 @@
  (only-in "../mix.rkt"                define-mixed-unit)
  "../reduction.rkt"
  "../signatures.rkt"
- "../conc/core/terms.rkt"
+ "../base/core/terms.rkt"
  (only-in "../units.rkt"              io@)
- (only-in "../conc/units.rkt"         cont@ mcont@)
- (only-in "../conc/core/units.rkt"    debug@ expander@ syntax@)
+ (only-in "../base/units.rkt"         cont@ mcont@)
+ (only-in "../base/core/units.rkt"    debug@ expander@ syntax@)
  (only-in "../mult/units.rkt"         domain@ env@ menv@ run@)
  (only-in "../mult/core/units.rkt"    ev:red@ parse@ parser@ expand/red@
                                       [bind@ mult:bind@] id@)
@@ -145,7 +145,7 @@
 ;; --> ξ, env の両方を set-based にする．
 ;; --> これで{1, 2}の両方が入る．
 ;; TODO: さらに，namじゃなくId(Stx)をeq?なkeyにして精度(uniquness)が上がり
-;; concと同じ {1} だけに戻るはず．
+;; baseと同じ {1} だけに戻るはず．
 
 (module+ test1
   (process '(let ([z 1])

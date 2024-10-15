@@ -4,7 +4,7 @@
  (only-in "../mix.rkt"              define-mixed-unit)
  "../signatures.rkt"
  "../terms.rkt"
- (only-in "../conc/domain-unit.rkt" [domain@ base:domain@]))
+ (only-in "../base/domain-unit.rkt" [domain@ base:domain@]))
 (provide domain@)
 
 ;; ----------------------------------------

@@ -6,8 +6,8 @@
  ;; Units
  (only-in "../../units.rkt"             io@)
  (only-in "../units.rkt"                domain@ env@ store@ menv@ mstore@ run@)
- (only-in "../../conc/units.rkt"        cont@ mcont@)
- (only-in "../../conc/phases/units.rkt" syntax@ debug@ expander@)
+ (only-in "../../base/units.rkt"        cont@ mcont@)
+ (only-in "../../base/phases/units.rkt" syntax@ debug@ expander@)
  (only-in "../core/units.rkt"           eval@)
  (only-in "units.rkt"                   bind@ id@ parse@ parser@ expand@))
 (provide interp)

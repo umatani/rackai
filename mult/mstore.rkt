@@ -4,7 +4,7 @@
  (only-in "../mix.rkt"        define-mixed-unit)
  "../signatures.rkt"
  "../terms.rkt"
- (only-in "../conc/units.rkt" [mstore@ base:mstore@]))
+ (only-in "../base/units.rkt" [mstore@ base:mstore@]))
 (provide mstore@)
 
 (define-mixed-unit mstore@
