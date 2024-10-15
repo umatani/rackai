@@ -3,7 +3,7 @@
  "terms.rkt")
 (provide biggest-subset binding-lookup)
 
-; biggest-subset : Scps (Listof Scps) -> Scps
+; biggest-subset : Scps (Listof Scps) → Scps
 (define (biggest-subset scps_ref scpss)
   ;(printf "[biggest-subset] ~a ~a\n" scps_ref scpss)
   (let* ([matching (filter (λ (scps_bind)
@@ -23,7 +23,7 @@
         (set)
         (first sorted))))
 
-; binding-lookup : (Setof StoBind) Scps -> (Option Nam)
+; binding-lookup : (Setof StoBind) Scps → (Maybe Nam)
 (define (binding-lookup sbs scps)
   ;(printf "[binding-lookup] ~a ~a\n" sbs scps)
   (let ([r (member scps (set->list sbs)

@@ -5,10 +5,10 @@
  "../terms.rkt")
 
 (import
- (only         domain^    proper-stl?)
- (only         syntax^    unzip strip)
- (only         menv^      init-ξ)
- (rename (only bind^      resolve id=?) [b:id=? id=?]))
+ (only domain^    proper-stl?)
+ (only syntax^    unzip strip)
+ (only   menv^    init-ξ)
+ (only   bind^    resolve id=?))
 (export parse^)
 
 ;; ----------------------------------------
@@ -16,11 +16,11 @@
 
 ; parse : Ph? Stx Σ → Ast
 (define (parse #:phase [ph #f] stx Σ)
-  (define (id=? nam) (λ (id) (b:id=? #:phase ph id nam #:ξ (init-ξ) Σ)))
+  (define (core-form? nam) (λ (id) (id=? #:phase ph id nam #:ξ (init-ξ) Σ)))
 
   (match stx
     ; (lambda (id ...) stx_body)
-    [(Stx (Lst (? id? (? (id=? 'lambda)))
+    [(Stx (Lst (? id? (? (core-form? 'lambda)))
                (Stx stl_ids _)
                stx_body) _)
      (Fun (map (λ (id) (Var (resolve #:phase ph id Σ)))
@@ -28,7 +28,7 @@
           (parse #:phase ph stx_body Σ))]
 
     ; (let ([id stx_rhs] ...) stx_body)
-    [(Stx (Lst (? id? (? (id=? 'let)))
+    [(Stx (Lst (? id? (? (core-form? 'let)))
                (Stx (? proper-stl?  stl_binds) _)
                stx_body) _)
      (let-values ([(stl_ids stl_rhs) (unzip stl_binds)])
@@ -39,25 +39,25 @@
             (parse* #:phase ph stl_rhs Σ)))]
 
     ; (quote stx)
-    [(Stx (Lst (? id? (? (id=? 'quote))) stx) _)
+    [(Stx (Lst (? id? (? (core-form? 'quote))) stx) _)
      (let ([datum (strip stx)])
        (if (prim? datum)
            (Prim datum stx) ;; stx is used for alloc-box, alloc-def-ξ
            datum))]
 
     ; (syntax stx)
-    [(Stx (Lst (? id? (? (id=? 'syntax))) stx) _)
+    [(Stx (Lst (? id? (? (core-form? 'syntax))) stx) _)
      stx]
 
     ; (#%app stx_fun stx_arg ...) Note that it is non-proper (i.e. pair of stxs)
-    [(Stx (Pair (? id? (? (id=? '#%app)))
+    [(Stx (Pair (? id? (? (core-form? '#%app)))
                 (Stx (Pair stx_fun stl_args) _)) _)
      (App (gensym 'app)
           (parse  #:phase ph stx_fun Σ)
           (parse* #:phase ph stl_args Σ))]
 
     ; (if stx stx stx)
-    [(Stx (Lst (? id? (? (id=? 'if))) stx_test stx_then stx_else) _)
+    [(Stx (Lst (? id? (? (core-form? 'if))) stx_test stx_then stx_else) _)
      (If (gensym 'if)
          (parse #:phase ph stx_test Σ)
          (parse #:phase ph stx_then Σ)
