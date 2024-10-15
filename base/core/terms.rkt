@@ -1,3 +1,4 @@
 #lang racket
-(require "../../terms.rkt")
-(provide (all-from-out "../../terms.rkt"))
+(require (only-in "../../misc.rkt" require&provide))
+
+(require&provide "../../terms.rkt")

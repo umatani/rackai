@@ -6,10 +6,11 @@
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/full/terms.rkt"
+
  (only-in "../../mult/full/units.rkt"    eval/red@ expand/red@
                                          [parse@ mult:parse@] parser@)
- (only-in "../../mult/full/eval.rkt"     [--> set:-->])
- (only-in "../../mult/full/expander.rkt" [==> set:==>])
+ (only-in "../../mult/full/eval.rkt"     [--> mult:-->])
+ (only-in "../../mult/full/expander.rkt" [==> mult:==>])
  (only-in "../full.rkt"                  main-minus@)
  (only-in "domain.rkt"                   domain@ val-⊤ atom-⊤ num-⊤ sym-⊤
                                          stx-⊤ list-⊤))
@@ -18,7 +19,7 @@
 
 ;;;; Eval
 
-(define-reduction (--> delta ==>) #:super (set:--> delta ==>)
+(define-reduction (--> delta ==>) #:super (mult:--> delta ==>)
   #:within-signatures [(only syntax^
                              add flip union prune)
                        (only env^
@@ -121,7 +122,7 @@
 
 ;;;; Expander
 
-(define-reduction (==> -->) #:super (set:==> -->)
+(define-reduction (==> -->) #:super (mult:==> -->)
   #:within-signatures [(only syntax^
                              empty-ctx zip unzip add flip union in-hole
                              prune at-phase)

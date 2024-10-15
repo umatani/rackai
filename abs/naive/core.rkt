@@ -6,8 +6,9 @@
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/core/terms.rkt"
+
  (only-in "../../mult/core/units.rkt" expand/red@ [parse@ mult:parse@] parser@)
- (only-in "../../mult/core/eval.rkt"  [--> set:-->])
+ (only-in "../../mult/core/eval.rkt"  [--> mult:-->])
  (only-in "../core.rkt"               eval/red@ [==> abs:==>] main-minus@)
  (only-in "domain.rkt"                domain@ val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤
                                       list-⊤))
@@ -17,7 +18,7 @@
 
 ;; Revise --> to interpret abstract values (val-⊤, stx-⊤, etc.)
 ;; --> : State -> (Setof State)
-(define-reduction (--> delta) #:super (set:--> delta)
+(define-reduction (--> delta) #:super (mult:--> delta)
   #:within-signatures [(only env^
                              extend-env* lookup-env)
                        (only store^

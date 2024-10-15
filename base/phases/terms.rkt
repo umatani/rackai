@@ -9,7 +9,7 @@
                      core:#%term-forms
                      core:Stxξ%))
 
-;;; updated (ph scps
+;;; updated (ph scps)
 (define-term Stxξ core:Stxξ (ph scps))
 
 (define-syntax #%term-forms

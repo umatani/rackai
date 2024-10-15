@@ -7,12 +7,10 @@
  "../reduction.rkt"
  "../signatures.rkt"
  "../base/core/terms.rkt"
- (only-in "../units.rkt"              io@)
- (only-in "../base/units.rkt"         cont@ mcont@)
- (only-in "../base/core/units.rkt"    debug@ expander@ syntax@)
- (only-in "../mult/units.rkt"         domain@ env@ menv@ run@)
- (only-in "../mult/core/units.rkt"    ev:red@ parse@ parser@ expand/red@
-                                      [bind@ mult:bind@] id@)
+
+ (only-in "../mult/core/units.rkt"
+          io@ cont@ mcont@ debug@ expander@ syntax@ domain@ env@ menv@ run@
+          ev:red@ parse@ parser@ expand/red@ [bind@ mult:bind@] id@)
  (only-in "../mult/core/expander.rkt" [==> mult:==>])
  (only-in "alloc.rkt"                 store@ mstore@
                                       biggest-subset binding-lookup))

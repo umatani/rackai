@@ -6,11 +6,10 @@
  "../reduction.rkt"
  "../signatures.rkt"
  "../base/full/terms.rkt"
- (only-in "../units.rkt"           io@)
- (only-in "../base/units.rkt"      cont@ mcont@)
- (only-in "../base/full/units.rkt" syntax@ debug@)
- (only-in "../mult/units.rkt"      domain@ env@ menv@ run@)
- (only-in "../mult/full/units.rkt" eval@ id@ parse@ parser@ expand@ expander@)
+
+ (only-in "../mult/full/units.rkt"
+          io@ cont@ mcont@ syntax@ debug@ domain@ env@ menv@ run@
+          eval@ id@ parse@ parser@ expand@ expander@)
  (only-in "alloc.rkt"              store@ mstore@)
  (only-in "phases.rkt"             bind@))
 (provide syntax@ main-minus@

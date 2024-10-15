@@ -6,13 +6,12 @@
  "../reduction.rkt"
  "../signatures.rkt"
  "../base/phases/terms.rkt"
- (only-in "../units.rkt"                io@)
- (only-in "../base/units.rkt"           cont@ mcont@)
- (only-in "../base/phases/units.rkt"    debug@ syntax@ expander@)
- (only-in "../mult/units.rkt"           domain@ env@ menv@ run@)
+
+ (only-in "../mult/phases/units.rkt"
+          io@ cont@ mcont@ debug@ syntax@ expander@ domain@ env@ menv@ run@
+          parse@ parser@ expand/red@
+          [bind@ mult:bind@] id@)
  (only-in "../mult/core/units.rkt"      ev:red@)
- (only-in "../mult/phases/units.rkt"    parse@ parser@ expand/red@
-                                        [bind@ mult:bind@] id@)
  (only-in "../mult/phases/expander.rkt" [==> mult:==>])
  (only-in "alloc.rkt"                   store@ mstore@
                                         biggest-subset binding-lookup)

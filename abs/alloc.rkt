@@ -4,19 +4,15 @@
  (only-in "../mix.rkt"        define-mixed-unit)
  "../signatures.rkt"
  "../terms.rkt"
- (only-in "../mult/units.rkt" [store@  mult:store@]
+ (only-in "../mult/units.rkt" [ store@  mult:store@]
                               [mstore@ mult:mstore@]))
 (provide store@ mstore@ biggest-subset binding-lookup)
 
-(define-unit store::fin-alloc@
+
+(define-mixed-unit store@
   (import)
-  (export store^)
-
-  (define (init-store    . args) (error "to be implemented"))
-  (define (lookup-store  . args) (error "to be implemented"))
-  (define (update-store  . args) (error "to be implemented"))
-  (define (update-store* . args) (error "to be implemented"))
-
+  (export  store^)
+  (inherit [mult:store@ init-store lookup-store update-store update-store*])
 
   (define all-loc (mutable-seteq))
 
@@ -26,8 +22,8 @@
   (define (alloc-loc lbl st)
     (let ([loc (string->symbol (format "~a::" lbl))])
       (if (set-member? all-loc loc)
-          (void) ;(printf "duplicate loc: ~a\n" loc)
-          (set-add! all-loc loc))
+        (void) ;(printf "duplicate loc: ~a\n" loc)
+        (set-add! all-loc loc))
       (values loc st)))
 
   ; alloc-loc* : (Listof Nam) Store -> (Values (Listof Loc) Store)
@@ -39,25 +35,15 @@
        (let-values ([(locs _) (alloc-loc* nams st)])
          (let ([loc (string->symbol (format "~a:" nam1))])
            (if (set-member? all-loc loc)
-               (void) ;(printf "duplicate loc: ~a\n" loc)
-               (set-add! all-loc loc))
+             (void) ;(printf "duplicate loc: ~a\n" loc)
+             (set-add! all-loc loc))
            (values (cons loc locs) st)))])))
 
-(define-mixed-unit store@
+
+(define-mixed-unit mstore@
   (import)
-  (export store^)
-  (inherit [mult:store@          init-store lookup-store update-store
-                                 update-store*]
-           [store::fin-alloc@    alloc-loc alloc-loc*]))
-
-
-(define-unit mstore::fin-alloc@
-  (import)
-  (export mstore^)
-
-  (define (init-Σ        . args) (error "to be implemented"))
-  (define (lookup-Σ      . args) (error "to be implemented"))
-  (define (update-Σ      . args) (error "to be implemented"))
+  (export  mstore^)
+  (inherit [mult:mstore@          init-Σ lookup-Σ update-Σ])
 
   ;; ----------------------------------------
   ;; Alloc name & scope helpers for expander:
@@ -66,39 +52,33 @@
   (define all-scope (mutable-seteq))
   (define all-𝓁     (mutable-set))
 
-  ; alloc-name : Id Σ -> (Values Nam Σ)
+  ;; alloc-name : Id Σ → (Values Nam Σ)
   (define (alloc-name id Σ0)
     (match-let ([(Stx (Sym nam) _) id]
                 [(Σ size tbl) Σ0])
       (let ([nam (string->symbol (format "~a:" nam))])
         (if (set-member? all-name nam)
-            (void) ;(printf "duplicate name: ~a\n" nam)
-            (set-add! all-name nam))
+          (void) ;(printf "duplicate name: ~a\n" nam)
+          (set-add! all-name nam))
         (values nam Σ0))))
 
-  ; alloc-scope : Symbol Σ → (Values Scp Σ)
+  ;; alloc-scope : Symbol Σ → (Values Scp Σ)
   (define (alloc-scope s Σ0)
     (if (set-member? all-scope s)
-        (void) ;(printf "duplicate scope: ~a\n" s)
-        (set-add! all-scope s))    #;(gensym s)
+      (void) ;(printf "duplicate scope: ~a\n" s)
+      (set-add! all-scope s))    #;(gensym s)
     (values s Σ0) ;; TODO: s は nam (symbol) じゃなく Stx にすると精度向上
     )
 
-  ; alloc-𝓁 : Stx Σ -> (Values 𝓁 Σ)
-  ;   - called only from push-κ
-  ;   - stx is used in abs for ensuring finiteness of the domain
+  ;; alloc-𝓁 : Stx Σ -> (Values 𝓁 Σ)
+  ;;   - called only from push-κ
+  ;;   - stx is used in abs for ensuring finiteness of the domain
   (define (alloc-𝓁 stx Σ)
     (if (set-member? all-𝓁 stx)
-        (void) ;(printf "duplicate 𝓁\n")
-        (set-add! all-𝓁 stx))
+      (void) ;(printf "duplicate 𝓁\n")
+      (set-add! all-𝓁 stx))
     (values ;(𝓁 (string->symbol (format "𝓁:~a:~a" stx size)))
      (𝓁 stx) Σ)))
-
-(define-mixed-unit mstore@
-  (import)
-  (export  mstore^)
-  (inherit [mult:mstore@          init-Σ lookup-Σ update-Σ]
-           [mstore::fin-alloc@    alloc-name alloc-scope alloc-𝓁]))
 
 
 ; biggest-subset : Scps (Listof Scps) → (Listof Scps)

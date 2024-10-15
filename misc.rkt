@@ -15,7 +15,11 @@
     [(_ [mod spec:require-spec ...] ...)
      #'(begin
          (require (only-in mod spec ...)) ...
-         (provide spec.rename ... ...))]))
+         (provide spec.rename ... ...))]
+    [(_ mod ...)
+     #'(begin
+         (require mod ...)
+         (provide (all-from-out mod) ...))]))
 
 
 ; biggest-subset : Scps (Listof Scps) → Scps
