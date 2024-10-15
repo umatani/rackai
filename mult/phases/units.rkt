@@ -1,11 +1,8 @@
 #lang racket
-(require
- (only-in "bind-unit.rkt" bind@)
- (only-in "expander.rkt"  expand/red@ expand@)
- (only-in "id-unit.rkt"   id@)
- (only-in "parser.rkt"    parse@ parser@))
+(require (only-in "../../misc.rkt" require&provide))
 
-(provide bind@
-         expand/red@ expand@
-         id@
-         parse@ parser@)
+(require&provide
+ ["bind-unit.rkt" bind@]
+ ["expander.rkt"  expand/red@ expand@]
+ ["id-unit.rkt"   id@]
+ ["parser.rkt"    parse@ parser@])

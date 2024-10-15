@@ -1,21 +1,13 @@
 #lang racket
-(require
- (only-in "cont-unit.rkt"   cont@)
- (only-in "domain-unit.rkt" domain@)
- (only-in "env-unit.rkt"    env@)
- (only-in "mcont-unit.rkt"  mcont@)
- (only-in "menv-unit.rkt"   menv@)
- (only-in "mstore-unit.rkt" mstore@)
- (only-in "run-unit.rkt"    run@)
- (only-in "store-unit.rkt"  store@)
- (only-in "syntax-unit.rkt" syntax@))
+(require (only-in "../misc.rkt" require&provide))
 
-(provide cont@
-         domain@
-         env@
-         mcont@
-         menv@
-         mstore@
-         run@
-         store@
-         syntax@)
+(require&provide
+ ["cont-unit.rkt"   cont@  ]
+ ["domain-unit.rkt" domain@]
+ ["env-unit.rkt"    env@   ]
+ ["mcont-unit.rkt"  mcont@ ]
+ ["menv-unit.rkt"   menv@  ]
+ ["mstore-unit.rkt" mstore@]
+ ["run-unit.rkt"    run@   ]
+ ["store-unit.rkt"  store@ ]
+ ["syntax-unit.rkt" syntax@])

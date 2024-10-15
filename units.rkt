@@ -1,5 +1,5 @@
 #lang racket
-(require
- (only-in "io-unit.rkt" io@))
+(require (only-in "misc.rkt" require&provide))
 
-(provide io@)
+(require&provide
+ ["io-unit.rkt" io@])

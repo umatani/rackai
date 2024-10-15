@@ -1,15 +1,10 @@
 #lang racket
-(require
- (only-in "debug-unit.rkt" debug@)
- (only-in "eval.rkt"       eval@)
- (only-in "expander.rkt"   expand/red@ expand@ expander@)
- (only-in "id-unit.rkt"    id@)
- (only-in "parser.rkt"     parse@ parser@)
- (only-in "syntax.rkt"     syntax@))
+(require (only-in "../../misc.rkt" require&provide))
 
-(provide debug@
-         eval@
-         expand/red@ expand@ expander@
-         id@
-         parse@ parser@
-         syntax@)
+(require&provide
+ ["debug-unit.rkt"      debug@                       ]
+ ["eval.rkt"            eval@                        ]
+ ["expander.rkt"        expand/red@ expand@ expander@]
+ ["id-unit.rkt"         id@                          ]
+ ["../phases/units.rkt" parse@ parser@               ]
+ ["syntax.rkt"          syntax@                      ])

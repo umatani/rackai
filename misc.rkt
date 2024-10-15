@@ -1,7 +1,22 @@
 #lang racket
 (require
+ (for-syntax syntax/parse)
  "terms.rkt")
-(provide biggest-subset binding-lookup)
+(provide require&provide biggest-subset binding-lookup)
+
+(begin-for-syntax
+  (define-syntax-class require-spec
+    (pattern name:id
+             #:with rename #'name)
+    (pattern [name:id rename:id])))
+
+(define-syntax (require&provide stx)
+  (syntax-parse stx
+    [(_ [mod spec:require-spec ...] ...)
+     #'(begin
+         (require (only-in mod spec ...)) ...
+         (provide spec.rename ... ...))]))
+
 
 ; biggest-subset : Scps (Listof Scps) → Scps
 (define (biggest-subset scps_ref scpss)
