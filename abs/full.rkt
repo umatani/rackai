@@ -8,22 +8,12 @@
  "../conc/full/terms.rkt"
  (only-in "../units.rkt"           io@)
  (only-in "../conc/units.rkt"      cont@ mcont@)
- (only-in "../conc/full/units.rkt" [syntax@ super:syntax@]
-                                   expander@ debug@)
+ (only-in "../conc/full/units.rkt" syntax@ expander@ debug@)
  (only-in "../mult/units.rkt"      domain@ env@ menv@ run@)
  (only-in "../mult/full/units.rkt" eval@ parser@ expand@)
- (only-in "alloc.rkt"              store@ mstore@ syntax::fin-alloc@ bind@))
+ (only-in "alloc.rkt"              store@ mstore@ bind@))
 (provide syntax@ main-minus@
          interp)
-
-(define-mixed-unit syntax@
-  (import)
-  (export syntax^)
-  (inherit [super:syntax@ empty-ctx zip unzip in-hole in-hole-stl
-                          addremove strip subtract union add add-stl
-                          at-phase update-ctx prune
-                          flip flip-stl]
-           [syntax::fin-alloc@ biggest-subset binding-lookup]))
 
 ;; full/set's evaluate already filters out stuck states
 

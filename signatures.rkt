@@ -4,10 +4,10 @@
 
 (define-signature bind^
   ;; Add a binding using the name and scopes of an identifier, mapping
-  ;; them in the store to a given name
-  (bind    ; Ph? Σ Id Nam   → Σ
-   resolve ; Ph? Id Σ       → Nam
-   id=?    ; Ph? Id Nam ξ Σ → Boolean
+  ;; them to a given name in the binding store
+  (bind    ; Ph? Σ Id Nam    → Σ
+   resolve ; Ph? Id Σ        → Nam
+   id=?    ; Ph? Id Nam ξ? Σ → Boolean
    ))
 
 ;; ----------------------------------------
@@ -23,13 +23,14 @@
 ;; ----------------------------------------
 ;; Implementation of Domains:
 (define-signature domain^
-  (delta
-   α
-   ≤a
-   val?
-   stx?
-   stl?
-   proper-stl?))
+  (delta       ; Prim (Listof Val) → Val
+   α           ; Val → Val
+   ≤a          ; (Setof Val) (Setof Val) → Boolean
+   val?        ; Ast → Boolean  TODO: move to syntax or remove?
+   stx?        ; Val → Boolean
+   stl?        ; Val → Boolean
+   proper-stl? ; Val → Boolean
+   ))
 
 ;; ----------------------------------------
 ;; Environment:
@@ -56,12 +57,14 @@
 ;; ----------------------------------------
 ;; The expander:
 (define-signature expander^
-  (expander))
+  (expander
+   ))
 
 ;;;; reader & printer
 (define-signature io^
   (reader
-   printer))
+   printer
+   ))
 
 ;; ----------------------------------------
 ;; Expand-time call stack operations:
@@ -82,14 +85,14 @@
    ;; Expand-time store operations:
    init-Σ   ; -> Σ
    lookup-Σ ; Σ Nam -> (Setof StoBind)
-   ; Σ 𝓁   -> (U Val ξ κ)
+            ; Σ 𝓁   -> (U Val ξ κ)
    update-Σ ; Σ Nam (Setof StoBind) -> Σ
-   ; Σ 𝓁   (U Val ξ κ)     -> Σ
+            ; Σ 𝓁   (U Val ξ κ)     -> Σ
 
    ;; ----------------------------------------
    ;; Alloc name, scope, and 𝓁 helpers for expander:
    alloc-name  ; Id     Σ → (Values Nam Σ)
-   alloc-scope ; Symbol Σ → Scp
+   alloc-scope ; Symbol Σ → (Values Scp Σ)
    alloc-𝓁     ; Stx    Σ → (Values 𝓁   Σ)
    ))
 
@@ -101,58 +104,60 @@
    ))
 
 (define-signature parser^
-  (parse parser))
+  (parse  ; Ph? Stx Σ → Ast
+   parser ; Ph? Stx Σ → Ast
+   ))
 
 ;;;; runner
 (define-signature run^
-  (run))
+  (run
+   ))
 
 ;; ----------------------------------------
 ;; Store:
 (define-signature store^
-  (init-store    ; -> Store
-   lookup-store  ; Store Loc -> (U Val Cont)
-   update-store  ; Store Loc (U Val Cont) -> Store
-   update-store* ; Store (Listof Loc) (Listof (U Val Cont)) -> Store
+  (init-store    ; → Store
+   lookup-store  ; Store Loc → (U Val Cont)
+   update-store  ; Store Loc (U Val Cont) → Store
+   update-store* ; Store (Listof Loc) (Listof (U Val Cont)) → Store
 
-   alloc-loc  ; Store -> (Values Loc Store)
-   ;; for eval-time value binding
-   alloc-loc* ; (Listof Nam) Store -> (Values (Listof Loc) Store)
+   alloc-loc     ; Symbol Store -> (Values Loc Store)
+   alloc-loc*    ; (Listof Nam) Store -> (Values (Listof Loc) Store)
    ))
 
 ;; ----------------------------------------
 ;; Syntax-object operations:
 (define-signature syntax^
-  (empty-ctx
+  (empty-ctx      ; → Ctx
 
-   zip   ; ProperStl ProperStl Ctx -> ProperStl
-   unzip ; ProperStl -> (Values ProperStl ProperStl)
+   zip            ; ProperStl ProperStl Ctx → ProperStl
+   unzip          ; ProperStl → (Values ProperStl ProperStl)
 
-   in-hole     ; Stx Stx -> Stx
-   in-hole-stl ; Stl Stx -> Stl
+   in-hole        ; Stx Stx -> Stx
+   in-hole-stl    ; Stl Stx -> Stl
 
    ;; Adds or cancels a scope
-   addremove ; Scp Scps -> Scps
+   addremove      ; Scp Scps -> Scps
 
    ;; Recursively strips lexical context from a syntax object
-   strip ; Stl -> Val
+   strip          ; Stl -> Val
 
-   subtract ; Scps Scps -> Scps
-   union    ; Scps Scps -> Scps
-
-   binding-lookup ; (Setof StoBind) Scps -> (Option Nam)
-   biggest-subset ; Scps (Listof Scps) -> Scps
+   subtract       ; Scps Scps -> Scps
+   union          ; Scps Scps -> Scps
 
    ;; Simply pushes scopes down through a syntax object
-   add      ; Stx Scp -> Stx
-   add-stl  ; Stl Scp -> Stl
-   ;; Pushes flipping a scope down through a syntax object
-   flip     ; Stx Scp -> Stx
-   flip-stl ; Stl Scp -> Stl
+   add            ; Stx Scp -> Stx
+   add-stl        ; Stl Scp -> Stl
 
-   at-phase   ; Ctx Ph -> Scps
+   ;; Pushes flipping a scope down through a syntax object
+   flip           ; Stx Scp -> Stx
+   flip-stl       ; Stl Scp -> Stl
+
+   at-phase       ; Ctx Ph -> Scps
+
    ;; Updates the mapping of a `ctx` at a particular phase
-   update-ctx ; Ctx Ph Scps -> Ctx
+   update-ctx     ; Ctx Ph Scps -> Ctx
+
    ;; Recursively removes a set of scopes from a syntax object at a given phase
-   prune      ; Ph Stx Scps -> Stx
+   prune          ; Ph Stx Scps -> Stx
    ))

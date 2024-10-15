@@ -2,13 +2,14 @@
 (require
  (only-in racket          identity)
  (only-in racket/match    match-let)
- (only-in "../set.rkt"    set for/set in-set set? subset? set-add set-map
-                          list->set set->list)
+ (only-in "../set.rkt"    set set? subset? set-add in-set for/set
+                          set->list list->set set-map)
  (only-in "../nondet.rkt" results lift)
  "../signatures.rkt"
- "../terms.rkt")
+ "../terms.rkt"
+ (only-in "../misc.rkt" biggest-subset binding-lookup))
 
-(import (only syntax^    binding-lookup biggest-subset at-phase)
+(import (only syntax^    at-phase)
         (only mstore^    lookup-Σ))
 (export bind^)
 

@@ -7,10 +7,7 @@
  (only-in "../mult/units.rkt" [store@  super:store@]
                               [mstore@ super:mstore@]
                               [bind@   super:bind@]))
-(provide store::fin-alloc@  store@
-         mstore::fin-alloc@ mstore@
-         syntax::fin-alloc@
-         bind@)
+(provide store@ mstore@ bind@)
 
 (define-unit store::fin-alloc@
   (import)
@@ -104,54 +101,33 @@
            [mstore::fin-alloc@ alloc-name alloc-scope alloc-𝓁]))
 
 
-(define-unit syntax::fin-alloc@
-  (import)
-  (export syntax^)
+; biggest-subset : Scps (Listof Scps) → (Listof Scps)
+(define (biggest-subset scps_ref scpss)
+  ;(printf "[biggest-subset] ~a ~a\n" scps_ref scpss)
+  (let* ([matching (filter (λ (scps_bind)
+                             (subset? scps_bind scps_ref))
+                           scpss)]
+         [sorted (sort matching > #:key set-count)])
+    ;; The binding is ambiguous if the first scps in
+    ;; `sorted` is not bigger than the others, or if
+    ;; some scps in `sorted` is not a subset of the
+    ;; first one.
+    ;; --> サイズが最大なスコープセット全部を候補として返す
+    (if (empty? sorted)
+      (list (set))
+      (let ([n (set-count (first sorted))])
+        (for/list ([scps (in-list sorted)]
+                   #:when (= (set-count scps) n))
+          scps)))))
 
-  (define (empty-ctx      . args) (error "to be implemented"))
-  (define (zip            . args) (error "to be implemented"))
-  (define (unzip          . args) (error "to be implemented"))
-  (define (in-hole        . args) (error "to be implemented"))
-  (define (in-hole-stl    . args) (error "to be implemented"))
-  (define (addremove      . args) (error "to be implemented"))
-  (define (strip          . args) (error "to be implemented"))
-  (define (add            . args) (error "to be implemented"))
-  (define (add-stl        . args) (error "to be implemented"))
-  (define (flip           . args) (error "to be implemented"))
-  (define (flip-stl       . args) (error "to be implemented"))
-  (define (subtract       . args) (error "to be implemented"))
-  (define (prune          . args) (error "to be implemented"))
-  (define (union          . args) (error "to be implemented"))
-  (define (at-phase       . args) (error "to be implemented"))
-  (define (update-ctx     . args) (error "to be implemented"))
-
-  ; biggest-subset : Scps (Listof Scps) -> (Listof Scps)
-  (define (biggest-subset scps_ref scpss)
-    ;(printf "[biggest-subset] ~a ~a\n" scps_ref scpss)
-    (let* ([matching (filter (λ (scps_bind)
-                               (subset? scps_bind scps_ref))
-                             scpss)]
-           [sorted (sort matching > #:key set-count)])
-      ;; The binding is ambiguous if the first scps in
-      ;; `sorted` is not bigger than the others, or if
-      ;; some scps in `sorted` is not a subset of the
-      ;; first one.
-      ;; --> サイズが最大なスコープセット全部を候補として返す
-      (if (empty? sorted)
-          (list (set))
-          (let ([n (set-count (first sorted))])
-            (for/list ([scps (in-list sorted)]
-                       #:when (= (set-count scps) n))
-              scps)))))
-
-  ; binding-lookup : (Setof StoBind) Scps -> (Listof Nam)
-  (define (binding-lookup sbs scps)
-    ;(printf "[binding-lookup] ~a ~a\n" sbs scps)
-    (map StoBind-nam (filter (λ (sb) (set=? (StoBind-scps sb) scps))
-                             (set->list sbs)))))
+; binding-lookup : (Setof StoBind) Scps → (Listof Nam)
+(define (binding-lookup sbs scps)
+  ;(printf "[binding-lookup] ~a ~a\n" sbs scps)
+  (map StoBind-nam (filter (λ (sb) (set=? (StoBind-scps sb) scps))
+                           (set->list sbs))))
 
 (define-mixed-unit bind@
-  (import  (only syntax^    binding-lookup biggest-subset at-phase)
+  (import  (only syntax^    at-phase)
            (only mstore^    lookup-Σ))
   (export  bind^)
   (inherit [super:bind@ bind])
@@ -183,8 +159,8 @@
                         (binding-lookup sbs scps_biggest))))])
         ;(printf "nam_biggests: ~a\n" nam_biggests)
         (let ([r (if (null? nam_biggests)
-                     (set nam)
-                     (list->set nam_biggests))])
+                   (set nam)
+                   (list->set nam_biggests))])
           ;(printf "resolve done: ~a\n" r)
           (lift r)))))
 

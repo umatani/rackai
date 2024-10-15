@@ -12,8 +12,7 @@
   (import)
   (export syntax^)
   (inherit [super:syntax@  zip unzip in-hole-stl
-                           addremove strip subtract union
-                           binding-lookup biggest-subset]
+                           addremove strip subtract union]
            [phases:syntax@ empty-ctx add add-stl flip flip-stl
                            at-phase update-ctx prune])
 

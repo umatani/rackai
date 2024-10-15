@@ -13,7 +13,10 @@
 ;; ----------------------------------------
 ;; Implementation of Domains:
 
+;; α : Val → Val
 (define α  identity)
+
+;; ≤a : (Setof Val) (Setof Val) → Boolean
 (define ≤a subset?)
 
 (define (plus          . ns) (apply +     ns))
@@ -66,8 +69,10 @@
      (pretty-print (lst->list/recur u))
      v]))
 
+;; val? : Ast → Boolean
 (define val? Val?)
 
+;; stx? : Val → Boolean
 (define (stx? x)
   (or (and (Stx? x) (Atom? (Stx-e x)))
       (and (Stx? x) (prim? (Stx-e x)))
@@ -79,12 +84,14 @@
       (Hole? x)
       (and (Stx? x) (Hole? (Stx-e x)))))
 
+;; stl? : Val → Boolean
 (define (stl? x)
   (or (Null? x)
       (stx? x)
       (and (Pair? x) (stx? (Pair-a x)) (stl? (Pair-d x)))
       (Hole? x)))
 
+;; proper-stl? : Val → Boolean
 (define (proper-stl? x)
   (or (Null? x)
       (and (Pair? x) (stx? (Pair-a x)) (proper-stl? (Pair-d x)))))

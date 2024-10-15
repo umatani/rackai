@@ -19,6 +19,8 @@
 (define-term List Val   ())
 
 (define-term Prim Val   (nam stx))       ;; primitive functions
+                                         ;;   stx is used for alloc-box
+                                         ;;   and alloc-def-ξ
 (define-term VFun Val   (vars ast env))  ;; lambda
 (define-term LBind2 Val (scps_p scps_u)) ;; used only in full
 

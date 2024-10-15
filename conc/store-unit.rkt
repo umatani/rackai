@@ -35,7 +35,7 @@
     (values (string->symbol (format "~a::~a" lbl size))
             (Store (add1 size) (Store-tbl sto)))))
 
-; alloc-loc* : (Listof Symbol) Store → (Values (Listof Loc) Store)
+; alloc-loc* : (Listof Nam) Store → (Values (Listof Loc) Store)
 ;   - for eval-time value binding
 (define (alloc-loc* nams sto)
   (match nams

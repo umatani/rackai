@@ -5,10 +5,9 @@
  (only-in "../units.rkt"  parse@))
 (provide parser@)
 
-
 (define-mixed-unit parser@
   (import)
   (export  parser^)
-  (inherit [parse@ parse])
+  (inherit [parse@    parse])
 
   (define parser parse))

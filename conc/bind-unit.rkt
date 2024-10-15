@@ -3,31 +3,31 @@
  (only-in racket/match match-let)
  (only-in "../set.rkt" set set-add set->list)
  "../signatures.rkt"
- "../terms.rkt")
+ "../terms.rkt"
+ (only-in "../misc.rkt" biggest-subset binding-lookup))
 
-(import (only syntax^    binding-lookup biggest-subset at-phase)
+(import (only syntax^    at-phase)
         (only mstore^    lookup-Σ))
 (export bind^)
 
 
-;; Like one-phase `bind', but extracts scopes at a given phase of
-;; the identifier
-; bind : Ph Σ Id Nam → Σ
-(define (bind #:phase [ph #f] Σ0 id nam)
-  (match-let ([(Σ size tbl) Σ0]
-              [(Stx (Sym nam_1) ctx_1) id])
-    (Σ size (hash-update
-              tbl nam_1
-              (λ (sbs) (set-add sbs (StoBind
-                                      (if ph (at-phase ctx_1 ph) ctx_1)
-                                      nam)))
-              (λ () (set))))))
+;; bind : Ph? Σ Id Nam → Σ
+;;   When Ph is not #f, like one-phase `bind', but extracts scopes at
+;;   a given phase of the identifier
+(define (bind #:phase [ph #f] Σ₀ id nam)
+  (match-let ([(Σ size tbl) Σ₀]
+              [(Stx (Sym nam₀) ctx₀) id])
+    (Σ size (hash-update tbl nam₀
+                         (λ (sbs) (set-add sbs (StoBind
+                                                (if ph (at-phase ctx₀ ph) ctx₀)
+                                                nam)))
+                         (set)))))
 
-;; resolve : Ph Id Σ -> Nam
+;; resolve : Ph Id Σ → Nam
 ;;   Ph is #f means called from core
-(define (resolve #:phase [ph #f] id Σ0)
+(define (resolve #:phase [ph #f] id Σ₀)
   (match-let ([(Stx (Sym nam) ctx) id])
-    (let* ([sbs (lookup-Σ Σ0 nam)]
+    (let* ([sbs (lookup-Σ Σ₀ nam)]
            [scpss (map (λ (sb) (StoBind-scps sb)) (set->list sbs))]
            [scps_biggest (biggest-subset
                           (if ph (at-phase ctx ph) ctx)
@@ -35,8 +35,8 @@
            [nam_biggest (binding-lookup sbs scps_biggest)])
       (or nam_biggest nam))))
 
-;; id=? : Ph Id Nam ξ Σ -> Boolean
+;; id=? : Ph Id Nam ξ? Σ → Boolean
 ;;   ph is #f means called from core
-;;   ξ  is always #f (used only from full)
+;;   ξ  is usually #f (used only from full)
 (define (id=? #:phase [ph #f] id nam #:ξ [ξ #f] Σ)
   (eq? (resolve #:phase ph id Σ) nam))

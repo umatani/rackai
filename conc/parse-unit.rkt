@@ -19,7 +19,6 @@
   (define (id=? nam) (λ (id) (b:id=? #:phase ph id nam #:ξ (init-ξ) Σ)))
 
   (match stx
-
     ; (lambda (id ...) stx_body)
     [(Stx (Lst (? id? (? (id=? 'lambda)))
                (Stx stl_ids _)
@@ -50,7 +49,7 @@
     [(Stx (Lst (? id? (? (id=? 'syntax))) stx) _)
      stx]
 
-    ; (#%app stx_fun stx_arg ...) stx-pair (cdr部もstx)であることに注意
+    ; (#%app stx_fun stx_arg ...) Note that it is non-proper (i.e. pair of stxs)
     [(Stx (Pair (? id? (? (id=? '#%app)))
                 (Stx (Pair stx_fun stl_args) _)) _)
      (App (gensym 'app)

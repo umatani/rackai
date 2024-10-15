@@ -1,9 +1,7 @@
 #lang racket/unit
 (require
- (only-in racket       empty? first second rest)
  (only-in racket/match match match*)
- (only-in "../set.rkt" set subset? set-member? set=? set-add set-remove
-                       set-union set-subtract set-count set->list)
+ (only-in "../set.rkt" set-member? set-add set-remove set-union set-subtract)
  "../signatures.rkt"
  "../terms.rkt")
 
@@ -64,34 +62,6 @@
 
 ; union : Scps Scps -> Scps
 (define (union scps1 scps2) (set-union scps1 scps2))
-
-; biggest-subset : Scps (Listof Scps) -> Scps
-(define (biggest-subset scps_ref scpss)
-  ;(printf "[biggest-subset] ~a ~a\n" scps_ref scpss)
-  (let* ([matching (filter (λ (scps_bind)
-                             (subset? scps_bind scps_ref))
-                           scpss)]
-         [sorted (sort matching > #:key set-count)])
-    ;; The binding is ambiguous if the first scps in
-    ;; `sorted` is not bigger than the others, or if
-    ;; some scps in `sorted` is not a subset of the
-    ;; first one.
-    (if (or (empty? sorted)
-            (and (pair? (rest sorted))
-                 (= (set-count (first sorted))
-                    (set-count (second sorted))))
-            (ormap (λ (b) (not (subset? b (first sorted))))
-                   (rest sorted)))
-        (set)
-        (first sorted))))
-
-; binding-lookup : (Setof StoBind) Scps -> (Option Nam)
-(define (binding-lookup sbs scps)
-  ;(printf "[binding-lookup] ~a ~a\n" sbs scps)
-  (let ([r (member scps (set->list sbs)
-                   (λ (scps sb)
-                     (set=? scps (StoBind-scps sb))))])
-    (and r (StoBind-nam (first r)))))
 
 
 (define (add . args)        (error "must not be used"))

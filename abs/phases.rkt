@@ -8,25 +8,14 @@
  "../conc/phases/terms.rkt"
  (only-in "../units.rkt"                io@)
  (only-in "../conc/units.rkt"           cont@ mcont@)
- (only-in "../conc/phases/units.rkt"    debug@ [syntax@ super:syntax@]
-                                        expander@)
+ (only-in "../conc/phases/units.rkt"    debug@ syntax@ expander@)
  (only-in "../mult/units.rkt"           domain@ env@ menv@ run@)
  (only-in "../mult/core/units.rkt"      ev:red@)
  (only-in "../mult/phases/units.rkt"    parser@ expand/red@)
  (only-in "../mult/phases/expander.rkt" [==> mult:==>])
- (only-in "alloc.rkt" store@ mstore@ syntax::fin-alloc@ bind@)
+ (only-in "alloc.rkt" store@ mstore@ bind@)
  (only-in "core.rkt"  eval/red@))
 (provide syntax@ ==> main-minus@ interp)
-
-
-(define-mixed-unit syntax@
-  (import)
-  (export syntax^)
-  (inherit [super:syntax@ empty-ctx zip unzip in-hole in-hole-stl
-                          addremove strip subtract union add add-stl
-                          at-phase update-ctx prune
-                          flip flip-stl]
-           [syntax::fin-alloc@ biggest-subset binding-lookup]))
 
 
 ;; ==> : ζ -> (Setof ζ)

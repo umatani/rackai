@@ -10,8 +10,7 @@
   (import domain^)
   (export syntax^)
   (inherit [super:syntax@ zip unzip in-hole-stl
-                          addremove strip subtract union
-                          binding-lookup biggest-subset])
+                          addremove strip subtract union])
   ;; not used in core
   (define (at-phase   . _args) (error "must not be used"))
   (define (prune      . _args) (error "must not be used"))

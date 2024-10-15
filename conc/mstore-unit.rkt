@@ -10,6 +10,8 @@
 
 ;; ----------------------------------------
 ;; Expand-time store operations:
+;;   Σ       ::= Nam → (Setof StoBind)
+;;   StoBind ::= (StoBind (Setof Scp) Nam)
 
 ; init-Σ : -> Σ
 (define (init-Σ) (Σ 0 (make-immutable-hash)))
@@ -35,7 +37,7 @@
     (values (string->symbol (format "~a:~a" nam size))
             (Σ (add1 size) tbl))))
 
-; alloc-scope : Symbol Σ → Scp
+; alloc-scope : Symbol Σ → (Values Scp Σ)
 (define (alloc-scope s Σ0)
   (match-let ([(Σ size tbl) Σ0])
     (values (string->symbol (format "~a:~a" s size))
