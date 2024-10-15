@@ -29,8 +29,7 @@
                              bind resolve id=?)
                        (only mcont^
                              push-κ)
-                       (only parser^
-                             parse)]
+                       (only parse^    parse)]
   #:do [#;
         (use-terms App Atom Sym Stx List Null Pair Hole
                    TVar AstEnv ζ Stxξ κ InEval)
@@ -418,7 +417,7 @@
 
 (define-compound-unit/infer expand@
   (import domain^ syntax^ env^ store^ eval^
-          menv^ mstore^ mcont^ bind^ parser^)
+          menv^ mstore^ mcont^ bind^ parse^)
   (export expand^)
   (link expand/red@ red@))
 

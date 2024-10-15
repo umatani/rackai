@@ -105,17 +105,16 @@
 ;; ----------------------------------------
 ;; Simple parsing of already-expanded code
 (define-signature parse^
-  (parse  ;    Stx Σ → Ast                (core)
+  (parse1 ;    Stx Σ → Ast                (core)
           ; Ph Stx Σ → Ast                (phases, full)
    parse* ;    Stl Σ → (Listof Ast)       (core)
           ; Ph Stl Σ → (Listof Ast)       (phases, full)
+   parse  ;    Stx Σ → Ast                (core)
+          ; Ph Stx Σ → Ast                (phases, full)
    ))
 
 (define-signature parser^
-  (parse  ;    Stx Σ  → Ast                (core)
-          ; Ph Stx Σ  → Ast                (phases, full)
-   parser ;    Stx Σ  → Ast                (core, phases)
-          ;    Stx Σ* → Ast                (full)
+  (parser ; Stx Σ  → Ast
    ))
 
 ;;;; runner

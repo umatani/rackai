@@ -11,7 +11,7 @@
  (only-in "../conc/phases/units.rkt"    debug@ syntax@ expander@)
  (only-in "../mult/units.rkt"           domain@ env@ menv@ run@)
  (only-in "../mult/core/units.rkt"      ev:red@)
- (only-in "../mult/phases/units.rkt"    parser@ expand/red@
+ (only-in "../mult/phases/units.rkt"    parse@ parser@ expand/red@
                                         [bind@ mult:bind@])
  (only-in "../mult/phases/expander.rkt" [==> mult:==>])
  (only-in "alloc.rkt"                   store@ mstore@
@@ -83,8 +83,7 @@
                              bind resolve id=?)
                        (only mcont^
                              push-κ)
-                       (only parser^
-                             parse)]
+                       (only parse^    parse)]
   ;; reference
   [(ζ (Stxξ ph (and id (Stx (Sym nam) ctx)) ξ scps_p) '∘ κ0 Σ)
    #:with nam <- (resolve ph id Σ)
@@ -110,7 +109,7 @@
    (import) (export domain^ run^ debug^)
    (link domain@ main-minus@
          (() eval/red@ ev)   (([ev : red^]) ev:red@)
-         parser@
+         parse@ parser@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export domain^ run^ debug^))
 

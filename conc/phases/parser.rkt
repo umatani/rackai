@@ -15,8 +15,8 @@
   ;; ----------------------------------------
   ;; Simple parsing of already-expanded code
 
-  ; parse : Ph Stx Σ → Ast
-  (define (parse ph stx Σ)
+  ;; parse1 : Ph Stx Σ → Ast
+  (define (parse1 ph stx Σ)
     (match stx
       ; (lambda (id ...) stx_body)
       [(Stx (Lst (? id? (? (core-form? ph 'lambda Σ)))
@@ -24,7 +24,7 @@
                  stx_body) _)
        (Fun (map (λ (id) (Var (resolve ph id Σ)))
                  (lst->list stl_ids))
-            (parse ph stx_body Σ))]
+            (parse1 ph stx_body Σ))]
 
       ; (let ([id stx_rhs] ...) stx_body)
       [(Stx (Lst (? id? (? (core-form? ph 'let Σ)))
@@ -34,7 +34,7 @@
          (App (gensym 'let)
               (Fun (map (λ (id) (Var (resolve ph id Σ)))
                         (lst->list stl_ids))
-                   (parse ph stx_body Σ))
+                   (parse1 ph stx_body Σ))
               (parse* ph stl_rhs Σ)))]
 
       ; (quote stx)
@@ -52,15 +52,15 @@
       [(Stx (Pair (? id? (? (core-form? ph '#%app Σ)))
                   (Stx (Pair stx_fun stl_args) _)) _)
        (App (gensym 'app)
-            (parse  ph stx_fun Σ)
+            (parse1 ph stx_fun Σ)
             (parse* ph stl_args Σ))]
 
       ; (if stx stx stx)
       [(Stx (Lst (? id? (? (core-form? ph 'if Σ))) stx_test stx_then stx_else) _)
        (If (gensym 'if)
-           (parse ph stx_test Σ)
-           (parse ph stx_then Σ)
-           (parse ph stx_else Σ))]
+           (parse1 ph stx_test Σ)
+           (parse1 ph stx_then Σ)
+           (parse1 ph stx_else Σ))]
 
       ; reference
       [(? id? id) (Var (resolve ph id Σ))]
@@ -68,15 +68,17 @@
       ; literal
       [(Stx (? Atom? a) _) a]))
 
-  ; parse* : Ph Stl Σ → (Listof Ast)
+  ;; parse* : Ph Stl Σ → (Listof Ast)
   (define (parse* ph stl Σ)
     (match stl
       [(Null) '()]
       [(Pair stx stl)
-       (cons (parse ph stx Σ) (parse* ph stl Σ))]
+       (cons (parse1 ph stx Σ) (parse* ph stl Σ))]
       [(? Stx? stx)
-       (list (parse ph stx Σ))]))
-  )
+       (list (parse1 ph stx Σ))]))
+
+  ;; parse : Ph Stx Σ → Ast
+  (define parse parse1))
 
 (define-mixed-unit parser@
   (import)

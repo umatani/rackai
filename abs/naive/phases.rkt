@@ -20,22 +20,23 @@
 (define-mixed-unit parse@
   (import)
   (export  parse^)
-  (inherit (mult:parse@ [mult:parse parse] parse*))
+  (inherit (mult:parse@ [mult:parse1 parse1] parse*))
 
-  ; parse : Ph Stx Σ -> (SetM Ast)
-  (define ((parse prs prs*) ph stx Σ)
+  ; parse1 : Ph Stx Σ -> (SetM Ast)
+  (define ((parse1 prs1 prs*) ph stx Σ)
     (if (or (equal? stx val-⊤)
             (equal? stx atom-⊤)
             (equal? stx stx-⊤))
-        (pure val-⊤)
-        ((mult:parse prs prs*) ph stx Σ))))
+      (pure val-⊤)
+      ((mult:parse1 prs1 prs*) ph stx Σ)))
+
+  ; parse : Ph Stx Σ -> (SetM Ast)
+  (define parse (parse1 parse1 parse*)))
 
 (define-mixed-unit parser@
   (import)
   (export parser^)
-  (inherit [parse@ [super:parse parse] parse*])
-
-  (define parse (super:parse super:parse parse*))
+  (inherit [parse@    parse])
 
   ; parser : Stx Σ -> (SetM Ast)
   (define (parser stx Σ) (parse 0 stx Σ)))
@@ -59,8 +60,7 @@
                              bind resolve id=?)
                        (only mcont^
                              push-κ)
-                       (only parser^
-                             parse)]
+                       (only parse^    parse)]
 
   [(InEval (list stx_exp '• store_0)
            (ζ (Stxξ ph (Stx #f ctx_i) ξ scps_p) '∘ κ0 Σ))
@@ -90,7 +90,7 @@
    (import) (export domain^ run^ debug^)
    (link domain@ main-minus@
          (() eval/red@ ev)   (([ev : red^]) ev:red@)
-         parser@
+         parse@ parser@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export domain^ run^ debug^))
 

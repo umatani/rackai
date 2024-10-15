@@ -11,7 +11,7 @@
  (only-in "../conc/units.rkt"         cont@ mcont@)
  (only-in "../conc/core/units.rkt"    debug@ expander@ syntax@)
  (only-in "../mult/units.rkt"         domain@ env@ menv@ run@)
- (only-in "../mult/core/units.rkt"    ev:red@ parser@ expand/red@
+ (only-in "../mult/core/units.rkt"    ev:red@ parse@ parser@ expand/red@
                                       [bind@ mult:bind@])
  (only-in "../mult/core/expander.rkt" [==> mult:==>])
  (only-in "alloc.rkt"                 store@ mstore@
@@ -106,8 +106,7 @@
                              bind resolve id=?)
                        (only mcont^
                              push-κ)
-                       (only parser^
-                             parse)]
+                       (only parse^    parse)]
   ;; reference
   [(ζ (Stxξ (and id (Stx (Sym nam) ctx)) ξ) '∘ κ Σ)
    #:with nam <- (resolve id Σ)
@@ -135,7 +134,7 @@
    (import) (export domain^ run^ debug^)
    (link domain@ main-minus@
          (() eval/red@ ev)   (([ev : red^]) ev:red@)
-         parser@
+         parse@ parser@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export domain^ run^ debug^))
 

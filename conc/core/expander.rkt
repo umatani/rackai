@@ -20,7 +20,7 @@
                        (only mstore^    lookup-Σ alloc-name alloc-scope)
                        (only   bind^    bind resolve id=?)
                        (only  mcont^    push-κ)
-                       (only parser^    parse)]
+                       (only  parse^    parse)]
   #:do [;; Constants:
         (define id-kont (Stx (Sym '#%kont) (empty-ctx)))
         (define id-seq  (Stx (Sym '#%seq)  (empty-ctx)))
@@ -377,7 +377,7 @@
 
 (define-compound-unit/infer expand@
   (import domain^ syntax^ env^ store^ eval^ menv^ mstore^
-          mcont^ bind^ parser^)
+          mcont^ bind^ parse^)
   (export expand^)
   (link expand/red@ red@))
 

@@ -22,8 +22,7 @@
                              alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
                        (only bind^
                              bind resolve)
-                       (only parser^
-                             parse)]
+                       (only parse^    parse)]
   #:do [;; resolve* : Ph (Listof Id) Σ -> (Listof Nam))
         (define (resolve* ph ids Σ)
           (match ids

@@ -26,15 +26,15 @@
           vs  <- (build-var-list ph (cdr ids) Σ)
           (pure (cons (Var nam) vs)))))
 
-  ; parse : Ph Stx Σ -> (SetM Ast)
-  (define ((parse prs prs*) ph stx Σ)
+  ; parse1 : Ph Stx Σ -> (SetM Ast)
+  (define ((parse1 prs1 prs*) ph stx Σ)
     (match stx
       ; (lambda (id ...) stx_body)
       [(Stx (Lst (? id? (? (core-form? ph 'lambda Σ)))
                  (Stx stl_ids _)
                  stx_body) _)
        (do vs <- (build-var-list ph (lst->list stl_ids) Σ)
-           b  <- ((prs prs prs*) ph stx_body            Σ)
+           b  <- ((prs1 prs1 prs*) ph stx_body            Σ)
            (pure (Fun vs b)))]
       
       ; (let ([id stx_rhs] ...) stx_body)
@@ -43,8 +43,8 @@
                  stx_body) _)
        (do (values stl_ids stl_rhs) := (unzip stl_binds)
            vs <- (build-var-list  ph (lst->list stl_ids) Σ)
-           as <- ((prs* prs prs*) ph stl_rhs             Σ)
-           b  <- ((prs  prs prs*) ph stx_body            Σ)
+           as <- ((prs* prs1 prs*) ph stl_rhs             Σ)
+           b  <- ((prs1 prs1 prs*) ph stx_body            Σ)
            (pure (App (gensym 'let) (Fun vs b) as)))]
 
       ; (quote stx)
@@ -61,15 +61,15 @@
       ; (#%app stx_fun stx_arg ...) Note that it is non-proper (i.e. pair of stxs)
       [(Stx (Pair (? id? (? (core-form? ph '#%app Σ)))
                   (Stx (Pair stx_fun stl_args) _)) _)
-       (do f  <- ((prs  prs prs*) ph stx_fun  Σ)
-           as <- ((prs* prs prs*) ph stl_args Σ)
+       (do f  <- ((prs1 prs1 prs*) ph stx_fun  Σ)
+           as <- ((prs* prs1 prs*) ph stl_args Σ)
            (pure (App (gensym 'app) f as)))]
 
       ; (if stx stx stx)
       [(Stx (Lst (? id? (? (core-form? ph 'if Σ))) stx_test stx_then stx_else) _)
-       (do c <- ((prs prs prs*) ph stx_test Σ)
-           t <- ((prs prs prs*) ph stx_then Σ)
-           e <- ((prs prs prs*) ph stx_else Σ)
+       (do c <- ((prs1 prs1 prs*) ph stx_test Σ)
+           t <- ((prs1 prs1 prs*) ph stx_then Σ)
+           e <- ((prs1 prs1 prs*) ph stx_else Σ)
            (pure (If (gensym 'if) c t e)))]
 
       ; reference
@@ -82,28 +82,28 @@
        (pure a)]))
 
   ; parse* : Ph Stl Σ -> (SetM (Listof Ast))
-  (define ((parse* prs prs*) ph stl Σ)
+  (define ((parse* prs1 prs*) ph stl Σ)
     (match stl
       [(Null)
        (pure '())]
 
       [(Pair stx stl)
-       (do ast  <- ((prs  prs prs*) ph stx Σ)
-           asts <- ((prs* prs prs*) ph stl Σ)
+       (do ast  <- ((prs1 prs1 prs*) ph stx Σ)
+           asts <- ((prs* prs1 prs*) ph stl Σ)
            (pure (cons ast asts)))]
 
       [(? Stx? stx)
-       (do ast <- ((prs prs prs*) ph stx Σ)
+       (do ast <- ((prs1 prs1 prs*) ph stx Σ)
            (pure (list ast)))]))
-  )
+
+  ; parse : Ph Stx Σ -> (SetM Ast)
+  (define parse (parse1 parse1 parse*)))
 
 
 (define-mixed-unit parser@
   (import)
   (export  parser^)
-  (inherit [parse@ [super:parse parse] parse*])
-
-  (define parse (super:parse super:parse parse*))
+  (inherit [parse@    parse])
 
   ; parser : Stx Σ → (SetM Ast)
   (define (parser stx Σ) (parse 0 stx Σ)))

@@ -25,8 +25,7 @@
                              alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
                        (only bind^
                              bind resolve)
-                       (only parser^
-                             parse)]
+                       (only parse^    parse)]
   #:do [; resolve* : Ph (Listof Id) Σ -> (SetM (Listof Nam))
         (define (resolve* ph ids Σ)
           (match ids
@@ -85,6 +84,6 @@
       (car val+Σ*))))
 
 (define-compound-unit/infer eval@
-  (import domain^ syntax^ env^ store^ cont^ menv^ mstore^ bind^ expand^ parser^)
+  (import domain^ syntax^ env^ store^ cont^ menv^ mstore^ bind^ expand^ parse^)
   (export eval^)
   (link eval/red@ red@))

@@ -8,9 +8,9 @@
  "../conc/full/terms.rkt"
  (only-in "../units.rkt"           io@)
  (only-in "../conc/units.rkt"      cont@ mcont@)
- (only-in "../conc/full/units.rkt" syntax@ expander@ debug@)
+ (only-in "../conc/full/units.rkt" syntax@ debug@)
  (only-in "../mult/units.rkt"      domain@ env@ menv@ run@)
- (only-in "../mult/full/units.rkt" eval@ parser@ expand@)
+ (only-in "../mult/full/units.rkt" eval@ parse@ parser@ expand@ expander@)
  (only-in "alloc.rkt"              store@ mstore@)
  (only-in "phases.rkt"             [bind@ phases:bind@]))
 (provide syntax@ main-minus@
@@ -47,7 +47,7 @@
   (compound-unit/infer
    (import) (export domain^ run^ debug^)
    (link domain@ main-minus@
-         eval@ parser@ expand@))
+         parse@ parser@ eval@ expand@))
   (import) (export domain^ run^ debug^))
 
 (define interp (interpreter 'abs:full run delta α ≤a #f))

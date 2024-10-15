@@ -5,7 +5,7 @@
  "../../signatures.rkt"
  "../../conc/full/terms.rkt"
  (only-in "../../conc/full/expander.rkt" [==> base:==>]))
-(provide ==> red@ expand/red@ expand@)
+(provide ==> red@ expand/red@ expand@ expander@)
 
 (define-reduction (==> -->) #:super (base:==> --> <-)
   #:within-signatures [(only domain^
@@ -25,8 +25,7 @@
                              bind resolve id=?)
                        (only mcont^
                              push-κ)
-                       (only parser^
-                             parse)]
+                       (only parse^    parse)]
 
   ;; application (free var-ref, same as phases)
   [(ζ (Stxξ ph (and stx (Stx (Lst stx_fun . stl_args) ctx)) ξ) '∘
@@ -86,6 +85,17 @@
         (list->set (map cons stx_new Σ*_new))))))
 
 (define-compound-unit/infer expand@
-  (import domain^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^ bind^ parser^)
+  (import domain^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^ bind^ parse^)
   (export expand^)
   (link expand/red@ red@))
+
+(define-unit expander@
+  (import (only   menv^    init-ξ)
+          (only mstore^    init-Σ)
+          (only expand^    expand))
+  (export expander^)
+
+  (define (expander delta stx)
+    (list->set
+     (set-map (expand delta 0 stx (init-ξ) (Σ* (init-Σ) (set) (set)))
+              (match-λ [(cons stx′ (Σ* Σ _ _)) (cons stx′ Σ)])))))

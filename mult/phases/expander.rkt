@@ -27,8 +27,7 @@
                              bind resolve id=?)
                        (only mcont^
                              push-κ)
-                       (only parser^
-                             parse)]
+                       (only parse^    parse)]
 
   ;; application (free var-ref)
   [(ζ (Stxξ ph (and stx (Stx (Lst stx_fun . stl_args)
@@ -82,6 +81,6 @@
 
 (define-compound-unit/infer expand@
   (import domain^ syntax^ env^ store^ eval^ menv^ mstore^
-          mcont^ bind^ parser^)
+          mcont^ bind^ parse^)
   (export expand^)
   (link expand/red@ red@))

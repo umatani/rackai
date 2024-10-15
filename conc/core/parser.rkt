@@ -3,7 +3,7 @@
  (only-in "../../mix.rkt" define-mixed-unit)
  "../../signatures.rkt"
  "terms.rkt")
-(provide parser@)
+(provide parse@ parser@)
 
 (define-unit parse@
   (import
@@ -15,8 +15,8 @@
   ;; ----------------------------------------
   ;; Simple parsing of already-expanded code
 
-  ; parse : Stx Σ → Ast
-  (define (parse stx Σ)
+  ; parse1 : Stx Σ → Ast
+  (define (parse1 stx Σ)
     (match stx
       ; (lambda (id ...) stx_body)
       [(Stx (Lst (? id? (? (core-form? 'lambda Σ)))
@@ -24,7 +24,7 @@
                  stx_body) _)
        (Fun (map (λ (id) (Var (resolve id Σ)))
                  (lst->list stl_ids))
-            (parse stx_body Σ))]
+            (parse1 stx_body Σ))]
 
       ; (let ([id stx_rhs] ...) stx_body)
       [(Stx (Lst (? id? (? (core-form? 'let Σ)))
@@ -34,7 +34,7 @@
          (App (gensym 'let)
               (Fun (map (λ (id) (Var (resolve id Σ)))
                         (lst->list stl_ids))
-                   (parse stx_body Σ))
+                   (parse1 stx_body Σ))
               (parse* stl_rhs Σ)))]
 
       ; (quote stx)
@@ -48,19 +48,19 @@
       [(Stx (Lst (? id? (? (core-form? 'syntax Σ))) stx) _)
        stx]
 
-      ; (#%app stx_fun stx_arg ...) Note that it is non-proper (i.e. pair of stxs)
+      ; (#%app stx_fun stx_arg ...)
       [(Stx (Pair (? id? (? (core-form? '#%app Σ)))
                   (Stx (Pair stx_fun stl_args) _)) _)
        (App (gensym 'app)
-            (parse  stx_fun Σ)
+            (parse1 stx_fun Σ)
             (parse* stl_args Σ))]
 
       ; (if stx stx stx)
       [(Stx (Lst (? id? (? (core-form? 'if Σ))) stx_test stx_then stx_else) _)
        (If (gensym 'if)
-           (parse stx_test Σ)
-           (parse stx_then Σ)
-           (parse stx_else Σ))]
+           (parse1 stx_test Σ)
+           (parse1 stx_then Σ)
+           (parse1 stx_else Σ))]
 
       ; reference
       [(? id? id) (Var (resolve id Σ))]
@@ -73,10 +73,12 @@
     (match stl
       [(Null) '()]
       [(Pair stx stl)
-       (cons (parse stx Σ) (parse* stl Σ))]
+       (cons (parse1 stx Σ) (parse* stl Σ))]
       [(? Stx? stx)
-       (list (parse stx Σ))]))
-  )
+       (list (parse1 stx Σ))]))
+
+  ; parse : Stx Σ → Ast
+  (define parse parse1))
 
 (define-mixed-unit parser@
   (import)

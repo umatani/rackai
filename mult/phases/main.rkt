@@ -9,14 +9,15 @@
  (only-in "../../conc/units.rkt"        cont@ mcont@)
  (only-in "../../conc/phases/units.rkt" syntax@ debug@ expander@)
  (only-in "../core/units.rkt"           eval@)
- (only-in "units.rkt"                   bind@ parser@ expand@))
+ (only-in "units.rkt"                   bind@ parse@ parser@ expand@))
 (provide interp)
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export domain^ run^ debug^)
    (link domain@ syntax@ env@ store@ cont@ eval@
-         menv@ mstore@ bind@ mcont@ parser@ expand@ expander@ io@ run@ debug@))
+         menv@ mstore@ bind@ mcont@ parse@ parser@ expand@ expander@
+         io@ run@ debug@))
   (import) (export domain^ run^ debug^))
 
 (define interp (interpreter 'mult:phases run delta α ≤a #f))

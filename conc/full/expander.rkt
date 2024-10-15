@@ -26,14 +26,9 @@
                              bind resolve id=?)
                        (only mcont^
                              push-κ)
-                       (only parser^
-                             parse)]
+                       (only parse^    parse)]
 
-  #:do [#;
-        (use-terms App Atom Sym Stx List Null Pair Hole
-                   AstEnv Stxξ κ ζ Σ* TVar TStop InEval)
-        
-        ;; Constants:
+  #:do [;; Constants:
         (define id-kont (Stx (Sym '#%kont) (empty-ctx)))
         (define id-seq  (Stx (Sym '#%seq)  (empty-ctx)))
         (define id-snoc (Stx (Sym '#%snoc) (empty-ctx)))
@@ -446,7 +441,6 @@
                 reducer))
   (export expand^)
   (inherit)
-  ;(use-terms ζ Stxξ)
   
   (define (==> delta) (λ () (reducer (--> delta) :=)))
 
@@ -460,7 +454,7 @@
 
 (define-compound-unit/infer expand@
   (import domain^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^
-          bind^ parser^)
+          bind^ parse^)
   (export expand^)
   (link expand/red@ red@))
 
@@ -469,7 +463,8 @@
           (only mstore^    init-Σ)
           (only expand^    expand))
   (export expander^)
-  ;(use-terms Σ*)
 
   (define (expander delta stx)
-    (expand delta 0 stx (init-ξ) (Σ* (init-Σ) (set) (set)))))
+    (match-let ([(cons stx′ (Σ* Σ _ _))
+                 (expand delta 0 stx (init-ξ) (Σ* (init-Σ) (set) (set)))])
+      (cons stx′ Σ))))
