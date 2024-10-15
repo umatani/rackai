@@ -12,7 +12,7 @@
   #:within-signatures [(only domain^
                              val? stx?)
                        (only syntax^
-                             add flip union alloc-scope prune)
+                             add flip union prune)
                        (only env^
                              init-env lookup-env extend-env*)
                        (only store^
@@ -22,7 +22,7 @@
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
-                             alloc-name alloc-𝓁 lookup-Σ update-Σ)
+                             alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
                        (only bind^
                              bind resolve)
                        (only parser^

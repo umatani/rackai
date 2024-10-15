@@ -43,9 +43,6 @@
     [(Hole) v]
     [_ stl]))
 
-; alloc-scope : Symbol -> Scp
-(define (alloc-scope s) (gensym s))
-
 ;; Recursively strips lexical context from a syntax object
 ; strip : Stl -> Val
 (define (strip stl)

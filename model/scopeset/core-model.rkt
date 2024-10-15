@@ -416,7 +416,7 @@
   alloc-name : id Σ -> (values nam Σ)
   [(alloc-name (Stx (Sym nam) ctx) (Sto number (binds ...) boxes def-envs))
    (values ,(string->symbol (format "~a:~a" (term nam) (term number)))
-           (Sto ,(add1 (term number )) (binds ...) boxes def-envs))])
+           (Sto ,(add1 (term number)) (binds ...) boxes def-envs))])
 
 (define-metafunction L
   alloc-scope : Σ -> (values scp Σ)

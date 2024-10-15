@@ -14,7 +14,7 @@
 ;; ----------------------------------------
 ;; Simple parsing of already-expanded code
 
-; parse : Ph Stx Σ -> Ast
+; parse : Ph? Stx Σ → Ast
 (define (parse #:phase [ph #f] stx Σ)
   (define (id=? nam) (λ (id) (b:id=? #:phase ph id nam #:ξ (init-ξ) Σ)))
 
@@ -70,7 +70,7 @@
     ; literal
     [(Stx (? Atom? a) _) a]))
 
-; parse* : Ph Stl Σ -> (Listof Ast)
+; parse* : Ph? Stl Σ → (Listof Ast)
 (define (parse* #:phase [ph #f] stl Σ)
   (match stl
     [(Null) '()]

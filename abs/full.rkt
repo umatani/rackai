@@ -23,7 +23,7 @@
                           addremove strip subtract union add add-stl
                           at-phase update-ctx prune
                           flip flip-stl]
-           [syntax::fin-alloc@ alloc-scope biggest-subset binding-lookup]))
+           [syntax::fin-alloc@ biggest-subset binding-lookup]))
 
 ;; full/set's evaluate already filters out stuck states
 

@@ -15,7 +15,7 @@
   #:within-signatures [(only domain^
                              val? stx? proper-stl?)
                        (only syntax^
-                             empty-ctx zip unzip alloc-scope add flip in-hole)
+                             empty-ctx zip unzip add flip in-hole)
                        (only env^
                              init-env)
                        (only store^
@@ -23,7 +23,7 @@
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
-                             lookup-Σ alloc-name)
+                             lookup-Σ alloc-name alloc-scope)
                        (only bind^
                              bind resolve id=?)
                        (only mcont^

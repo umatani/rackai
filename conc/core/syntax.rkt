@@ -10,7 +10,7 @@
   (import domain^)
   (export syntax^)
   (inherit [super:syntax@ zip unzip in-hole-stl
-                          alloc-scope addremove strip subtract union
+                          addremove strip subtract union
                           binding-lookup biggest-subset])
   ;; not used in core
   (define (at-phase   . _args) (error "must not be used"))

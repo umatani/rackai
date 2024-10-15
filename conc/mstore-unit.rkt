@@ -26,21 +26,28 @@
     (hash-set (Σ-tbl Σ0) k v)))
 
 ;; ----------------------------------------
-;; Alloc name & 𝓁 helpers for expander:
+;; Alloc name, scope, and 𝓁 helpers for expander:
 
-; alloc-name : Id Σ -> (Values Nam Σ)
+; alloc-name : Id Σ → (Values Nam Σ)
 (define (alloc-name id Σ0)
   (match-let ([(Stx (Sym nam) _) id]
               [(Σ size tbl) Σ0])
     (values (string->symbol (format "~a:~a" nam size))
             (Σ (add1 size) tbl))))
 
-; alloc-𝓁 : Stx Σ -> (Values 𝓁 Σ)
+; alloc-scope : Symbol Σ → Scp
+(define (alloc-scope s Σ0)
+  (match-let ([(Σ size tbl) Σ0])
+    (values (string->symbol (format "~a:~a" s size))
+            (Σ (add1 size) tbl))))
+
+
+; alloc-𝓁 : Stx Σ → (Values 𝓁 Σ)
 ;   - called from push-κ
 ;   - called from alloc-def-ξ and alloc-box (full)
 ;   - stx is used in abs for ensuring finiteness of the domain
 (define (alloc-𝓁 stx Σ0)
   (match-let ([(Σ size tbl) Σ0])
-    (values ;(𝓁 (string->symbol (format "𝓁:~a:~a" stx size)))
+    (values ; (𝓁 (string->symbol (format "𝓁:~a:~a" stx size)))
      (𝓁 (cons stx size)) 
      (Σ (add1 size) tbl))))

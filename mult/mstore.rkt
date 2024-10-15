@@ -10,7 +10,7 @@
 (define-mixed-unit mstore@
   (import)
   (export  mstore^)
-  (inherit [base:mstore@ init-Σ alloc-name alloc-𝓁])
+  (inherit [base:mstore@ init-Σ alloc-name alloc-scope alloc-𝓁])
 
   ;; Set-based Σ
 

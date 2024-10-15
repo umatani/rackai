@@ -66,6 +66,7 @@
   ;; Alloc name & scope helpers for expander:
 
   (define all-name  (mutable-seteq))
+  (define all-scope (mutable-seteq))
   (define all-𝓁     (mutable-set))
 
   ; alloc-name : Id Σ -> (Values Nam Σ)
@@ -77,6 +78,14 @@
             (void) ;(printf "duplicate name: ~a\n" nam)
             (set-add! all-name nam))
         (values nam Σ0))))
+
+  ; alloc-scope : Symbol Σ → (Values Scp Σ)
+  (define (alloc-scope s Σ0)
+    (if (set-member? all-scope s)
+        (void) ;(printf "duplicate scope: ~a\n" s)
+        (set-add! all-scope s))    #;(gensym s)
+    (values s Σ0) ;; TODO: s は nam (symbol) じゃなく Stx にすると精度向上
+    )
 
   ; alloc-𝓁 : Stx Σ -> (Values 𝓁 Σ)
   ;   - called only from push-κ
@@ -90,9 +99,9 @@
 
 (define-mixed-unit mstore@
   (import)
-  (export mstore^)
+  (export  mstore^)
   (inherit [super:mstore@ init-Σ lookup-Σ update-Σ]
-           [mstore::fin-alloc@ alloc-name alloc-𝓁]))
+           [mstore::fin-alloc@ alloc-name alloc-scope alloc-𝓁]))
 
 
 (define-unit syntax::fin-alloc@
@@ -115,16 +124,6 @@
   (define (union          . args) (error "to be implemented"))
   (define (at-phase       . args) (error "to be implemented"))
   (define (update-ctx     . args) (error "to be implemented"))
-
-  (define all-scope (mutable-seteq))
-
-  ; alloc-scope : Symbol -> Scp
-  (define (alloc-scope s)
-    (if (set-member? all-scope s)
-        (void) ;(printf "duplicate scope: ~a\n" s)
-        (set-add! all-scope s))    #;(gensym s)
-    s ;; TODO: s は nam (symbol) じゃなく Stx にすると精度向上
-    )
 
   ; biggest-subset : Scps (Listof Scps) -> (Listof Scps)
   (define (biggest-subset scps_ref scpss)

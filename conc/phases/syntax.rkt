@@ -10,7 +10,7 @@
   (import)
   (export  syntax^)
   (inherit [super:syntax@ addremove strip subtract union in-hole-stl
-                          alloc-scope binding-lookup biggest-subset zip unzip])
+                          binding-lookup biggest-subset zip unzip])
 
   ;(use-terms Atom Stx Null Pair Hole Stxξ)
 

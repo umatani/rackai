@@ -5,9 +5,10 @@
 (define-signature bind^
   ;; Add a binding using the name and scopes of an identifier, mapping
   ;; them in the store to a given name
-  (bind    ; Ph Σ Id Nam -> Σ
-   resolve
-   id=?))
+  (bind    ; Ph? Σ Id Nam   → Σ
+   resolve ; Ph? Id Σ       → Nam
+   id=?    ; Ph? Id Nam ξ Σ → Boolean
+   ))
 
 ;; ----------------------------------------
  ;; Continuation:
@@ -25,7 +26,6 @@
   (delta
    α
    ≤a
-
    val?
    stx?
    stl?
@@ -42,15 +42,15 @@
 ;; ----------------------------------------
 ;; Evaluating AST:
 (define-signature eval^
-  (-->      ; State → (Setof State)
-   evaluate ; Ast → Val
+  (-->      ; δ → State → (Setof State)
+   evaluate ; δ Ast → Val
    ))
 
 ;; ----------------------------------------
 ;; The expand:
 (define-signature expand^
-  (==>    ; ζ -> (Setof ζ)
-   expand ; Stx -> (Cons Stx Σ)
+  (==>    ; ζ → (Setof ζ)
+   expand ; Stx → (Cons Stx Σ)
    ))
 
 ;; ----------------------------------------
@@ -64,7 +64,7 @@
    printer))
 
 ;; ----------------------------------------
-;; Expand-time stack operations:
+;; Expand-time call stack operations:
 (define-signature mcont^
   (push-κ ; Σ κ -> (Values 𝓁 Σ)
    ))
@@ -87,18 +87,17 @@
    ; Σ 𝓁   (U Val ξ κ)     -> Σ
 
    ;; ----------------------------------------
-   ;; Alloc name & 𝓁 helpers for expander:
-   alloc-name ; Id  Σ -> (Values Nam Σ)
-   alloc-𝓁    ; Stx Σ -> (Values 𝓁   Σ)
+   ;; Alloc name, scope, and 𝓁 helpers for expander:
+   alloc-name  ; Id     Σ → (Values Nam Σ)
+   alloc-scope ; Symbol Σ → Scp
+   alloc-𝓁     ; Stx    Σ → (Values 𝓁   Σ)
    ))
 
 ;; ----------------------------------------
 ;; Simple parsing of already-expanded code
-;;  (used for expand-time expressions, instead of
-;;   modeling multiple phases):
 (define-signature parse^
-  (parse  ; Stx Σ -> Ast (core), Ph Stx Σ -> Ast (phases, full)
-   parse* ; Stl Σ -> (Listof Ast) (core), Ph Stl Σ -> (Listof Ast) (phses, full)
+  (parse  ; Ph? Stx Σ → Ast
+   parse* ; Ph? Stl Σ → (Listof Ast)
    ))
 
 (define-signature parser^
@@ -131,8 +130,6 @@
 
    in-hole     ; Stx Stx -> Stx
    in-hole-stl ; Stl Stx -> Stl
-
-   alloc-scope ; Symbol -> Scp
 
    ;; Adds or cancels a scope
    addremove ; Scp Scps -> Scps

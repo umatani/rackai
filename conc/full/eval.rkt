@@ -9,12 +9,9 @@
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta ==> :=<1>)
-  #:within-signatures [(only domain^
-                             val? stx?)
-                       (only syntax^
-                             alloc-scope add flip union prune)
-                       (only env^
-                             init-env lookup-env extend-env*)
+  #:within-signatures [(only domain^    val? stx?)
+                       (only syntax^    add flip union prune)
+                       (only    env^    init-env lookup-env extend-env*)
                        (only store^
                              lookup-store update-store* alloc-loc*)
                        (only cont^
@@ -22,7 +19,7 @@
                        (only menv^
                              init-ξ lookup-ξ extend-ξ)
                        (only mstore^
-                             alloc-name alloc-𝓁 lookup-Σ update-Σ)
+                             alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
                        (only bind^
                              bind resolve)
                        (only parser^
@@ -160,11 +157,11 @@
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(,(Prim 'syntax-local-make-definition-context stx)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
-   #:with              scp_defs := (alloc-scope 'defs)
-   #:with        (values 𝓁 Σ_1) := (alloc-def-ξ stx Σ)
-   #:with                  Σ*_1 := (Σ* (def-ξ-update Σ_1 𝓁 ξ)
-                                         (union (set scp_defs) scps_p)
-                                         scps_u)
+   #:with (values scp_defs Σ_1) := (alloc-scope 'defs Σ)
+   #:with        (values 𝓁 Σ_2) := (alloc-def-ξ stx Σ_1)
+   #:with                  Σ*_1 := (Σ* (def-ξ-update Σ_2 𝓁 ξ)
+                                       (union (set scp_defs) scps_p)
+                                       scps_u)
    `(,(Defs scp_defs 𝓁) ,cont ,store ,Σ*_1)
    ev-slmdc]
 

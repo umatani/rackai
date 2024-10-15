@@ -10,41 +10,39 @@
 ;; ----------------------------------------
 ;; Store
 
-; init-store : -> Store
+; init-store : → Store
 (define (init-store) (Store 0 (make-immutable-hash)))
 
-; lookup-store : Store Loc -> (U Val Cont)
-(define (lookup-store st loc)
-  (hash-ref (Store-tbl st) loc))
+; lookup-store : Store Loc → (U Val Cont)
+(define (lookup-store sto loc)
+  (hash-ref (Store-tbl sto) loc))
 
-; update-store : Store Loc (U Val Cont) -> Store
-(define (update-store st loc u)
-  (Store (Store-size st)
-         (hash-set (Store-tbl st) loc u)))
+; update-store : Store Loc (U Val Cont) → Store
+(define (update-store sto loc v)
+  (Store (Store-size sto)
+         (hash-set (Store-tbl sto) loc v)))
 
-; update-store* : Store (Listof Loc) (Listof (U Val Cont)) -> Store
-(define (update-store* st locs us)
-  (Store (Store-size st)
-         (foldl (λ (l u t) (hash-set t l u))
-                (Store-tbl st) locs us)))
+; update-store* : Store (Listof Loc) (Listof (U Val Cont)) → Store
+(define (update-store* sto locs vs)
+  (foldl (λ (l u s) (update-store s l u))
+         sto locs vs))
 
-; alloc-loc : Symbol Store -> (Values Loc Store)
-;   - called only from push-cont
+; alloc-loc : Symbol Store → (Values Loc Store)
+;   - called from push-cont only
 ;   - a unique lbl is generated for each App and If form during parse
-(define (alloc-loc lbl st)
-  (let ([size (Store-size st)])
+(define (alloc-loc lbl sto)
+  (let ([size (Store-size sto)])
     (values (string->symbol (format "~a::~a" lbl size))
-            (Store (add1 size) (Store-tbl st)))))
+            (Store (add1 size) (Store-tbl sto)))))
 
-; alloc-loc* : (Listof Nam) Store -> (Values (Listof Loc) Store)
-;   for eval-time value binding
-(define (alloc-loc* nams st)
+; alloc-loc* : (Listof Symbol) Store → (Values (Listof Loc) Store)
+;   - for eval-time value binding
+(define (alloc-loc* nams sto)
   (match nams
-    ['() (values '() st)]
-    [(list nam_0 nams ...)
-     (let* ([size (Store-size st)]
-            [loc_0 (string->symbol (format "~a:~a" nam_0 size))])
+    ['() (values '() sto)]
+    [(list nam nams ...)
+     (let* ([size (Store-size sto)]
+            [loc (string->symbol (format "~a:~a" nam size))])
        (let-values
-           ([(locs_new store_new)
-             (alloc-loc* nams (Store (add1 size) (Store-tbl st)))])
-         (values (cons loc_0 locs_new) store_new)))]))
+           ([(locs sto′) (alloc-loc* nams (Store (add1 size) (Store-tbl sto)))])
+         (values (cons loc locs) sto′)))]))

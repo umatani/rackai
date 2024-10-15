@@ -146,8 +146,8 @@
 
   (define (val? x)
     (or (Val? x)
-        (and (Pair? x) (val? (Pair-a x)) (val? (Pair-d x)))
-        (stx? x)
+        ;(and (Pair? x) (val? (Pair-a x)) (val? (Pair-d x)))
+        ;(stx? x)
         (equal? x stx-⊤) ;; added
         ))
 
