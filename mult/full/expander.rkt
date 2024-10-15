@@ -32,7 +32,7 @@
   [(ζ (Stxξ ph (and stx (Stx (Lst stx_fun . stl_args) ctx)) ξ) '∘
        κ0 (and Σ*_0 (Σ* Σ scps_p _)))
    #:when (id? stx_fun)
-   #:with name <- (resolve #:phase ph stx_fun Σ)
+   #:with name <- (resolve ph stx_fun Σ)
    #:with   at := (results (lookup-ξ ξ name))
    #:when (and (set-empty? at)
                (not (member name
@@ -51,7 +51,7 @@
   ;; unbound errorで停止するのではなく，探索候補から削除する．
   [(ζ (Stxξ ph (and id (Stx (Sym nam) ctx)) ξ) '∘
        κ (and Σ*_0 (Σ* Σ _ _)))
-   #:with nam <- (resolve #:phase ph id Σ)
+   #:with nam <- (resolve ph id Σ)
    #:with  at <- (lookup-ξ ξ nam)
    #:when (TVar? at)
    (ζ (TVar-id at) '• κ Σ*_0)

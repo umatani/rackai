@@ -6,15 +6,29 @@
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../conc/phases/terms.rkt"
- (only-in "../../mult/phases/units.rkt" expand/red@)
+ (only-in "../../mult/phases/units.rkt" expand/red@ [parse@ mult:parse@])
  (only-in "../core.rkt"                 eval/red@)
  (only-in "../phases.rkt"               [==> abs:==>] main-minus@)
  (only-in "domain.rkt"                  domain@ val-⊤ atom-⊤ num-⊤ sym-⊤
                                         stx-⊤ list-⊤)
- (only-in "core.rkt"                    ev:red@)
- (only-in "parse.rkt"                   parse@))
+ (only-in "core.rkt"                    ev:red@))
 (provide interp)
 
+
+;;;; Parser
+
+(define-mixed-unit parse@
+  (import)
+  (export  parse^)
+  (inherit (mult:parse@ [mult:parse parse] parse*))
+
+  ; parse : Ph Stx Σ -> (SetM Ast)
+  (define ((parse prs prs*) ph stx Σ)
+    (if (or (equal? stx val-⊤)
+            (equal? stx atom-⊤)
+            (equal? stx stx-⊤))
+        (pure val-⊤)
+        ((mult:parse prs prs*) ph stx Σ))))
 
 (define-mixed-unit parser@
   (import)
@@ -24,7 +38,9 @@
   (define parse (super:parse super:parse parse*))
 
   ; parser : Stx Σ -> (SetM Ast)
-  (define (parser stx Σ) (parse #:phase 0 stx Σ)))
+  (define (parser stx Σ) (parse 0 stx Σ)))
+
+;;;; Expander
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (abs:==> -->)
@@ -67,7 +83,7 @@
 
 (define-unit-from-reduction ex:red@ ==>)
 
-;; Main
+;;;; Main
 
 (define-values/invoke-unit
   (compound-unit/infer
@@ -83,7 +99,7 @@
 (define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
   (apply-interpreter interp form mode))
 
-;; run example
+;;;; run example
 #;
 (define (main [mode 'check])
   (run-suite run delta (suite 'core)   mode α ≤a)

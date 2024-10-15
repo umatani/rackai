@@ -6,15 +6,17 @@
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../conc/full/terms.rkt"
- (only-in "../../mult/full/units.rkt"    eval/red@ expand/red@)
+ (only-in "../../mult/full/units.rkt"    eval/red@ expand/red@
+                                         [parse@ mult:parse@])
  (only-in "../../mult/full/eval.rkt"     [--> set:-->])
  (only-in "../../mult/full/expander.rkt" [==> set:==>])
  (only-in "../full.rkt"                  main-minus@)
  (only-in "domain.rkt"                   domain@ val-⊤ atom-⊤ num-⊤ sym-⊤
-                                         stx-⊤ list-⊤)
- (only-in "parse.rkt"                    parse@))
+                                         stx-⊤ list-⊤))
 (provide interp)
 
+
+;;;; Eval
 
 (define-reduction (--> delta ==>) #:super (set:--> delta ==>)
   #:within-signatures [(only syntax^
@@ -100,6 +102,21 @@
 (define-unit-from-reduction ev:red@ -->)
 
 
+;;;; Parser
+
+(define-mixed-unit parse@
+  (import)
+  (export  parse^)
+  (inherit (mult:parse@ [mult:parse parse] parse*))
+
+  ; parse : Ph Stx Σ -> (SetM Ast)
+  (define ((parse prs prs*) ph stx Σ)
+    (if (or (equal? stx val-⊤)
+            (equal? stx atom-⊤)
+            (equal? stx stx-⊤))
+        (pure val-⊤)
+        ((mult:parse prs prs*) ph stx Σ))))
+
 (define-mixed-unit parser@
   (import)
   (export parser^)
@@ -107,9 +124,11 @@
 
   (define parse (super:parse super:parse parse*))
 
-  ; parser : Stx Σ* -> (SetM Ast)
-  (define (parser stx Σ*) (parse #:phase 0 stx (Σ*-Σ Σ*))))
+  ; parser : Stx Σ* → (SetM Ast)
+  (define (parser stx Σ*) (parse 0 stx (Σ*-Σ Σ*))))
 
+
+;;;; Expander
 
 (define-reduction (==> -->) #:super (set:==> -->)
   #:within-signatures [(only syntax^
@@ -151,7 +170,7 @@
 
 (define-unit-from-reduction ex:red@ ==>)
 
-;; Main
+;;;; Main
 
 (define-values/invoke-unit
   (compound-unit/infer
@@ -166,6 +185,7 @@
 
 (define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
   (apply-interpreter interp form mode))
+
 
 #;
 (define (main [mode 'check])

@@ -5,9 +5,8 @@
  "../../signatures.rkt"
  ;;;; Units
  (only-in "../../units.rkt" io@)
- (only-in    "../units.rkt" domain@ env@ store@ cont@ menv@ mstore@ mcont@
-                            bind@ run@)
- (only-in       "units.rkt" syntax@ eval@ parser@ expand@ expander@ debug@))
+ (only-in "../units.rkt" domain@ env@ store@ cont@ menv@ mstore@ mcont@ run@)
+ (only-in "units.rkt" syntax@ bind@ eval@ parser@ expand@ expander@ debug@))
 (provide interp)
 
 (define-values/invoke-unit

@@ -1,9 +1,11 @@
 #lang racket
 (require
- (only-in "eval.rkt"     [red@ ev:red@] eval@)
- (only-in "expander.rkt" [red@ ex:red@] expand/red@ expand@)
- (only-in "parser.rkt"   parser@))
+ (only-in "bind-unit.rkt" bind@)
+ (only-in "eval.rkt"      [red@ ev:red@] eval@)
+ (only-in "expander.rkt"  [red@ ex:red@] expand/red@ expand@)
+ (only-in "parser.rkt"    parse@ parser@))
 
-(provide ev:red@ eval@
+(provide bind@
+         ev:red@ eval@
          ex:red@ expand/red@ expand@
-         parser@)
+         parse@ parser@)

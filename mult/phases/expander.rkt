@@ -34,7 +34,7 @@
   [(ζ (Stxξ ph (and stx (Stx (Lst stx_fun . stl_args)
                                ctx)) ξ scps_p) '∘ κ0 Σ)
    #:when (id? stx_fun)
-   #:with name <- (resolve #:phase ph stx_fun Σ)
+   #:with name <- (resolve ph stx_fun Σ)
    #:with   at := (results (lookup-ξ ξ name))
    #:when (and (set-empty? at)
                (not (member name
@@ -49,7 +49,7 @@
 
   ;; reference
   [(ζ (Stxξ ph (and id (Stx (Sym nam) ctx)) ξ scps_p) '∘ κ0 Σ)
-   #:with    nam <- (resolve #:phase ph id Σ)
+   #:with    nam <- (resolve ph id Σ)
    #:with     at := (results (lookup-ξ ξ nam))
    #:with id_new <- (if (set-empty? at)
                         (error '==>p "unbound identifier: ~a" nam)

@@ -5,9 +5,15 @@
 (define-signature bind^
   ;; Add a binding using the name and scopes of an identifier, mapping
   ;; them to a given name in the binding store
-  (bind    ; Ph? Σ Id Nam    → Σ
-   resolve ; Ph? Id Σ        → Nam
-   id=?    ; Ph? Id Nam ξ? Σ → Boolean
+  (bind       ;    Σ Id Nam   → Σ             (core)
+              ; Ph Σ Id Nam   → Σ             (phases, full)
+   resolve    ;    Σ Id       → Nam           (core)
+              ; Ph Σ Id       → Nam           (phases, full)
+   id=?       ;    Id Nam   Σ → Boolean       (core)
+              ; Ph Id Nam   Σ → Boolean       (phases)
+              ; Ph Id Nam ξ Σ → Boolean       (full)
+   core-form? ;       Nam   Σ → Id → Boolean  (core)
+              ; Ph    Nam   Σ → Id → Boolean  (phases, full)
    ))
 
 ;; ----------------------------------------
@@ -99,13 +105,17 @@
 ;; ----------------------------------------
 ;; Simple parsing of already-expanded code
 (define-signature parse^
-  (parse  ; Ph? Stx Σ → Ast
-   parse* ; Ph? Stl Σ → (Listof Ast)
+  (parse  ;    Stx Σ → Ast                (core)
+          ; Ph Stx Σ → Ast                (phases, full)
+   parse* ;    Stl Σ → (Listof Ast)       (core)
+          ; Ph Stl Σ → (Listof Ast)       (phases, full)
    ))
 
 (define-signature parser^
-  (parse  ; Ph? Stx Σ → Ast
-   parser ; Ph? Stx Σ → Ast
+  (parse  ;    Stx Σ  → Ast                (core)
+          ; Ph Stx Σ  → Ast                (phases, full)
+   parser ;    Stx Σ  → Ast                (core, phases)
+          ;    Stx Σ* → Ast                (full)
    ))
 
 ;;;; runner

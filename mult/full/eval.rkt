@@ -32,7 +32,7 @@
           (match ids
             ['() (pure '())]
             [(cons id ids*)
-             (do nam  <- (resolve #:phase ph id Σ)
+             (do nam  <- (resolve  ph id Σ)
                  nams <- (resolve* ph ids* Σ)
                  (pure (cons nam nams)))]))
 

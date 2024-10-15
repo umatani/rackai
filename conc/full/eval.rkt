@@ -24,14 +24,11 @@
                              bind resolve)
                        (only parser^
                              parse)]
-  #:do [#;
-        (use-terms Var Fun App If VFun Bool Sym Stx Null Pair Prim Defs 𝓁
-                   KApp KIf SApp SIf AstEnv TVar TStop Stxξ Σ Σ* ζ InExpand)
-        ;; resolve* : Ph (Listof Id) Σ -> (Listof Nam))
+  #:do [;; resolve* : Ph (Listof Id) Σ -> (Listof Nam))
         (define (resolve* ph ids Σ)
           (match ids
             ['() '()]
-            [(cons id ids*) (cons (resolve #:phase ph id Σ)
+            [(cons id ids*) (cons (resolve ph id Σ)
                                   (resolve* ph ids* Σ))]))
 
         ;; lookup-ξ* : ξ (Listof Nam) -> (Listof AllTransform)
@@ -125,7 +122,7 @@
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(,(Prim 'syntax-local-value _) ,(? id? id)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
-   #:with nam :=<1> (resolve #:phase ph id Σ)
+   #:with nam :=<1> (resolve ph id Σ)
    #:with val :=<1> (lookup-ξ ξ nam)
    `(,val ,cont ,store ,Σ*_0)
    ev-lval]
@@ -141,7 +138,7 @@
               ,(? id? id) ,(Bool #f) ,(Defs scp_defs 𝓁)) '())
      ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
    #:with ξ_defs :=<1> (def-ξ-lookup Σ 𝓁)
-   #:with    nam :=<1> (resolve #:phase ph id Σ)
+   #:with    nam :=<1> (resolve ph id Σ)
    #:with    val :=<1> (lookup-ξ ξ_defs nam)
    `(,val ,cont ,store ,Σ*_0)
    ev-lval-defs]
@@ -176,7 +173,7 @@
                                               scps_u)
                                        scp_defs)
    #:with (values nam_new Σ_1) :=    (alloc-name id_defs Σ)
-   #:with                  Σ_2 :=    (bind #:phase ph Σ_1 id_defs nam_new)
+   #:with                  Σ_2 :=    (bind ph Σ_1 id_defs nam_new)
    #:with               ξ_defs :=<1> (def-ξ-lookup Σ_2 𝓁)
    #:with                  Σ_3 :=    (def-ξ-update Σ_2 𝓁
                                         (extend-ξ ξ_defs nam_new
@@ -206,7 +203,7 @@
                               `((0 . ,scps_p) (1 . ,scps_u)))
                         (,id_arg) ,(Defs scp_defs 𝓁)) '())
                ,cont ,store ,_))
-   #:with                  ast_exp :=<1> (parse #:phase (add1 ph) stx_exp Σ_2)
+   #:with                  ast_exp :=<1> (parse (add1 ph) stx_exp Σ_2)
    #:with (values loc_new store_1) :=    (push-cont store lbl cont)
    `(,(AstEnv ph ast_exp (init-env) 'no-scope ξ)
      ,(KApp lbl `(,ph ,maybe-scp_i ,ξ)
@@ -227,7 +224,7 @@
                                                  scps_u)
                                           scp_defs)
    #:with (values nam_new Σ_2) :=    (alloc-name id_defs Σ)
-   #:with                  Σ_3 :=    (bind #:phase ph Σ_2 id_defs nam_new)
+   #:with                  Σ_3 :=    (bind ph Σ_2 id_defs nam_new)
    #:with                 Σ*_4 :=    (Σ* (def-ξ-update Σ_3 𝓁
                                              (extend-ξ ξ_defs nam_new val_exp))
                                            scps_p scps_u)

@@ -4,10 +4,9 @@
  (only-in "../mix.rkt"        define-mixed-unit)
  "../signatures.rkt"
  "../terms.rkt"
- (only-in "../mult/units.rkt" [store@  super:store@]
-                              [mstore@ super:mstore@]
-                              [bind@   super:bind@]))
-(provide store@ mstore@ bind@)
+ (only-in "../mult/units.rkt" [store@  mult:store@]
+                              [mstore@ mult:mstore@]))
+(provide store@ mstore@ biggest-subset binding-lookup)
 
 (define-unit store::fin-alloc@
   (import)
@@ -47,8 +46,9 @@
 (define-mixed-unit store@
   (import)
   (export store^)
-  (inherit [super:store@ init-store lookup-store update-store update-store*]
-           [store::fin-alloc@ alloc-loc alloc-loc*]))
+  (inherit [mult:store@          init-store lookup-store update-store
+                                 update-store*]
+           [store::fin-alloc@    alloc-loc alloc-loc*]))
 
 
 (define-unit mstore::fin-alloc@
@@ -97,8 +97,8 @@
 (define-mixed-unit mstore@
   (import)
   (export  mstore^)
-  (inherit [super:mstore@ init-Σ lookup-Σ update-Σ]
-           [mstore::fin-alloc@ alloc-name alloc-scope alloc-𝓁]))
+  (inherit [mult:mstore@          init-Σ lookup-Σ update-Σ]
+           [mstore::fin-alloc@    alloc-name alloc-scope alloc-𝓁]))
 
 
 ; biggest-subset : Scps (Listof Scps) → (Listof Scps)
@@ -125,46 +125,3 @@
   ;(printf "[binding-lookup] ~a ~a\n" sbs scps)
   (map StoBind-nam (filter (λ (sb) (set=? (StoBind-scps sb) scps))
                            (set->list sbs))))
-
-(define-mixed-unit bind@
-  (import  (only syntax^    at-phase)
-           (only mstore^    lookup-Σ))
-  (export  bind^)
-  (inherit [super:bind@ bind])
-
-  ; resolve : Ph Id Σ -> (SetM Nam)
-  (define (resolve #:phase [ph #f] id Σ0)
-    (match-let ([(Stx (Sym nam) ctx) id])
-      ;(printf "resolve: ~a\n" nam)
-      (let* ([sbss (filter set? (set->list (results (lookup-Σ Σ0 nam))))]
-             ;[_ (printf "sbss: ~a\n" sbss)]
-             [scpsss
-              (let ([scpsss (map (λ (sbs)
-                                   (set-map sbs (λ (sb) (StoBind-scps sb))))
-                                 sbss)])
-                (map remove-duplicates scpsss))]
-             ;[_ (printf "scpsss: ~a\n" scpsss)]
-             [scps_biggests (remove-duplicates
-                             (append-map (λ (scpss)
-                                           (biggest-subset
-                                            (if ph (at-phase ctx ph) ctx)
-                                            scpss))
-                                         scpsss))]
-             ;[_ (printf "scps_biggests: ~a\n" scps_biggests)]
-             [nam_biggests
-              (remove-duplicates
-               (apply append
-                      (for*/list ([sbs (in-list sbss)]
-                                  [scps_biggest (in-list scps_biggests)])
-                        (binding-lookup sbs scps_biggest))))])
-        ;(printf "nam_biggests: ~a\n" nam_biggests)
-        (let ([r (if (null? nam_biggests)
-                   (set nam)
-                   (list->set nam_biggests))])
-          ;(printf "resolve done: ~a\n" r)
-          (lift r)))))
-
-  ; id=? : Ph Id Nam ξ Σ -> Boolean (same as conc/set)
-  ;   ξ is non-#f only in full
-  (define (id=? #:phase [ph #f] id nam #:ξ [ξ #f] Σ)
-    (subset? (set nam) (results (resolve #:phase ph id Σ)))))

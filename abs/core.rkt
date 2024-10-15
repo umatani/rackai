@@ -11,11 +11,59 @@
  (only-in "../conc/units.rkt"         cont@ mcont@)
  (only-in "../conc/core/units.rkt"    debug@ expander@ syntax@)
  (only-in "../mult/units.rkt"         domain@ env@ menv@ run@)
- (only-in "../mult/core/units.rkt"    ev:red@ parser@ expand/red@)
+ (only-in "../mult/core/units.rkt"    ev:red@ parser@ expand/red@
+                                      [bind@ mult:bind@])
  (only-in "../mult/core/expander.rkt" [==> mult:==>])
- (only-in "alloc.rkt"                 store@ mstore@ bind@))
+ (only-in "alloc.rkt"                 store@ mstore@
+                                      biggest-subset binding-lookup))
 (provide syntax@ eval/red@ ==> main-minus@
          interp eval-->* expand==>*)
+
+
+(define-mixed-unit bind@
+  (import  (only mstore^    lookup-Σ))
+  (export  bind^)
+  (inherit [mult:bind@      bind])
+
+  ; resolve : Id Σ -> (SetM Nam)
+  (define (resolve id Σ0)
+    (match-let ([(Stx (Sym nam) ctx) id])
+      ;(printf "resolve: ~a\n" nam)
+      (let* ([sbss (filter set? (set->list (results (lookup-Σ Σ0 nam))))]
+             ;[_ (printf "sbss: ~a\n" sbss)]
+             [scpsss
+              (let ([scpsss (map (λ (sbs)
+                                   (set-map sbs (λ (sb) (StoBind-scps sb))))
+                                 sbss)])
+                (map remove-duplicates scpsss))]
+             ;[_ (printf "scpsss: ~a\n" scpsss)]
+             [scps_biggests (remove-duplicates
+                             (append-map (λ (scpss)
+                                           (biggest-subset ctx scpss))
+                                         scpsss))]
+             ;[_ (printf "scps_biggests: ~a\n" scps_biggests)]
+             [nam_biggests
+              (remove-duplicates
+               (apply append
+                      (for*/list ([sbs (in-list sbss)]
+                                  [scps_biggest (in-list scps_biggests)])
+                        (binding-lookup sbs scps_biggest))))])
+        ;(printf "nam_biggests: ~a\n" nam_biggests)
+        (let ([r (if (null? nam_biggests)
+                   (set nam)
+                   (list->set nam_biggests))])
+          ;(printf "resolve done: ~a\n" r)
+          (lift r)))))
+
+  ;; id=? : Id Nam ξ Σ → Boolean (same as mult)
+  (define (id=? id nam Σ)
+    (subset? (set nam) (results (resolve id Σ))))
+
+  ;; core-form? : Nam Σ → Id → Boolean (same as mult)
+  (define (core-form? nam Σ)
+    (λ (id) (id=? id nam Σ)))
+  )
+
 
 ;; filter out stuck states
 

@@ -6,13 +6,14 @@
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../conc/core/terms.rkt"
- (only-in "../../mult/core/units.rkt" expand/red@)
+ (only-in "../../mult/core/units.rkt" expand/red@ [parse@ mult:parse@])
  (only-in "../../mult/core/eval.rkt"  [--> set:-->])
  (only-in "../core.rkt"               eval/red@ [==> abs:==>] main-minus@)
- (only-in "parse.rkt"                 parse@)
  (only-in "domain.rkt"                domain@ val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤
                                       list-⊤))
 (provide ev:red@ interp)
+
+;;;; Eval
 
 ;; Revise --> to interpret abstract values (val-⊤, stx-⊤, etc.)
 ;; --> : State -> (Setof State)
@@ -38,15 +39,32 @@
 
 (define-unit-from-reduction ev:red@ -->)
 
+
+;;;; Parser
+
+(define-mixed-unit parse@
+  (import)
+  (export  parse^)
+  (inherit (mult:parse@ [mult:parse parse] parse*))
+
+  ; parse : Stx Σ -> (SetM Ast)
+  (define ((parse prs prs*) stx Σ)
+    (if (or (equal? stx val-⊤)
+            (equal? stx atom-⊤)
+            (equal? stx stx-⊤))
+        (pure val-⊤)
+        ((mult:parse prs prs*) stx Σ))))
+
 (define-mixed-unit parser@
   (import)
-  (export parser^)
+  (export  parser^)
   (inherit [parse@ [super:parse parse] parse*])
 
   (define parse (super:parse super:parse parse*))
   (define parser parse))
 
-;; Revise reduction rule ==>
+
+;;;; Expander
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (abs:==> -->)
@@ -88,7 +106,7 @@
 
 (define-unit-from-reduction ex:red@ ==>)
 
-;; Main
+;;;; Main
 
 (define-values/invoke-unit
   (compound-unit/infer
@@ -104,7 +122,7 @@
 (define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
   (apply-interpreter interp form mode))
 
-;; run example
+;;;; run example
 #;
 (define (main [mode 'check])
   (run-suite run delta (suite 'core) mode α ≤a)

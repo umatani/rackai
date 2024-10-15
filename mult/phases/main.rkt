@@ -5,12 +5,11 @@
  "../../signatures.rkt"
  ;; Units
  (only-in "../../units.rkt"             io@)
- (only-in "../units.rkt"                domain@ env@ store@ menv@ mstore@
-                                        bind@ run@)
+ (only-in "../units.rkt"                domain@ env@ store@ menv@ mstore@ run@)
  (only-in "../../conc/units.rkt"        cont@ mcont@)
  (only-in "../../conc/phases/units.rkt" syntax@ debug@ expander@)
  (only-in "../core/units.rkt"           eval@)
- (only-in "units.rkt"                   parser@ expand@))
+ (only-in "units.rkt"                   bind@ parser@ expand@))
 (provide interp)
 
 (define-values/invoke-unit

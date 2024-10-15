@@ -1,0 +1,54 @@
+#lang racket/unit
+(require
+ (only-in racket             identity)
+ (only-in racket/match       match-let)
+ (only-in "../../set.rkt"    set set? subset? set-add in-set for/set
+                             set->list list->set set-map)
+ (only-in "../../nondet.rkt" results lift)
+ "../../signatures.rkt"
+ "../../conc/phases/terms.rkt"
+ (only-in "../../misc.rkt"   biggest-subset binding-lookup))
+
+(import (only syntax^    at-phase)
+        (only mstore^    lookup-Σ))
+(export bind^)
+
+;; ph is #f means called from core
+
+;; bind : Ph Σ Id Nam → Σ
+(define (bind ph Σ0 id nam)
+  (match-let ([(Σ size tbl) Σ0]
+              [(Stx (Sym nam_1) ctx_1) id])
+    (Σ size
+      (hash-update tbl nam_1
+                   (λ (sbss)
+                     (for/set ([sbs (in-set sbss)]
+                               #:when (set? sbs))
+                       (set-add sbs (StoBind (at-phase ctx_1 ph) nam))))
+                   (λ () (set (set)))))))
+
+;; resolve : Ph Id Σ → (SetM Nam)
+(define (resolve ph id Σ0)
+  (match-let ([(Stx (Sym nam) ctx) id])
+    (let* ([sbss (filter set? (set->list (results (lookup-Σ Σ0 nam))))]
+           [scpsss
+            (map (λ (sbs) (set-map sbs (λ (sb) (StoBind-scps sb))))
+                 sbss)]
+           [scps_biggests (map (λ (scpss)
+                                 (biggest-subset (at-phase ctx ph) scpss))
+                               scpsss)]
+           [nam_biggests
+            (filter identity
+                    (for*/list ([sbs (in-list sbss)]
+                                [scps_biggest (in-list scps_biggests)])
+                      (binding-lookup sbs scps_biggest)))])
+      (lift (if (null? nam_biggests)
+              (set nam)
+              (list->set nam_biggests))))))
+
+;; id=? : Ph Id Nam Σ -> Boolean
+(define (id=? ph id nam Σ)
+  (subset? (set nam) (results (resolve ph id Σ))))
+
+;; core-form? : Ph Nam Σ → Id → Boolean
+(define (core-form? ph nam Σ) (λ (id) (id=? ph id nam Σ)))

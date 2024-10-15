@@ -11,9 +11,28 @@
  (only-in "../conc/full/units.rkt" syntax@ expander@ debug@)
  (only-in "../mult/units.rkt"      domain@ env@ menv@ run@)
  (only-in "../mult/full/units.rkt" eval@ parser@ expand@)
- (only-in "alloc.rkt"              store@ mstore@ bind@))
+ (only-in "alloc.rkt"              store@ mstore@)
+ (only-in "phases.rkt"             [bind@ phases:bind@]))
 (provide syntax@ main-minus@
          interp)
+
+;; same as mult
+(define-mixed-unit bind@
+  (import  (only menv^      init-ξ lookup-ξ))
+  (export  bind^)
+  (inherit [phases:bind@    bind resolve])
+
+  ;; id=? : Ph Id Nam ξ Σ → Boolean
+  (define (id=? ph id nam ξ Σ)
+    (let ([nam0 (results (resolve ph id Σ))])
+      (and (subset? (set nam) nam0)
+           (andmap (λ (at) (not (TStop? at)))
+                   (set->list (results (lookup-ξ ξ nam)))))))
+
+  ;; core-form? : Ph Nam Σ → Id → Boolean
+  (define (core-form? ph nam Σ) (λ (id) (id=? ph id nam (init-ξ) Σ)))
+  )
+
 
 ;; full/set's evaluate already filters out stuck states
 
