@@ -1,6 +1,7 @@
 #lang racket
 (require
  (only-in "../../set.rkt"            set)
+ (only-in "../../misc.rkt"           union)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/full/terms.rkt"
@@ -12,7 +13,7 @@
   #:within-signatures [(only domain^
                              val? stx?)
                        (only syntax^
-                             add flip union prune)
+                             add flip prune)
                        (only env^
                              init-env lookup-env extend-env*)
                        (only store^

@@ -1,10 +1,11 @@
 #lang racket
 (require
- (only-in "../../set.rkt" set)
- (only-in "../../mix.rkt" define-mixed-unit)
+ (only-in "../../set.rkt"  set)
+ (only-in "../../mix.rkt"  define-mixed-unit)
  "../../reduction.rkt"
  "../../signatures.rkt"
- "terms.rkt")
+ "terms.rkt"
+ (only-in "../../misc.rkt" union))
 (provide ==> red@ expand/red@ expand@ expander@)
 
 ;; ----------------------------------------
@@ -15,7 +16,7 @@
   #:within-signatures [(only domain^
                              val? stx? proper-stl?)
                        (only syntax^
-                             empty-ctx zip unzip add flip union in-hole
+                             empty-ctx zip unzip add flip in-hole
                              prune at-phase)
                        (only env^
                              init-env)
@@ -29,22 +30,19 @@
                        (only    id^    id=?)
                        (only mcont^    push-κ)
                        (only parse^    parse)]
-  #:do [#;
-        (use-terms App Atom Sym Stx List Null Pair Hole
-                   TVar AstEnv ζ Stxξ κ InEval)
-
-        ;; Constants:
+  #:do [;; Constants:
         (define id-kont (Stx (Sym '#%kont) (empty-ctx)))
         (define id-seq  (Stx (Sym '#%seq)  (empty-ctx)))
         (define id-snoc (Stx (Sym '#%snoc) (empty-ctx)))
         (define stx-nil (Stx (Null)        (empty-ctx)))
-        ;; This is the same as the single-phase one, but with `ph`
-        ;; threaded through to `add` & `bind`
-        ; regist-vars : Ph Scp ProperStl ξ Σ -> (Values ProperStl ξ Σ)
+
+        ;; regist-vars : Ph Scp ProperStl ξ Σ → (Values ProperStl ξ Σ)
+        ;;   This is the same as the single-phase one, but with `ph`
+        ;;   threaded through to `add` & `bind`
         (define (regist-vars ph scp stl ξ Σ)
           (match stl
             [(Null) (values (Null) ξ Σ)]
-            [(Pair (app (λ (stx) stx) id) stl)
+            [(Pair id stl)
              (let*-values ([(stl_reg ξ_1 Σ_1)
                             (regist-vars ph scp stl ξ Σ)]
                            [(nam_new Σ_2) (alloc-name id Σ_1)]
@@ -212,12 +210,12 @@
                        val (list (flip ph (add ph stx_macapp scp_u) scp_i)))
                   (init-env))
           '• (init-store))
-    (ζ (Stxξ ph (Stx #f (list (cons ph (set scp_i))))
+    (ζ (Stxξ ph (add ph (Stx (Bool #f) (empty-ctx)) scp_i)
                ξ (union (set scp_u) scps_p)) '∘ κ0 Σ_2))
    ex-macapp-eval]
 
   [(InEval (list (? stx? stx_exp) '• store_0)
-           (ζ (Stxξ ph (Stx #f ctx_i) ξ scps_p) '∘ κ0 Σ))
+           (ζ (Stxξ ph (Stx (Bool #f) ctx_i) ξ scps_p) '∘ κ0 Σ))
    #:with scp_i := (car (set->list (at-phase ctx_i ph)))
    (ζ (Stxξ ph (flip ph stx_exp scp_i) ξ scps_p) '∘ κ0 Σ)
    ex-macapp-flip]

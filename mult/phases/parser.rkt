@@ -33,7 +33,7 @@
     (match stx
       ; (lambda (id ...) stx_body)
       [(Stx (Lst (? id? (? (core-form? ph 'lambda Σ)))
-                 (Stx stl_ids _)
+                 (Stx (? proper-stl? stl_ids) _)
                  stx_body) _)
        (do vs <- (build-var-list ph (lst->list stl_ids) Σ)
            b  <- ((prs1 prs1 prs*) ph stx_body            Σ)
@@ -41,7 +41,7 @@
       
       ; (let ([id stx_rhs] ...) stx_body)
       [(Stx (Lst (? id? (? (core-form? ph 'let Σ)))
-                 (Stx (? proper-stl?  stl_binds) _)
+                 (Stx (? proper-stl? stl_binds) _)
                  stx_body) _)
        (do (values stl_ids stl_rhs) := (unzip stl_binds)
            vs <- (build-var-list  ph (lst->list stl_ids) Σ)

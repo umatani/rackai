@@ -1,16 +1,17 @@
 #lang racket
 (require
- (only-in "../../set.rkt" set)
- (only-in "../../mix.rkt" define-mixed-unit)
+ (only-in "../../set.rkt"  set)
+ (only-in "../../mix.rkt"  define-mixed-unit)
  "../../reduction.rkt"
  "../../signatures.rkt"
- "terms.rkt")
+ "terms.rkt"
+ (only-in "../../misc.rkt" union))
 (provide --> eval@)
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> delta ==> :=<1>)
   #:within-signatures [(only domain^    val? stx?)
-                       (only syntax^    add flip union prune)
+                       (only syntax^    add flip prune)
                        (only    env^    init-env lookup-env extend-env*)
                        (only store^
                              lookup-store update-store* alloc-loc*)

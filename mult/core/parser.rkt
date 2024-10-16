@@ -15,7 +15,7 @@
    (only syntax^    unzip strip)
    (only   menv^    init-ξ)
    (only   bind^    resolve)
-   (only     id^    id=? core-form?))
+   (only     id^    core-form?))
   (export parse^)
 
   ;; ----------------------------------------
@@ -34,7 +34,7 @@
     (match stx
       ; (lambda (id ...) stx_body)
       [(Stx (Lst (? id? (? (core-form? 'lambda Σ)))
-                 (Stx stl_ids _)
+                 (Stx (? proper-stl? stl_ids) _)
                  stx_body) _)
        (do vs <- (build-var-list (lst->list stl_ids) Σ)
            b  <- ((prs1 prs1 prs*) stx_body            Σ)
@@ -42,7 +42,7 @@
       
       ; (let ([id stx_rhs] ...) stx_body)
       [(Stx (Lst (? id? (? (core-form? 'let Σ)))
-                 (Stx (? proper-stl?  stl_binds) _)
+                 (Stx (? proper-stl? stl_binds) _)
                  stx_body) _)
        (do (values stl_ids stl_rhs) := (unzip stl_binds)
            vs <- (build-var-list  (lst->list stl_ids) Σ)

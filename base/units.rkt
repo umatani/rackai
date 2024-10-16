@@ -9,5 +9,4 @@
  ["menv-unit.rkt"   menv@  ]
  ["mstore-unit.rkt" mstore@]
  ["run-unit.rkt"    run@   ]
- ["store-unit.rkt"  store@ ]
- ["syntax-unit.rkt" syntax@])
+ ["store-unit.rkt"  store@ ])

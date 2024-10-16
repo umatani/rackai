@@ -3,6 +3,7 @@
  "../interpreter.rkt"
  ;"../test/suites.rkt"
  (only-in "../mix.rkt"                  define-mixed-unit)
+ (only-in "../misc.rkt"                 union)
  "../reduction.rkt"
  "../signatures.rkt"
  "../base/phases/terms.rkt"
@@ -60,7 +61,7 @@
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (mult:==> -->)
   #:within-signatures [(only syntax^
-                             empty-ctx zip unzip add flip union in-hole
+                             empty-ctx zip unzip add flip in-hole
                              prune at-phase)
                        (only env^
                              init-env)

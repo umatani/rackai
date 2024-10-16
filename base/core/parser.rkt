@@ -16,12 +16,12 @@
   ;; ----------------------------------------
   ;; Simple parsing of already-expanded code
 
-  ; parse1 : Stx Σ → Ast
+  ;; parse1 : Stx Σ → Ast
   (define (parse1 stx Σ)
     (match stx
       ; (lambda (id ...) stx_body)
       [(Stx (Lst (? id? (? (core-form? 'lambda Σ)))
-                 (Stx stl_ids _)
+                 (Stx (? proper-stl? stl_ids) _)
                  stx_body) _)
        (Fun (map (λ (id) (Var (resolve id Σ)))
                  (lst->list stl_ids))
@@ -29,7 +29,7 @@
 
       ; (let ([id stx_rhs] ...) stx_body)
       [(Stx (Lst (? id? (? (core-form? 'let Σ)))
-                 (Stx (? proper-stl?  stl_binds) _)
+                 (Stx (? proper-stl? stl_binds) _)
                  stx_body) _)
        (let-values ([(stl_ids stl_rhs) (unzip stl_binds)])
          (App (gensym 'let)
@@ -69,7 +69,7 @@
       ; literal
       [(Stx (? Atom? a) _) a]))
 
-  ; parse* : Stl Σ → (Listof Ast)
+  ;; parse* : Stl Σ → (Listof Ast)
   (define (parse* stl Σ)
     (match stl
       [(Null) '()]
@@ -78,11 +78,12 @@
       [(? Stx? stx)
        (list (parse1 stx Σ))]))
 
-  ; parse : Stx Σ → Ast
+  ;; parse : Stx Σ → Ast
   (define parse parse1))
 
 (define-unit parser@
-  (import (only parse^    parse))
+  (import
+   (only   parse^    parse))
   (export parser^)
 
   (define parser parse))

@@ -3,6 +3,7 @@
  "../../interpreter.rkt"
  ;"../../test/suites.rkt"
  (only-in "../../mix.rkt"               define-mixed-unit)
+ (only-in "../../misc.rkt"              union)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/phases/terms.rkt"
@@ -40,7 +41,7 @@
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (abs:==> -->)
   #:within-signatures [(only syntax^
-                             empty-ctx zip unzip add flip union in-hole
+                             empty-ctx zip unzip add flip in-hole
                              prune at-phase)
                        (only env^
                              init-env)
@@ -56,7 +57,7 @@
                        (only parse^    parse)]
 
   [(InEval (list stx_exp '• store_0)
-           (ζ (Stxξ ph (Stx #f ctx_i) ξ scps_p) '∘ κ0 Σ))
+           (ζ (Stxξ ph (Stx (Bool #f) ctx_i) ξ scps_p) '∘ κ0 Σ))
    #:when (or (equal? stx_exp val-⊤)
               (equal? stx_exp atom-⊤)
               (equal? stx_exp stx-⊤))

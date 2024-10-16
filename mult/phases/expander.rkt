@@ -2,6 +2,7 @@
 (require
  (only-in "../../set.rkt"                  set)
  (only-in "../../mix.rkt"                  define-mixed-unit)
+ (only-in "../../misc.rkt"                 union)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/phases/terms.rkt"
@@ -13,7 +14,7 @@
   #:within-signatures [(only domain^
                              val? stx? proper-stl?)
                        (only syntax^
-                             empty-ctx zip unzip add flip union in-hole
+                             empty-ctx zip unzip add flip in-hole
                              prune at-phase)
                        (only env^
                              init-env)

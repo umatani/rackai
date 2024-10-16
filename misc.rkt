@@ -2,7 +2,7 @@
 (require
  (for-syntax syntax/parse)
  "terms.rkt")
-(provide require&provide biggest-subset binding-lookup)
+(provide require&provide union subtract biggest-subset binding-lookup)
 
 (begin-for-syntax
   (define-syntax-class require-spec
@@ -21,6 +21,12 @@
          (require mod ...)
          (provide (all-from-out mod) ...))]))
 
+
+;; union : Scps Scps → Scps
+(define (union scps scps′) (set-union scps scps′))
+
+;; subtract : Scps Scps → Scps
+(define (subtract scps scps′) (set-subtract scps scps′))
 
 ; biggest-subset : Scps (Listof Scps) → Scps
 (define (biggest-subset scps_ref scpss)

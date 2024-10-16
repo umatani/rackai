@@ -1,10 +1,11 @@
 #lang racket
 (require
- (only-in "../../set.rkt" set)
- (only-in "../../mix.rkt" define-mixed-unit)
+ (only-in "../../set.rkt"  set)
+ (only-in "../../mix.rkt"  define-mixed-unit)
  "../../reduction.rkt"
  "../../signatures.rkt"
- "terms.rkt")
+ "terms.rkt"
+ (only-in "../../misc.rkt" union))
 (provide ==> expand/red@ expand@ expander@)
 
 ;; ==> : ζ -> (Setof ζ)
@@ -12,7 +13,7 @@
   #:within-signatures [(only domain^
                              val? stx? proper-stl?)
                        (only syntax^
-                             empty-ctx zip unzip add flip union in-hole
+                             empty-ctx zip unzip add flip in-hole
                              prune at-phase)
                        (only env^
                              init-env)
@@ -190,7 +191,7 @@
                      id_ls
                      (Stx (Lst (Stx (Lst id_new (Hole)) ctx_0)) ctx_1)
                      (Stxξ ph stx_body ξ)
-                     (Stx #f (list (cons ph (set scp_new)))))
+                     (add ph (Stx (Bool #f) (empty-ctx)) scp_new))
                 ctx)
            '∘ Σ*_0 𝓁_new)
        (Σ* Σ_4 (set) (set)))
@@ -200,7 +201,7 @@
                  (? id? id_ls)
                  (Stx (Lst (Stx (Lst (? id? id_new) stx_exp) ctx_0)) ctx_1)
                  (Stxξ ph stx_body ξ)
-                 (Stx #f ctx_new))
+                 (Stx (Bool #f) ctx_new))
             ctx) '∘ κ (Σ* Σ scps_p _))
    #:when (and (id=? ph id_kont '#%kont     ξ Σ)
                (id=? ph id_ls   'let-syntax ξ Σ))
@@ -213,7 +214,7 @@
                  '• (init-store) (Σ* Σ scps_p (set)))
            (ζ (Stx (Lst (Stx (Sym nam_new) (empty-ctx))
                          (Stxξ ph stx_body ξ)
-                         (Stx #f ctx_new))
+                         (Stx (Bool #f) ctx_new))
                     (empty-ctx)) '∘
                κ (Σ* Σ scps_p (set))))
    ex-ls-eval]
@@ -221,7 +222,7 @@
   [(InEval (list (? val? val) '• store_0 (Σ* Σ _ _))
            (ζ (Stx (Lst (Stx (Sym nam_new) _)
                          (Stxξ ph stx_body ξ)
-                         (Stx #f ctx_new))
+                         (Stx (Bool #f) ctx_new))
                     _) '∘ κ (Σ* _ scps_p _)))
    ;(printf "after eval: ~a\n" val)
    #:with scp_new   := (car (set->list (at-phase ctx_new ph)))
@@ -249,12 +250,12 @@
                           val (list stx_macapp2))
                   (init-env) scp_i ξ)
           '• (init-store) Σ*_1)
-    (ζ (Stxξ ph (Stx #f (list (cons ph (set scp_i)))) ξ)
+    (ζ (Stxξ ph (add ph (Stx (Bool #f) (empty-ctx)) scp_i) ξ)
         '∘ κ Σ*_1)) ;; Σ*_1 not used
    ex-macapp-eval]
 
   [(InEval (list (? stx? stx_exp) '• store_0 Σ*)
-           (ζ (Stxξ ph (Stx #f ctx_i) ξ) '∘ κ _))
+           (ζ (Stxξ ph (Stx (Bool #f) ctx_i) ξ) '∘ κ _))
    #:with scp_i := (car (set->list (at-phase ctx_i ph)))
    (ζ (Stxξ ph (flip ph stx_exp scp_i) ξ) '∘ κ Σ*)
    ex-macapp-flip]
