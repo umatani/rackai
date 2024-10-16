@@ -73,4 +73,3 @@
   (if (set-member? scps scp)
     (set-remove scps scp)
     (set-add scps scp)))
-

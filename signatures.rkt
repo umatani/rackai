@@ -14,12 +14,16 @@
 ;; ----------------------------------------
  ;; Continuation:
 (define-signature cont^
-  (push-cont ; Store Cont -> (Values Loc Store)
+  (push-cont ; Store Cont → (Values Loc Store)
    ))
 
 ;; for debug
 (define-signature debug^
-  (eval--> eval-->* expand==> expand==>*))
+  (eval-->
+   eval-->*
+   expand==>
+   expand==>*
+   ))
 
 ;; ----------------------------------------
 ;; Implementation of Domains:
@@ -27,7 +31,7 @@
   (delta       ; Prim (Listof Val) → Val
    α           ; Val → Val
    ≤a          ; (Setof Val) (Setof Val) → Boolean
-   val?        ; Ast → Boolean  TODO: move to syntax or remove?
+   val?        ; Ast → Boolean
    stx?        ; Val → Boolean
    stl?        ; Val → Boolean
    proper-stl? ; Val → Boolean
@@ -129,12 +133,12 @@
 ;; Store:
 (define-signature store^
   (init-store    ; → Store
-   lookup-store  ; Store Loc → (U Val Cont)
+   lookup-store  ; Store Loc              → (U Val Cont)
    update-store  ; Store Loc (U Val Cont) → Store
    update-store* ; Store (Listof Loc) (Listof (U Val Cont)) → Store
 
-   alloc-loc     ; Symbol Store -> (Values Loc Store)
-   alloc-loc*    ; (Listof Nam) Store -> (Values (Listof Loc) Store)
+   alloc-loc     ; Symbol       Store → (Values Loc          Store)
+   alloc-loc*    ; (Listof Nam) Store → (Values (Listof Loc) Store)
    ))
 
 ;; ----------------------------------------

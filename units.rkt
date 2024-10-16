@@ -2,4 +2,6 @@
 (require (only-in "misc.rkt" require&provide))
 
 (require&provide
- ["io-unit.rkt" io@])
+ ["cont-unit.rkt"  cont@ ]
+ ["io-unit.rkt"    io@   ]
+ ["mcont-unit.rkt" mcont@])
