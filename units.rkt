@@ -4,4 +4,5 @@
 (require&provide
  ["cont-unit.rkt"  cont@ ]
  ["io-unit.rkt"    io@   ]
- ["mcont-unit.rkt" mcont@])
+ ["mcont-unit.rkt" mcont@]
+ ["parser.rkt"     core-parser@ phases-parser@])

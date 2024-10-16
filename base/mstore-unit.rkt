@@ -10,46 +10,45 @@
 
 ;; ----------------------------------------
 ;; Expand-time store operations:
-;;   Σ       ::= Nam → (Setof StoBind)
-;;   StoBind ::= (StoBind (Setof Scp) Nam)
+;;   Σ       ::= Nat × Nam → (Setof StoBind)
+;;   StoBind ::= (StoBind Scps Nam)
 
-; init-Σ : -> Σ
+;; init-Σ : → Σ
 (define (init-Σ) (Σ 0 (make-immutable-hash)))
 
-; lookup-Σ : Σ Nam -> (Setof StoBind)
-;          : Σ 𝓁   -> (U Val ξ κ)
-(define (lookup-Σ Σ0 k)
-  (hash-ref (Σ-tbl Σ0) k (λ () (set))))
+;; lookup-Σ : Σ Nam → (Setof StoBind)
+;;          : Σ 𝓁   → (U Val ξ κ)
+(define (lookup-Σ Σ₀ k)
+  (hash-ref (Σ-tbl Σ₀) k (set)))
 
-; update-Σ : Σ Nam (Setof StoBind) -> Σ
-;          : Σ 𝓁   (U Val ξ κ)     -> Σ
-(define (update-Σ Σ0 k v)
-  (Σ (Σ-size Σ0)
-    (hash-set (Σ-tbl Σ0) k v)))
+;; update-Σ : Σ Nam (Setof StoBind) → Σ
+;;          : Σ 𝓁   (U Val ξ κ)     → Σ
+(define (update-Σ Σ₀ k v)
+  (Σ (Σ-size Σ₀)
+    (hash-set (Σ-tbl Σ₀) k v)))
 
 ;; ----------------------------------------
-;; Alloc name, scope, and 𝓁 helpers for expander:
+;; Alloc name, scope, and 𝓁 for expander:
 
-; alloc-name : Id Σ → (Values Nam Σ)
-(define (alloc-name id Σ0)
+;; alloc-name : Id Σ → (Values Nam Σ)
+(define (alloc-name id Σ₀)
   (match-let ([(Stx (Sym nam) _) id]
-              [(Σ size tbl) Σ0])
+              [(Σ size tbl) Σ₀])
     (values (string->symbol (format "~a:~a" nam size))
             (Σ (add1 size) tbl))))
 
-; alloc-scope : Symbol Σ → (Values Scp Σ)
-(define (alloc-scope s Σ0)
-  (match-let ([(Σ size tbl) Σ0])
+;; alloc-scope : Symbol Σ → (Values Scp Σ)
+(define (alloc-scope s Σ₀)
+  (match-let ([(Σ size tbl) Σ₀])
     (values (string->symbol (format "~a:~a" s size))
             (Σ (add1 size) tbl))))
 
-
-; alloc-𝓁 : Stx Σ → (Values 𝓁 Σ)
-;   - called from push-κ
-;   - called from alloc-def-ξ and alloc-box (full)
-;   - stx is used in abs for ensuring finiteness of the domain
-(define (alloc-𝓁 stx Σ0)
-  (match-let ([(Σ size tbl) Σ0])
-    (values ; (𝓁 (string->symbol (format "𝓁:~a:~a" stx size)))
-     (𝓁 (cons stx size)) 
+;; alloc-𝓁 : Stx Σ → (Values 𝓁 Σ)
+;;   - called from push-κ
+;;   - called from alloc-def-ξ and alloc-box (full)
+;;   - stx is used in abs for ensuring finiteness of the domain
+(define (alloc-𝓁 stx Σ₀)
+  (match-let ([(Σ size tbl) Σ₀])
+    (values
+     (𝓁 (cons stx size)) ; (𝓁 (string->symbol (format "𝓁:~a:~a" stx size)))
      (Σ (add1 size) tbl))))

@@ -6,12 +6,13 @@
 
 ;;;; runner
 
-(import (only       io^    reader printer)
+(import (only       io^    reader)
         (only expander^    expander)
         (only   parser^    parser)
         (only     eval^    evaluate))
 (export run^)
 
+;; run : δ Sexp Symbol → (Setof Val)
 (define (run delta form mode)
   (aborts (do stx := (reader form)
               #:abort-if (eq? mode 'read) (lst->list/recur (stx->datum stx))

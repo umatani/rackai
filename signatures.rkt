@@ -56,13 +56,15 @@
 ;; The expand:
 (define-signature expand^
   (==>    ; ζ → (Setof ζ)
-   expand ; Stx → (Cons Stx Σ)
+   expand ; δ    Stx ξ      Σ  → (Cons Stx Σ )      (core)
+          ; δ Ph Stx ξ Scps Σ  → (Cons Stx Σ )      (phases)
+          ; δ Ph Stx ξ      Σ* → (Cons Stx Σ*)      (full)
    ))
 
 ;; ----------------------------------------
 ;; The expander:
 (define-signature expander^
-  (expander
+  (expander ; δ Stx → (Cons Stx Σ)
    ))
 
 (define-signature id^
@@ -75,35 +77,34 @@
 
 ;;;; reader & printer
 (define-signature io^
-  (reader
-   printer
+  (reader  ; Sexp → Stx
+   printer ; Val → Sexp
    ))
 
 ;; ----------------------------------------
 ;; Expand-time call stack operations:
 (define-signature mcont^
-  (push-κ ; Σ κ -> (Values 𝓁 Σ)
+  (push-κ ; Σ κ → (Values 𝓁 Σ)
    ))
 
 ;; ----------------------------------------
 ;; Expand-time environment operations:
 (define-signature menv^
-  (init-ξ   ; -> ξ
-   lookup-ξ ; ξ Nam -> AllTransform
-   extend-ξ ; ξ Nam AllTransform -> ξ
+  (init-ξ   ; → ξ
+   lookup-ξ ; ξ Nam              → AllTransform
+   extend-ξ ; ξ Nam AllTransform → ξ
    ))
 
 (define-signature mstore^
   (;; ----------------------------------------
    ;; Expand-time store operations:
-   init-Σ   ; -> Σ
-   lookup-Σ ; Σ Nam -> (Setof StoBind)
-            ; Σ 𝓁   -> (U Val ξ κ)
-   update-Σ ; Σ Nam (Setof StoBind) -> Σ
-            ; Σ 𝓁   (U Val ξ κ)     -> Σ
-
+   init-Σ      ; → Σ
+   lookup-Σ    ; Σ Nam → (Setof StoBind)
+               ; Σ 𝓁   → (U Val ξ κ)
+   update-Σ    ; Σ Nam (Setof StoBind) → Σ
+               ; Σ 𝓁   (U Val ξ κ)     → Σ
    ;; ----------------------------------------
-   ;; Alloc name, scope, and 𝓁 helpers for expander:
+   ;; Alloc name, scope, and 𝓁 for expander:
    alloc-name  ; Id     Σ → (Values Nam Σ)
    alloc-scope ; Symbol Σ → (Values Scp Σ)
    alloc-𝓁     ; Stx    Σ → (Values 𝓁   Σ)
@@ -112,21 +113,24 @@
 ;; ----------------------------------------
 ;; Simple parsing of already-expanded code
 (define-signature parse^
-  (parse1 ;    Stx Σ → Ast                (core)
-          ; Ph Stx Σ → Ast                (phases, full)
-   parse* ;    Stl Σ → (Listof Ast)       (core)
-          ; Ph Stl Σ → (Listof Ast)       (phases, full)
-   parse  ;    Stx Σ → Ast                (core)
-          ; Ph Stx Σ → Ast                (phases, full)
+  (parse1 ;    Stx Σ → Ast                  (core)
+          ; Ph Stx Σ → Ast                  (phases, full)
+   parse* ;    Stl Σ → (Listof Ast)         (core)
+          ; Ph Stl Σ → (Listof Ast)         (phases, full)
+   parse  ;    Stx Σ → Ast                  (base/core)
+          ; Ph Stx Σ → Ast                  (base/phases, base/full)
+          ;    Stx Σ → (SetM Ast)           (mult/core)
+          ; Ph Stx Σ → (SetM Ast)           (phases, full)
    ))
 
 (define-signature parser^
-  (parser ; Stx Σ  → Ast
+  (parser ; Stx Σ → Ast                     (base)
+          ; Stx Σ → (SetM Ast)              (mult)
    ))
 
 ;;;; runner
 (define-signature run^
-  (run
+  (run ; δ Sexp Symbol → Val
    ))
 
 ;; ----------------------------------------

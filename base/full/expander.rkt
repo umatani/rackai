@@ -444,7 +444,7 @@
   
   (define (==> delta) (λ () (reducer (--> delta) :=)))
 
-  ; expand : Ph Stx ξ Σ* -> (Cons Stx Σ*)
+  ;; expand : δ Ph Stx ξ Σ* → (Cons Stx Σ*)
   (define (expand delta ph stx ξ Σ*)
     (define ==>d (==> delta))
     (let ([init-ζ (ζ (Stxξ ph stx ξ) '∘ '• Σ*)])
@@ -464,6 +464,7 @@
           (only expand^    expand))
   (export expander^)
 
+  ;; expander : δ Stx → (Cons Stx Σ)
   (define (expander delta stx)
     (match-let ([(cons stx′ (Σ* Σ _ _))
                  (expand delta 0 stx (init-ξ) (Σ* (init-Σ) (set) (set)))])

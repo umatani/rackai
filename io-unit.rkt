@@ -9,6 +9,7 @@
 (import (only syntax^    empty-ctx))
 (export io^)
 
+;; reader : Sexp → Stx
 (define reader
   (letrec
       ([read-stx

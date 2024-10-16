@@ -368,7 +368,7 @@
 
   (define (==> delta) (reducer (--> delta) :=))
 
-  ; expand : Stx ξ Σ -> (Cons Stx Σ)
+  ;; expand : δ Stx ξ Σ → (Cons Stx Σ)
   (define (expand delta stx0 ξ Σ)
     (define ==>d (==> delta))
     (let ([init-ζ (ζ (Stxξ stx0 ξ) '∘ '• Σ)])
@@ -377,10 +377,10 @@
         (cons stx_new Σ_new)))))
 
 (define-compound-unit/infer expand@
-  (import domain^ syntax^ env^ store^ eval^ menv^ mstore^
-          mcont^ bind^ id^ parse^)
+  (import domain^ syntax^ env^ store^ eval^
+          menv^ mstore^ mcont^ bind^ id^ parse^)
   (export expand^)
-  (link expand/red@ red@))
+  (link   expand/red@ red@))
 
 (define-unit expander@
   (import (only   menv^    init-ξ)
@@ -388,5 +388,6 @@
           (only expand^    expand))
   (export expander^)
 
+  ;; expander : δ Stx → (Cons Stx Σ)
   (define (expander delta stx)
     (expand delta stx (init-ξ) (init-Σ))))
