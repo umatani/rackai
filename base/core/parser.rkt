@@ -5,7 +5,7 @@
  "terms.rkt")
 (provide parse@ parser@)
 
-(define-unit parse@
+[define-unit parse@
   (import
    (only domain^    proper-stl?)
    (only syntax^    unzip strip)
@@ -79,7 +79,7 @@
        (list (parse1 stx Σ))]))
 
   ;; parse : Stx Σ → Ast
-  (define parse parse1))
+  (define parse parse1)]
 
 (define-unit parser@
   (import
