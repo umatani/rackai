@@ -223,12 +223,3 @@
     [(Pair? stl) (Pair (stx->datum (Pair-a stl))
                        (stl->datum (Pair-d stl)))]
     [else stl]))
-
-
-;; models
-
-(module* core racket
-  (require (submod "terms.rkt" phases)))
-
-(module* phases racket)
-
