@@ -28,9 +28,9 @@
 ;; ----------------------------------------
 ;; Implementation of Domains:
 (define-signature domain^
-  (delta       ; Prim (Listof Val) → Val
+  (δ           ; Prim (Listof Val) → Val
    α           ; Val → Val
-   ≤a          ; (Setof Val) (Setof Val) → Boolean
+   ≤ₐ          ; (Setof Val) (Setof Val) → Boolean
    val?        ; Ast → Boolean
    stx?        ; Val → Boolean
    stl?        ; Val → Boolean

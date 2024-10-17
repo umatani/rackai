@@ -9,7 +9,7 @@
 (provide --> red@ eval/red@ eval@)
 
 ;; --> : State -> (Setof State)
-(define-reduction (--> delta ==>) #:super (base:--> delta ==> <-)
+(define-reduction (--> δ ==>) #:super (base:--> δ ==> <-)
   #:within-signatures [(only domain^
                              val? stx?)
                        (only syntax^
@@ -67,11 +67,11 @@
   (export eval^)
 
   ;; --> : δ → → State → (Setof State)
-  (define (--> delta) (λ () (reducer delta (==> delta))))
+  (define (--> δ) (λ () (reducer δ (==> δ))))
 
   ;; eval : Ph Ast MaybeScp ξ Σ* → (SetM (Cons Val Σ*))
-  (define (eval delta ph ast maybe-scp_i ξ Σ*)
-    (define -->d (--> delta))
+  (define (eval δ ph ast maybe-scp_i ξ Σ*)
+    (define -->d (--> δ))
     (do `(,(? val? val) • ,_store ,Σ*_2) <- (lift
                                              (apply-reduction-relation*
                                               (-->d)
@@ -81,8 +81,8 @@
         (pure (cons val Σ*_2))))
 
   ;; evaluate : Ast → (SetM Val)
-  (define (evaluate delta ast)
-    (do (cons val _Σ*) <- (eval delta 0 ast 'no-scope (init-ξ)
+  (define (evaluate δ ast)
+    (do (cons val _Σ*) <- (eval δ 0 ast 'no-scope (init-ξ)
                                 (Σ* (init-Σ) (set) (set)))
         (pure val))))
 

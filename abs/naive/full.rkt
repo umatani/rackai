@@ -20,7 +20,7 @@
 
 ;;;; Eval
 
-(define-reduction (--> delta ==>) #:super (mult:--> delta ==>)
+(define-reduction (--> δ ==>) #:super (mult:--> δ ==>)
   #:within-signatures [(only syntax^
                              add flip prune)
                        (only env^
@@ -172,7 +172,7 @@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export domain^ run^ debug^))
 
-(define interp (interpreter 'naive:full run delta α ≤a #f))
+(define interp (interpreter 'naive:full run δ α ≤ₐ #f))
 
 (define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
   (apply-interpreter interp form mode))
@@ -180,7 +180,7 @@
 
 #;
 (define (main [mode 'check])
-  (run-suite run delta (suite 'core)   mode α ≤a)
-  (run-suite run delta (suite 'finite)   mode α ≤a)
-  (run-suite run delta (suite 'phases) mode α ≤a)
-  (run-suite run delta (suite 'full)   mode α ≤a))
+  (run-suite run δ (suite 'core)   mode α ≤ₐ)
+  (run-suite run δ (suite 'finite)   mode α ≤ₐ)
+  (run-suite run δ (suite 'phases) mode α ≤ₐ)
+  (run-suite run δ (suite 'full)   mode α ≤ₐ))

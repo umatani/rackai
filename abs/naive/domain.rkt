@@ -37,14 +37,14 @@
   (export domain^)
   
   (define (α vs) vs)
-  (define (≤a vs1 vs2)
+  (define (≤ₐ vs1 vs2)
     (define vs1* (set->list vs1))
     (define vs2* (set->list vs2))
     (define (∈a v1) (ormap (λ (v2) (≤e v1 v2)) vs2*))
     (andmap ∈a vs1*))
 
-  ; delta : Prim (Listof Val) -> (SetM Val)
-  (define (delta p vs)
+  ; δ : Prim (Listof Val) -> (SetM Val)
+  (define (δ p vs)
     (match* (p vs)
       [((Prim (? (λ (op) (or (eq? op '+) (eq? op '*)))) _)
         (list (Num ns) ...))

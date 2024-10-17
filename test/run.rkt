@@ -28,13 +28,13 @@
 ;;;; Base evaluator
 ;;;;   base-eval: Sexp → (Setof Val)
 (define (base-eval form)
-  (match-define (interpreter _ run delta _ _ _) base:interp)
-  (set (run delta form 'eval)))
+  (match-define (interpreter _ run δ _ _ _) base:interp)
+  (set (run δ form 'eval)))
 
 
 ;;;; Example runner
 (define (runner form interp mode)
-  (match-define (interpreter _name run delta α ≤α rslt) interp)
+  (match-define (interpreter _name run δ α ≤α rslt) interp)
   (case mode
     [(raw) (lst->list/recur (raw-eval form))]
     [(check check-with-raw)
@@ -49,13 +49,13 @@
                                  (λ (e)
                                    (printf "error in opponent: ~a\n" e))])
                   (opponent form))]
-             [a (α (run delta form 'eval))])
+             [a (α (run δ form 'eval))])
          (cond
            [(and (≤α c a)
                  (≤α a c)) (hash-update! rslt 'exact   add1) 'exact]
            [(≤α c a)       (hash-update! rslt 'inexact add1) 'inexact]
            [else           (hash-update! rslt 'unsound add1) 'unsound])))]
-    [else (lst->list/recur (run delta form mode))]))
+    [else (lst->list/recur (run δ form mode))]))
 
 (define (run-examples examples interp mode)
   (for ([example (in-list examples)])

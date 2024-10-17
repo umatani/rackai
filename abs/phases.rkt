@@ -105,7 +105,7 @@
   (import) (export domain^ run^ debug^))
 
 
-(define interp (interpreter 'abs:phases run delta α ≤a #f))
+(define interp (interpreter 'abs:phases run δ α ≤ₐ #f))
 
 (define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
   (apply-interpreter interp form mode))
@@ -113,8 +113,8 @@
 ;; run example
 #;
 (define (main [mode 'check])
-  (run-suite run delta (suite 'core)   mode α ≤a)
-  (run-suite run delta (suite 'phases) mode α ≤a))
+  (run-suite run δ (suite 'core)   mode α ≤ₐ)
+  (run-suite run δ (suite 'phases) mode α ≤ₐ))
 
 (module+ test1
   (process '(let ([z 1])

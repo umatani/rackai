@@ -11,8 +11,8 @@
 ;; Evaluating AST:
 ;;   State ::= (List (U AstEnv Val) Cont Store)
 
-;; (--> delta :=<1>) : State → (Setof State)
-(define-reduction (--> delta :=<1>)
+;; (--> δ :=<1>) : State → (Setof State)
+(define-reduction (--> δ :=<1>)
   #:within-signatures [(only domain^    val?)
                        (only    env^    lookup-env extend-env*)
                        (only  store^    lookup-store alloc-loc* update-store*)
@@ -72,9 +72,9 @@
   ;; primitive application
   [`(,(SApp _lbl vals '()) ,cnt ,sto)
    #:when (and (pair? vals) (Prim? (car vals)))
-   #:with val :=<1> (delta (car vals) (cdr vals))
+   #:with val :=<1> (δ (car vals) (cdr vals))
    `(,val ,cnt ,sto)
-   ev-delta]
+   ev-δ]
 
   ;; if
   [`(,(SIf lbl (? (λ (x) (not (val? x))) astenv)
@@ -107,12 +107,12 @@
   (inherit [red@            reducer])
 
   ; --> : δ → State → (Setof State)
-  (define (--> delta) (reducer delta :=))
+  (define (--> δ) (reducer δ :=))
 
   ; evaluate : δ Ast → Val
-  (define (evaluate delta ast)
-    (define -->d (--> delta))
+  (define (evaluate δ ast)
+    (define -->δ (--> δ))
     (match-let ([(set `(,(? val? v) • ,_store))
                  (apply-reduction-relation*
-                  -->d `(,(AstEnv ast (init-env)) • ,(init-store)))])
+                  -->δ `(,(AstEnv ast (init-env)) • ,(init-store)))])
       v)))

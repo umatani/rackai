@@ -13,18 +13,18 @@
 (export run^)
 
 ;; run : δ Sexp Symbol → (Setof Val)
-(define (run delta form mode)
+(define (run δ form mode)
   (aborts
    (do stx := (reader form)
        #:abort-if (eq? mode 'read) (lst->list/recur (stx->datum stx))
 
-       (cons stx′ Σ) <- (expander delta stx)
+       (cons stx′ Σ) <- (expander δ stx)
        #:abort-if (eq? mode 'expand) (lst->list/recur (stx->datum stx′))
 
        ast <- (parser stx′ Σ)
        #:abort-if (eq? mode 'parse) ast
 
-       val <- (evaluate delta ast)
+       val <- (evaluate δ ast)
        #:abort-if (eq? mode 'eval) val
 
        (error 'run "unknown mode: ~e" mode))))

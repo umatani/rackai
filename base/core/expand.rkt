@@ -367,14 +367,14 @@
   (inherit)
 
   ;; δ → ζ → (Setof ζ)
-  (define (==> delta) (reducer (--> delta) :=))
+  (define (==> δ) (reducer (--> δ) :=))
 
   ;; expand : δ Stx ξ Σ → (Cons Stx Σ)
-  (define (expand delta stx0 ξ Σ)
-    (define ==>d (==> delta))
+  (define (expand δ stx0 ξ Σ)
+    (define ==>δ (==> δ))
     (let ([init-ζ (ζ (Stxξ stx0 ξ) '∘ '• Σ)])
       (match-let ([(set (ζ stx_new '• '• Σ_new))
-                   (apply-reduction-relation* ==>d init-ζ)])
+                   (apply-reduction-relation* ==>δ init-ζ)])
         (cons stx_new Σ_new)))))
 
 (define-compound-unit/infer expand@

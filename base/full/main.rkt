@@ -14,7 +14,7 @@
          io@ run@ debug@))
   (import) (export domain^ run^ debug^))
 
-(define interp (interpreter 'base:full run delta α ≤a #f))
+(define interp (interpreter 'base:full run δ α ≤ₐ #f))
 
 (define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
   (apply-interpreter interp form mode))
@@ -24,7 +24,7 @@
 ;; comment-out to avoid cyclic dependency from test/run.rkt
 #;
 (define (main [mode 'check])
-  (run-suite run delta (suite 'core)   mode α set=? #;≤a)
-  (run-suite run delta (suite 'finite) mode α set=? #;≤a)
-  (run-suite run delta (suite 'phases) mode α set=? #;≤a)
-  (run-suite run delta (suite 'full)   mode α set=? #;≤a))
+  (run-suite run δ (suite 'core)   mode α set=? #;≤ₐ)
+  (run-suite run δ (suite 'finite) mode α set=? #;≤ₐ)
+  (run-suite run δ (suite 'phases) mode α set=? #;≤ₐ)
+  (run-suite run δ (suite 'full)   mode α set=? #;≤ₐ))

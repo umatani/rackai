@@ -66,13 +66,13 @@
   (export expand^)
   (inherit)
 
-  (define (==> delta) (λ () (reducer (--> delta))))
+  (define (==> δ) (λ () (reducer (--> δ))))
   
   ; expand : Ph Stx ξ Σ* → (SetM (Cons Stx Σ*))
-  (define (expand delta ph stx ξ Σ*)
-    (define ==>d   (==> delta))
+  (define (expand δ ph stx ξ Σ*)
+    (define ==>δ   (==> δ))
     (define init-ζ (ζ (Stxξ ph stx ξ) '∘ '• Σ*))
-    (do ζ₀ <- (lift (apply-reduction-relation* (==>d) init-ζ))
+    (do ζ₀ <- (lift (apply-reduction-relation* (==>δ) init-ζ))
         ;; set-baseにすることで stuck が生じる．
         ;; stuckの原因は，set-box!とbind-syntaxesがstoreへのassignmentで
         ;; あることによりstore中の値の多重化が生じること．

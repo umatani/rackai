@@ -18,26 +18,26 @@
 
 
 ; eval--> : Sexp → (Setof State)
-(define (eval--> delta form)
-  (results (do ast <- (lift (run delta form 'parse))
-               (lift ((--> delta)
+(define (eval--> δ form)
+  (results (do ast <- (lift (run δ form 'parse))
+               (lift ((--> δ)
                       `(,(AstEnv ast (init-env)) • ,(init-store)))))))
 
 ; eval-->* : Sexp -> (Setof State)
-(define (eval-->* delta form #:steps [steps #f])
-  (results (do ast <- (lift (run delta form 'parse))
+(define (eval-->* δ form #:steps [steps #f])
+  (results (do ast <- (lift (run δ form 'parse))
                (lift (apply-reduction-relation*
-                      (--> delta) `(,(AstEnv ast (init-env)) • ,(init-store))
+                      (--> δ) `(,(AstEnv ast (init-env)) • ,(init-store))
                       #:steps steps)))))
 
 ; expand==> : Sexp -> (Setof ζ)
-(define (expand==> delta form)
-  ((==> delta) (ζ (Stxξ (reader form) (init-ξ)) '∘ '• (init-Σ))))
+(define (expand==> δ form)
+  ((==> δ) (ζ (Stxξ (reader form) (init-ξ)) '∘ '• (init-Σ))))
 
 ; expand==>* : (->* (Sexp) (#:steps (Option Natural)) (Setof ζ))
-(define (expand==>* delta form #:steps [steps #f] #:compact [compact #t])
+(define (expand==>* δ form #:steps [steps #f] #:compact [compact #t])
   (let ([results (apply-reduction-relation*
-                  (==> delta)
+                  (==> δ)
                   (ζ (Stxξ (reader form) (init-ξ)) '∘ '• (init-Σ))
                   #:steps steps)])
     (if compact

@@ -14,8 +14,8 @@
           (only expand^    expand))
   (export expander^)
 
-  (define (expander delta stx)
-    (expand delta stx (init-ξ) (init-Σ))))
+  (define (expander δ stx)
+    (expand δ stx (init-ξ) (init-Σ))))
 
 
 (define-unit phases-expander@
@@ -24,8 +24,8 @@
           (only expand^    expand))
   (export expander^)
 
-  (define (expander delta stx)
-    (expand delta 0 stx (init-ξ) (set) (init-Σ))))
+  (define (expander δ stx)
+    (expand δ 0 stx (init-ξ) (set) (init-Σ))))
 
 
 (require "base/full/terms.rkt")
@@ -36,9 +36,9 @@
           (only expand^    expand))
   (export expander^)
 
-  (define (expander delta stx)
+  (define (expander δ stx)
     (match-let ([(cons stx′ (Σ* Σ _ _))
-                 (expand delta 0 stx (init-ξ) (Σ* (init-Σ) (set) (set)))])
+                 (expand δ 0 stx (init-ξ) (Σ* (init-Σ) (set) (set)))])
       (cons stx′ Σ))))
 
 (define-unit mult-full-expander@
@@ -47,7 +47,7 @@
           (only expand^    expand))
   (export expander^)
 
-  (define (expander delta stx)
-    (do (cons stx′ (Σ* Σ _ _)) <- (expand delta 0 stx (init-ξ)
+  (define (expander δ stx)
+    (do (cons stx′ (Σ* Σ _ _)) <- (expand δ 0 stx (init-ξ)
                                           (Σ* (init-Σ) (set) (set)))
         (pure (cons stx′ Σ)))))

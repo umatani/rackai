@@ -4,8 +4,8 @@
 (provide (struct-out interpreter)
          apply-interpreter)
 
-(struct interpreter (name run delta α ≤a [result #:mutable]) #:transparent)
+(struct interpreter (name run δ α ≤ₐ [result #:mutable]) #:transparent)
 
 (define (apply-interpreter interp form [mode 'check])
-  (match-define (interpreter _name run delta _α _≤a _rlt) interp)
-  (lst->list/recur (run delta form mode)))
+  (match-define (interpreter _name run δ _α _≤ₐ _rlt) interp)
+  (lst->list/recur (run δ form mode)))

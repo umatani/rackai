@@ -66,11 +66,11 @@
   (export eval^)
 
   ;; δ → State → (Setof State)
-  (define (--> delta) (reducer delta))
+  (define (--> δ) (reducer δ))
 
   ;; evaluate : Ast → (SetM Val)
-  (define (evaluate delta ast)
-    (define -->d (--> delta))
+  (define (evaluate δ ast)
+    (define -->d (--> δ))
 
     (do `(,val ,done? ,_store) <- (lift (apply-reduction-relation*
                                          -->d `(,(AstEnv ast (init-env))
@@ -127,7 +127,7 @@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export domain^ run^ debug^))
 
-(define interp (interpreter 'abs:core run delta α ≤a #f))
+(define interp (interpreter 'abs:core run δ α ≤ₐ #f))
 
 (define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
   (apply-interpreter interp form mode))
@@ -136,7 +136,7 @@
 ;; run example
 #;
 (define (main [mode 'check])
-  (run-suite run delta (suite 'core) mode α ≤a))
+  (run-suite run δ (suite 'core) mode α ≤ₐ))
 
 
 ;; alloc-nameのduplicate(衝突)への対策

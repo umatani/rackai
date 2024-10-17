@@ -14,7 +14,7 @@
          io@ run@ debug@))
   (import) (export domain^ run^ debug^))
 
-(define interp (interpreter 'base:phases run delta α ≤a #f))
+(define interp (interpreter 'base:phases run δ α ≤ₐ #f))
 
 (define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
   (apply-interpreter interp form mode))
@@ -22,6 +22,6 @@
 ;; run example
 #;
 (define (main [mode 'check])
-  (run-suite run delta (suite 'core)   mode α set=? #;≤a)
-  (run-suite run delta (suite 'finite) mode α set=? #;≤a)
-  (run-suite run delta (suite 'phases) mode α set=? #;≤a))
+  (run-suite run δ (suite 'core)   mode α set=? #;≤ₐ)
+  (run-suite run δ (suite 'finite) mode α set=? #;≤ₐ)
+  (run-suite run δ (suite 'phases) mode α set=? #;≤ₐ))

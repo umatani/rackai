@@ -16,7 +16,7 @@
   (inherit [base:domain@ val? stx? stl? proper-stl?])
 
   (define α  identity)
-  (define ≤a subset?)
+  (define ≤ₐ subset?)
 
   (define (plus . ns) (apply + ns))
   (define (minus n . ns) (apply - n ns))
@@ -26,8 +26,8 @@
   (define (num-eq n1 n2 . ns) (apply = n1 n2 ns))
   (define (sym-eq s1 s2) (eq? s1 s2))
 
-  ; delta : Prim (Listof Val) -> (SetM Val)
-  (define (delta p vs)
+  ; δ : Prim (Listof Val) -> (SetM Val)
+  (define (δ p vs)
     (match* (p vs)
       [((Prim '+ _) (list (Num ns) ...))
        (pure (Num (apply plus ns)))]
@@ -56,8 +56,8 @@
        (pure (Null))]
 
       [((Prim 'list _) (list v1 vs ...))
-       (do l <- (delta (Prim 'list #f) vs)
-           (delta (Prim 'cons #f) (list v1 l)))]
+       (do l <- (δ (Prim 'list #f) vs)
+           (δ (Prim 'cons #f) (list v1 l)))]
 
       [((Prim 'second _) (list (Pair _ (Pair v2 _))))
        (pure v2)]
@@ -78,9 +78,9 @@
 
       [((Prim 'datum->syntax _) (list (and stx (Stx _ ctx_0))
                                       (Pair v1 vs)))
-       (do s1 <- (delta (Prim 'datum->syntax #f) (list stx v1))
-           ss <- (delta (Prim 'datum->syntax #f) (list stx vs))
-           d  <- (delta (Prim 'syntax-e      #f) (list ss))
+       (do s1 <- (δ (Prim 'datum->syntax #f) (list stx v1))
+           ss <- (δ (Prim 'datum->syntax #f) (list stx vs))
+           d  <- (δ (Prim 'syntax-e      #f) (list ss))
            (pure (Stx (Pair s1 d) ctx_0)))]
 
       [((Prim 'datum->syntax _) (list (Stx _ ctx) (? Atom? atom)))

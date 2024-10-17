@@ -70,14 +70,14 @@
   (inherit)
   
   ;; ==> : δ → ζ → (Setof ζ)
-  (define (==> delta) (reducer (--> delta)))
+  (define (==> δ) (reducer (--> δ)))
 
   ; expand : Ph Stx ξ Scps Σ → (SetM (Cons Stx Σ))
-  (define (expand delta ph stx ξ scps_p Σ)
-    (define ==>d   (==> delta))
+  (define (expand δ ph stx ξ scps_p Σ)
+    (define ==>δ   (==> δ))
     (define init-ζ (ζ (Stxξ ph stx ξ scps_p) '∘ '• Σ))
     (do (ζ stx_new '• '• Σ_new) <- (lift
-                                    (apply-reduction-relation* ==>d init-ζ))
+                                    (apply-reduction-relation* ==>δ init-ζ))
 
         (pure (cons stx_new Σ_new)))))
 

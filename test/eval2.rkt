@@ -29,9 +29,9 @@
   (measure (eval sexp) repeat prof))
 
 (define lw-eval-no-cache
-  (match-let ([(interpreter _ run delta _ _ _) interp])
+  (match-let ([(interpreter _ run δ _ _ _) interp])
     (λ (sexp #:repeat repeat #:profile prof)
-      (measure (run delta sexp 'eval) repeat prof))))
+      (measure (run δ sexp 'eval) repeat prof))))
 
 (define (rx-eval-no-cache sexp #:repeat [repeat 1] #:profile [prof #t])
   (parameterize ([caching-enabled? #f]

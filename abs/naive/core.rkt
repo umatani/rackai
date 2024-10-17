@@ -18,7 +18,7 @@
 
 ;; Revise --> to interpret abstract values (val-⊤, stx-⊤, etc.)
 ;; --> : State -> (Setof State)
-(define-reduction (--> delta) #:super (mult:--> delta)
+(define-reduction (--> δ) #:super (mult:--> δ)
   #:within-signatures [(only env^
                              extend-env* lookup-env)
                        (only store^
@@ -111,7 +111,7 @@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export domain^ run^ debug^))
 
-(define interp (interpreter 'naive:core run delta α ≤a #f))
+(define interp (interpreter 'naive:core run δ α ≤ₐ #f))
 
 (define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
   (apply-interpreter interp form mode))
@@ -119,5 +119,5 @@
 ;;;; run example
 #;
 (define (main [mode 'check])
-  (run-suite run delta (suite 'core) mode α ≤a)
-  (run-suite run delta (suite 'finite) mode α ≤a))
+  (run-suite run δ (suite 'core) mode α ≤ₐ)
+  (run-suite run δ (suite 'finite) mode α ≤ₐ))

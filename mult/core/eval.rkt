@@ -11,7 +11,7 @@
 ;; Revised reduction rules
 
 ;; --> : State → (Setof State)
-(define-reduction (--> delta) #:super (base:--> delta <-)
+(define-reduction (--> δ) #:super (base:--> δ <-)
   #:within-signatures [(only domain^
                              val?)
                        (only env^
@@ -31,13 +31,13 @@
   (inherit [red@ reducer])
 
   ;; δ →   State → (Setof State)
-  (define (--> delta) (reducer delta))
+  (define (--> δ) (reducer δ))
 
   ;; evaluate : Ast → (SetM Val)
-  (define (evaluate delta ast)
-    (define -->d (--> delta))
+  (define (evaluate δ ast)
+    (define -->δ (--> δ))
     (do `(,(? val? val) • ,_store) <- (lift (apply-reduction-relation*
-                                             -->d
+                                             -->δ
                                              `(,(AstEnv ast (init-env))
                                                • ,(init-store))))
         (pure val))))

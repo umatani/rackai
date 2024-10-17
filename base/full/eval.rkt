@@ -9,7 +9,7 @@
 (provide --> eval@)
 
 ;; --> : State -> (Setof State)
-(define-reduction (--> delta ==> :=<1>)
+(define-reduction (--> δ ==> :=<1>)
   #:within-signatures [(only domain^    val? stx?)
                        (only syntax^    add flip prune)
                        (only    env^    init-env lookup-env extend-env*)
@@ -327,9 +327,9 @@
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ) vals '()) ,cont ,store ,Σ*)
    #:when (and (pair? vals) (Prim? (car vals))
                (not (stx-prim? (Prim-nam (car vals)))))
-   #:with val :=<1> (delta (car vals) (cdr vals))
+   #:with val :=<1> (δ (car vals) (cdr vals))
    `(,val ,cont ,store ,Σ*)
-   ev-delta]
+   ev-δ]
 
   ;; if
   [`(,(SIf lbl (? (λ (x) (not (val? x))) ser_test) tm_then tm_else)
@@ -371,19 +371,19 @@
   (inherit [red@ reducer])
 
   ;; δ → → State → (Setof State)
-  (define (--> delta) (λ () (reducer delta (==> delta) :=)))
+  (define (--> δ) (λ () (reducer δ (==> δ) :=)))
 
   ;; eval : Ph Ast MaybeScp ξ Σ* → (Values Val Σ*)
-  (define (eval delta ph ast maybe-scp_i ξ Σ*)
-    (define -->d (--> delta))
+  (define (eval δ ph ast maybe-scp_i ξ Σ*)
+    (define -->δ (--> δ))
     (match-let ([(set `(,(? val? val) • ,_store ,Σ*_2))
                  (apply-reduction-relation*
-                  (-->d) `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
+                  (-->δ) `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
                            • ,(init-store) ,Σ*))])
       (values val Σ*_2)))
 
   ;; evaluate : Ast → Val
-  (define (evaluate delta ast)
+  (define (evaluate δ ast)
     (call-with-values
-     (λ () (eval delta 0 ast 'no-scope (init-ξ) (Σ* (init-Σ) (set) (set))))
+     (λ () (eval δ 0 ast 'no-scope (init-ξ) (Σ* (init-Σ) (set) (set))))
      (λ (val Σ*) val))))
