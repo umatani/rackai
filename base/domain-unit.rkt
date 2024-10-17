@@ -3,7 +3,7 @@
  (only-in racket        identity)
  (only-in racket/match  match*)
  (only-in racket/pretty pretty-print)
- (only-in "../set.rkt"  subset?)
+ (only-in "../set.rkt"  set subset?)
  "../signatures.rkt"
  "../terms.rkt")
 
@@ -13,8 +13,8 @@
 ;; ----------------------------------------
 ;; Implementation of Domains:
 
-;; α : Val → Val
-(define α  identity)
+;; α : Val → (Setof Val)
+(define α  set)
 
 ;; ≤a : (Setof Val) (Setof Val) → Boolean
 (define ≤a subset?)

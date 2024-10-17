@@ -11,9 +11,9 @@
  (only-in "../mult/core/units.rkt"
           io@ cont@ mcont@ debug@ expander@ syntax@ domain@ env@ menv@ run@
           ev:red@ parse@ parser@ expand/red@ [bind@ mult:bind@] id@)
- (only-in "../mult/core/expander.rkt" [==> mult:==>])
- (only-in "alloc.rkt"                 store@ mstore@
-                                      biggest-subset binding-lookup))
+ (only-in "../mult/core/expand.rkt" [==> mult:==>])
+ (only-in "alloc.rkt"               store@ mstore@
+                                    biggest-subset binding-lookup))
 (provide syntax@ eval/red@ ==> main-minus@
          interp eval-->* expand==>*)
 
@@ -65,18 +65,19 @@
                 reducer))
   (export eval^)
 
+  ;; δ → State → (Setof State)
   (define (--> delta) (reducer delta))
 
-  ; evaluate : Ast -> (Setof Val)
+  ;; evaluate : Ast → (SetM Val)
   (define (evaluate delta ast)
     (define -->d (--> delta))
-    (match-let ([(set `(,val ,done? ,_store) ...)
-                 (apply-reduction-relation*
-                  -->d `(,(AstEnv ast (init-env)) • ,(init-store)))])
-      (list->set
-       (map car
-            (filter (λ (vd) (and (val? (car vd)) (eq? (cdr vd) '•)))
-                    (map cons val done?)))))))
+
+    (do `(,val ,done? ,_store) <- (lift (apply-reduction-relation*
+                                         -->d `(,(AstEnv ast (init-env))
+                                                • ,(init-store))))
+        (if (and (val? val) (eq? done? '•))
+          (pure val)
+          (lift (set))))))
 
 
 ;; ==> : ζ -> (Setof ζ)

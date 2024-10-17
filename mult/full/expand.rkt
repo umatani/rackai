@@ -5,8 +5,8 @@
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/full/terms.rkt"
- (only-in "../../base/full/expander.rkt" [==> base:==>]))
-(provide ==> red@ expand/red@ expand@ expander@)
+ (only-in "../../base/full/expand.rkt" [==> base:==>]))
+(provide ==> red@ expand/red@ expand@)
 
 (define-reduction (==> -->) #:super (base:==> --> <-)
   #:within-signatures [(only domain^
@@ -68,21 +68,19 @@
 
   (define (==> delta) (λ () (reducer (--> delta))))
   
-  ; expand : Ph Stx ξ Σ* -> (Setof (Cons Stx Σ*))
+  ; expand : Ph Stx ξ Σ* → (SetM (Cons Stx Σ*))
   (define (expand delta ph stx ξ Σ*)
-    (define ==>d (==> delta))
-    (let ([init-ζ (ζ (Stxξ ph stx ξ) '∘ '• Σ*)])
-      (define ζs (apply-reduction-relation* (==>d) init-ζ))
-      ;; set-baseにすることで stuck が生じる．
-      ;; stuckの原因は，set-box!とbind-syntaxesがstoreへのassignmentで
-      ;; あることによりstore中の値の多重化が生じること．
-      (define succs (filter (λ (ζ0)
-                              (and (not (InEval? ζ0))
-                                   (eq? (ζ-ex? ζ0) '•)))
-                            (set->list ζs)))
-      ;(printf "expand: ~a ~a\n" (set-count ζs) (length succs))
-      (match-let ([(list (ζ stx_new '• '• Σ*_new) ...) succs])
-        (list->set (map cons stx_new Σ*_new))))))
+    (define ==>d   (==> delta))
+    (define init-ζ (ζ (Stxξ ph stx ξ) '∘ '• Σ*))
+    (do ζ₀ <- (lift (apply-reduction-relation* (==>d) init-ζ))
+        ;; set-baseにすることで stuck が生じる．
+        ;; stuckの原因は，set-box!とbind-syntaxesがstoreへのassignmentで
+        ;; あることによりstore中の値の多重化が生じること．
+        (ζ stx_new '• '• Σ*_new) <- (if (and (not (InEval? ζ₀))
+                                             (eq? (ζ-ex? ζ₀) '•))
+                                      (pure ζ₀)
+                                      (lift (set)))
+        (pure (cons stx_new Σ*_new)))))
 
 (define-compound-unit/infer expand@
   (import domain^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^
@@ -90,13 +88,3 @@
   (export expand^)
   (link expand/red@ red@))
 
-(define-unit expander@
-  (import (only   menv^    init-ξ)
-          (only mstore^    init-Σ)
-          (only expand^    expand))
-  (export expander^)
-
-  (define (expander delta stx)
-    (list->set
-     (set-map (expand delta 0 stx (init-ξ) (Σ* (init-Σ) (set) (set)))
-              (match-λ [(cons stx′ (Σ* Σ _ _)) (cons stx′ Σ)])))))

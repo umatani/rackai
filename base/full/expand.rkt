@@ -6,7 +6,7 @@
  "../../signatures.rkt"
  "terms.rkt"
  (only-in "../../misc.rkt" union))
-(provide ==> expand/red@ expand@ expander@)
+(provide ==> expand/red@ expand@)
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> --> :=<1>)
@@ -442,6 +442,7 @@
   (export expand^)
   (inherit)
   
+  ;; δ → → ζ → (Setof ζ)
   (define (==> delta) (λ () (reducer (--> delta) :=)))
 
   ;; expand : δ Ph Stx ξ Σ* → (Cons Stx Σ*)
@@ -458,14 +459,3 @@
   (export expand^)
   (link expand/red@ red@))
 
-(define-unit expander@
-  (import (only   menv^    init-ξ)
-          (only mstore^    init-Σ)
-          (only expand^    expand))
-  (export expander^)
-
-  ;; expander : δ Stx → (Cons Stx Σ)
-  (define (expander delta stx)
-    (match-let ([(cons stx′ (Σ* Σ _ _))
-                 (expand delta 0 stx (init-ξ) (Σ* (init-Σ) (set) (set)))])
-      (cons stx′ Σ))))

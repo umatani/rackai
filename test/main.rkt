@@ -19,10 +19,10 @@
 
 (define interpreters
   (list
-   b:c:interp b:p:interp b:f:interp
-   m:c:interp m:p:interp m:f:interp
-   a:c:interp a:p:interp a:f:interp
-   n:c:interp n:p:interp n:f:interp
+   b:c:interp b:p:interp b:f:interp     ;; base
+   m:c:interp m:p:interp m:f:interp     ;; mult
+   a:c:interp a:p:interp a:f:interp     ;; abs
+   n:c:interp n:p:interp n:f:interp     ;; abs/naive
    ))
 
 (define test-suites

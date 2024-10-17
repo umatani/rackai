@@ -1,5 +1,7 @@
 #lang racket/unit
 (require
+ (only-in racket/match    match-let)
+ (only-in "../set.rkt"    set)
  (only-in "../nondet.rkt" aborts do :=)
  "../signatures.rkt"
  "../terms.rkt")
@@ -14,12 +16,20 @@
 
 ;; run : δ Sexp Symbol → Val
 (define (run delta form mode)
-  (aborts (do stx := (reader form)
-              #:abort-if (eq? mode 'read) (lst->list/recur (stx->datum stx))
-              (cons stx′ Σ) := (expander delta stx)
-              #:abort-if (eq? mode 'expand) (lst->list/recur (stx->datum stx′))
-              ast := (parser stx′ Σ)
-              #:abort-if (eq? mode 'parse) ast
-              val := (evaluate delta ast)
-              #:abort-if (eq? mode 'eval) val
-              (error 'run "unknown mode: ~e" mode))))
+  (match-let
+      ([(set v)
+        (aborts
+         (do stx := (reader form)
+             #:abort-if (eq? mode 'read) (lst->list/recur (stx->datum stx))
+
+             (cons stx′ Σ) := (expander delta stx)
+             #:abort-if (eq? mode 'expand) (lst->list/recur (stx->datum stx′))
+
+             ast := (parser stx′ Σ)
+             #:abort-if (eq? mode 'parse) ast
+
+             val := (evaluate delta ast)
+             #:abort-if (eq? mode 'eval) val
+
+             (error 'run "unknown mode: ~e" mode)))])
+    v))

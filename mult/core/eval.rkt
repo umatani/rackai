@@ -30,12 +30,14 @@
   (export  eval^)
   (inherit [red@ reducer])
 
+  ;; δ →   State → (Setof State)
   (define (--> delta) (reducer delta))
 
-  ; evaluate : Ast → (Setof Val)
+  ;; evaluate : Ast → (SetM Val)
   (define (evaluate delta ast)
     (define -->d (--> delta))
-    (match-let ([(set `(,(? val? val) • ,_store) ...)
-                 (apply-reduction-relation*
-                  -->d `(,(AstEnv ast (init-env)) • ,(init-store)))])
-      (list->set val))))
+    (do `(,(? val? val) • ,_store) <- (lift (apply-reduction-relation*
+                                             -->d
+                                             `(,(AstEnv ast (init-env))
+                                               • ,(init-store))))
+        (pure val))))

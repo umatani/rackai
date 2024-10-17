@@ -5,7 +5,7 @@
  (only-in "../../mix.rkt" define-mixed-unit)
  "../../signatures.rkt"
  "terms.rkt")
-(provide ==> red@ expand/red@ expand@ expander@)
+(provide ==> red@ expand/red@ expand@)
 
 ;; ----------------------------------------
 ;; The expander:
@@ -366,6 +366,7 @@
   (export expand^)
   (inherit)
 
+  ;; δ → ζ → (Setof ζ)
   (define (==> delta) (reducer (--> delta) :=))
 
   ;; expand : δ Stx ξ Σ → (Cons Stx Σ)
@@ -382,12 +383,3 @@
   (export expand^)
   (link   expand/red@ red@))
 
-(define-unit expander@
-  (import (only   menv^    init-ξ)
-          (only mstore^    init-Σ)
-          (only expand^    expand))
-  (export expander^)
-
-  ;; expander : δ Stx → (Cons Stx Σ)
-  (define (expander delta stx)
-    (expand delta stx (init-ξ) (init-Σ))))

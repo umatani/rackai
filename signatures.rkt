@@ -48,31 +48,38 @@
 ;; ----------------------------------------
 ;; Evaluating AST:
 (define-signature eval^
-  (-->      ; δ → State → (Setof State)
-   evaluate ; δ Ast → Val
+  (-->      ; δ →   State → (Setof State)                  (core, phases)
+            ; δ → → State → (Setof State)                  (full)
+   evaluate ; δ Ast → Val                                  (base)
+            ; δ Ast → (SetM Val)                           (mult)
    ))
 
 ;; ----------------------------------------
 ;; The expand:
 (define-signature expand^
-  (==>    ; ζ → (Setof ζ)
-   expand ; δ    Stx ξ      Σ  → (Cons Stx Σ )      (core)
-          ; δ Ph Stx ξ Scps Σ  → (Cons Stx Σ )      (phases)
-          ; δ Ph Stx ξ      Σ* → (Cons Stx Σ*)      (full)
+  (==>      ; δ →   ζ → (Setof ζ)                          (core, phases)
+            ; δ → → ζ → (Setof ζ)                          (full)
+   expand   ; δ    Stx ξ      Σ  →       (Cons Stx Σ )     (base/core)
+            ; δ Ph Stx ξ Scps Σ  →       (Cons Stx Σ )     (base/phases)
+            ; δ Ph Stx ξ      Σ* →       (Cons Stx Σ*)     (base/full)
+            ; δ    Stx ξ      Σ  → (SetM (Cons Stx Σ ))    (mult/core)
+            ; δ Ph Stx ξ Scps Σ  → (SetM (Cons Stx Σ ))    (mult/phases)
+            ; δ Ph Stx ξ      Σ* → (SetM (Cons Stx Σ*))    (mult/full)
    ))
 
 ;; ----------------------------------------
 ;; The expander:
 (define-signature expander^
-  (expander ; δ Stx → (Cons Stx Σ)
+  (expander ; δ Stx →       (Cons Stx Σ)                   (base)
+            ; δ Stx → (SetM (Cons Stx Σ))                  (mult)
    ))
 
 (define-signature id^
-  (id=?       ;    Id Nam   Σ → Boolean       (core)
-              ; Ph Id Nam   Σ → Boolean       (phases)
-              ; Ph Id Nam ξ Σ → Boolean       (full)
-   core-form? ;       Nam   Σ → Id → Boolean  (core)
-              ; Ph    Nam   Σ → Id → Boolean  (phases, full)
+  (id=?       ;    Id Nam   Σ → Boolean                    (core)
+              ; Ph Id Nam   Σ → Boolean                    (phases)
+              ; Ph Id Nam ξ Σ → Boolean                    (full)
+   core-form? ;       Nam   Σ → Id → Boolean               (core)
+              ; Ph    Nam   Σ → Id → Boolean               (phases, full)
    ))
 
 ;;;; reader & printer
@@ -113,24 +120,25 @@
 ;; ----------------------------------------
 ;; Simple parsing of already-expanded code
 (define-signature parse^
-  (parse1 ;    Stx Σ → Ast                  (core)
-          ; Ph Stx Σ → Ast                  (phases, full)
+  (parse1 ;    Stx Σ →         Ast          (core)
+          ; Ph Stx Σ →         Ast          (phases, full)
    parse* ;    Stl Σ → (Listof Ast)         (core)
           ; Ph Stl Σ → (Listof Ast)         (phases, full)
-   parse  ;    Stx Σ → Ast                  (base/core)
-          ; Ph Stx Σ → Ast                  (base/phases, base/full)
+   parse  ;    Stx Σ →       Ast            (base/core)
+          ; Ph Stx Σ →       Ast            (base/phases, base/full)
           ;    Stx Σ → (SetM Ast)           (mult/core)
-          ; Ph Stx Σ → (SetM Ast)           (phases, full)
+          ; Ph Stx Σ → (SetM Ast)           (mult/phases, mult/full)
    ))
 
 (define-signature parser^
-  (parser ; Stx Σ → Ast                     (base)
+  (parser ; Stx Σ →       Ast               (base)
           ; Stx Σ → (SetM Ast)              (mult)
    ))
 
 ;;;; runner
 (define-signature run^
-  (run ; δ Sexp Symbol → Val
+  (run ; δ Sexp Symbol →        Val         (base)
+       ; δ Sexp Symbol → (Setof Val)        (mult)
    ))
 
 ;; ----------------------------------------
@@ -141,7 +149,7 @@
    update-store  ; Store Loc (U Val Cont) → Store
    update-store* ; Store (Listof Loc) (Listof (U Val Cont)) → Store
 
-   alloc-loc     ; Symbol       Store → (Values Loc          Store)
+   alloc-loc     ; Symbol       Store → (Values         Loc  Store)
    alloc-loc*    ; (Listof Nam) Store → (Values (Listof Loc) Store)
    ))
 

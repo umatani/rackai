@@ -66,22 +66,25 @@
                 reducer))
   (export eval^)
 
+  ;; --> : δ → → State → (Setof State)
   (define (--> delta) (λ () (reducer delta (==> delta))))
 
-  ; eval : Ph Ast MaybeScp ξ Σ* -> (Setof (Cons Val Σ*))
+  ;; eval : Ph Ast MaybeScp ξ Σ* → (SetM (Cons Val Σ*))
   (define (eval delta ph ast maybe-scp_i ξ Σ*)
     (define -->d (--> delta))
-    (match-let ([(set `(,(? val? val) • ,_store ,Σ*_2) ...)
-                 (apply-reduction-relation*
-                  (-->d) `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
-                           • ,(init-store) ,Σ*))])
-      (list->set (map cons val Σ*_2))))
+    (do `(,(? val? val) • ,_store ,Σ*_2) <- (lift
+                                             (apply-reduction-relation*
+                                              (-->d)
+                                              `(,(AstEnv ph ast (init-env)
+                                                         maybe-scp_i ξ)
+                                                • ,(init-store) ,Σ*)))
+        (pure (cons val Σ*_2))))
 
-  ; evaluate : Ast -> (Setof Val)
+  ;; evaluate : Ast → (SetM Val)
   (define (evaluate delta ast)
-    (for/set ([val+Σ* (in-set (eval delta 0 ast 'no-scope (init-ξ)
-                                     (Σ* (init-Σ) (set) (set))))])
-      (car val+Σ*))))
+    (do (cons val _Σ*) <- (eval delta 0 ast 'no-scope (init-ξ)
+                                (Σ* (init-Σ) (set) (set)))
+        (pure val))))
 
 (define-compound-unit/infer eval@
   (import domain^ syntax^ env^ store^ cont^ menv^ mstore^ bind^ expand^ parse^)

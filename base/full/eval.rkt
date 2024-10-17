@@ -361,26 +361,19 @@
 (define-unit-from-reduction red@ -->)
 
 (define-mixed-unit eval@
-  (import (only domain^
-                val?)
-          (only env^
-                init-env)
-          (only store^
-                init-store)
-          (only menv^
-                init-ξ)
-          (only mstore^
-                init-Σ)
-          (only expand^
-                ==>))
+  (import (only domain^    val?)
+          (only    env^    init-env)
+          (only  store^    init-store)
+          (only   menv^    init-ξ)
+          (only mstore^    init-Σ)
+          (only expand^    ==>))
   (export eval^)
   (inherit [red@ reducer])
 
-  ;(use-terms AstEnv Σ*)
-
+  ;; δ → → State → (Setof State)
   (define (--> delta) (λ () (reducer delta (==> delta) :=)))
 
-  ; eval : Ph Ast MaybeScp ξ Σ* -> (Values Val Σ*)
+  ;; eval : Ph Ast MaybeScp ξ Σ* → (Values Val Σ*)
   (define (eval delta ph ast maybe-scp_i ξ Σ*)
     (define -->d (--> delta))
     (match-let ([(set `(,(? val? val) • ,_store ,Σ*_2))
@@ -389,7 +382,7 @@
                            • ,(init-store) ,Σ*))])
       (values val Σ*_2)))
 
-  ; evaluate : Ast -> Val
+  ;; evaluate : Ast → Val
   (define (evaluate delta ast)
     (call-with-values
      (λ () (eval delta 0 ast 'no-scope (init-ξ) (Σ* (init-Σ) (set) (set))))

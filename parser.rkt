@@ -3,8 +3,7 @@
  "signatures.rkt")
 (provide core-parser@ phases-parser@)
 
-
-;; parser : Stx Σ → Ast           (base)
+;; parser : Stx Σ →       Ast     (base)
 ;;          Stx Σ → (SetM Ast)    (mult)
 
 (define-unit core-parser@

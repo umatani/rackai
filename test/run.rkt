@@ -13,7 +13,7 @@
 (use-terms Bool Num Sym Null Pair)
 
 ;;;; Host evaluater for checking
-;; raw-eval: Sexp -> (Setof Val)
+;; raw-eval: Sexp → (Setof Val)
 (define (raw-eval form)
   (define (r->v raw)
     (match raw
@@ -26,10 +26,10 @@
                                       (λ args args))))))
 
 ;;;; Base evaluator
-;;;;   base-eval: Sexp -> (Setof Val)
+;;;;   base-eval: Sexp → (Setof Val)
 (define (base-eval form)
   (match-define (interpreter _ run delta _ _ _) base:interp)
-  (run delta form 'eval))
+  (set (run delta form 'eval)))
 
 
 ;;;; Example runner
@@ -45,11 +45,11 @@
      (with-handlers ([exn:fail? (λ (_)
                                   (hash-update! rslt 'fail add1)
                                   'fail)])
-       (let ([c (α (with-handlers ([exn:fail?
-                                    (λ (e)
-                                      (printf "error in opponent: ~a\n" e))])
-                     (opponent form)))]
-             [a (run delta form 'eval)])
+       (let ([c (with-handlers ([exn:fail?
+                                 (λ (e)
+                                   (printf "error in opponent: ~a\n" e))])
+                  (opponent form))]
+             [a (α (run delta form 'eval))])
          (cond
            [(and (≤α c a)
                  (≤α a c)) (hash-update! rslt 'exact   add1) 'exact]

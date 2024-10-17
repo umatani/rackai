@@ -12,11 +12,11 @@
           io@ cont@ mcont@ debug@ syntax@ expander@ domain@ env@ menv@ run@
           parse@ parser@ expand/red@
           [bind@ mult:bind@] id@)
- (only-in "../mult/core/units.rkt"      ev:red@)
- (only-in "../mult/phases/expander.rkt" [==> mult:==>])
- (only-in "alloc.rkt"                   store@ mstore@
-                                        biggest-subset binding-lookup)
- (only-in "core.rkt"                    eval/red@))
+ (only-in "../mult/core/units.rkt"    ev:red@)
+ (only-in "../mult/phases/expand.rkt" [==> mult:==>])
+ (only-in "alloc.rkt"                 store@ mstore@
+                                      biggest-subset binding-lookup)
+ (only-in "core.rkt"                  eval/red@))
 (provide bind@ syntax@ ==> main-minus@ interp)
 
 (define-mixed-unit bind@
