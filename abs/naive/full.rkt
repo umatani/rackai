@@ -1,7 +1,7 @@
 #lang racket
 (require
  "../../interpreter.rkt"
- ;"../../test/suites.rkt"
+ "../../test/suites.rkt"
  (only-in "../../mix.rkt"              define-mixed-unit)
  (only-in "../../misc.rkt"             union)
  "../../reduction.rkt"
@@ -172,15 +172,12 @@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export domain^ run^ debug^))
 
-(define interp (interpreter 'naive:full run δ α ≤ₐ #f))
+(define interp (interpreter run δ α ≤ₐ))
 
-(define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
-  (apply-interpreter interp form mode))
-
-
-#;
-(define (main [mode 'check])
-  (run-suite run δ (suite 'core)   mode α ≤ₐ)
-  (run-suite run δ (suite 'finite)   mode α ≤ₐ)
-  (run-suite run δ (suite 'phases) mode α ≤ₐ)
-  (run-suite run δ (suite 'full)   mode α ≤ₐ))
+;; run suites
+(require (for-syntax racket/list))
+(define (test)
+  (run-suite 'core   interp)
+  (run-suite 'phases interp)
+  (run-suite 'full   interp)
+  (run-suite 'finite interp))

@@ -6,9 +6,8 @@
 (define-match-expander set
   (syntax-rules (... ...)
     [(set p ... q (... ...))
-     (and (app set->list (list-no-order p ... q (... ...)))
-          #;(app (λ (_) (list->set qs)) q)
-          )]
+     (and (app set->list (list-no-order p ... qs (... ...)))
+          (app (λ (_) (list->set qs)) q))]
     [(set p ...)
      (app set->list (list-no-order p ...))])
   (syntax-id-rules ()

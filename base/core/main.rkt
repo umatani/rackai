@@ -1,7 +1,7 @@
 #lang racket
 (require
  "../../interpreter.rkt"
- ;;"../../test/suites.rkt"
+ (only-in "../../test/suites.rkt" get-suite get-a-test run-suite run-a-test)
  "../../signatures.rkt"
  "units.rkt")
 (provide interp)
@@ -14,13 +14,10 @@
          io@ run@ debug@))
   (import) (export domain^ run^ debug^))
 
-(define interp (interpreter 'base:core run δ α ≤ₐ #f))
+(define interp (interpreter run δ α ≤ₐ))
 
-(define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
-  (apply-interpreter interp form mode))
-
-;; run examples
-#;
-(define (main [mode 'check])
-  (run-suite (suite 'core)   interp mode)
-  (run-suite (suite 'finite) interp mode))
+;; run suites
+(require (for-syntax racket/list))
+(define (test)
+  (run-suite 'core   interp)
+  (run-suite 'finite interp))

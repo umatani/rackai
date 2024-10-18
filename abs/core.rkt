@@ -1,9 +1,9 @@
 #lang racket
 (require
  "../interpreter.rkt"
- ;"../test/suites.rkt"
- (only-in "../set.rkt"                set)
- (only-in "../mix.rkt"                define-mixed-unit)
+ "../test/suites.rkt"
+ (only-in "../set.rkt"              set)
+ (only-in "../mix.rkt"              define-mixed-unit)
  "../reduction.rkt"
  "../signatures.rkt"
  "../base/core/terms.rkt"
@@ -127,16 +127,13 @@
          (() expand/red@ ex) (([ex : red^]) ex:red@)))
   (import) (export domain^ run^ debug^))
 
-(define interp (interpreter 'abs:core run δ α ≤ₐ #f))
+(define interp (interpreter run δ α ≤ₐ))
 
-(define (process form [mode 'eval]) ;; mode = read/expand/parse/eval
-  (apply-interpreter interp form mode))
+;; run suites
+(require (for-syntax racket/list))
+(define (test)
+  (run-suite 'core   interp))
 
-
-;; run example
-#;
-(define (main [mode 'check])
-  (run-suite run δ (suite 'core) mode α ≤ₐ))
 
 
 ;; alloc-nameのduplicate(衝突)への対策

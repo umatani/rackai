@@ -1,7 +1,7 @@
 #lang racket/unit
 (require
  (only-in racket/match    match)
- (only-in "../../set.rkt" set)
+ (only-in "../../set.rkt" set list->set)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "terms.rkt")
@@ -16,30 +16,13 @@
         (only run^       run))
 (export debug^)
 
-; eval--> : Sexp -> (Setof State)
-(define (eval--> δ form)
-  (define -->d (--> δ))
-  (results (do ast <- (lift (run δ form 'parse))
-               (lift ((-->d)
-                      `(,(AstEnv 0 ast (init-env) 'no-scope (init-ξ))
-                        • ,(init-store) ,(Σ* (init-Σ) (set) (set))))))))
-
-; eval-->* : Sexp -> (Setof State)
-(define (eval-->* δ form #:steps [steps #f])
-  (define -->d (--> δ))
-  (results (do ast <- (lift (run δ form 'parse))
-               (lift (apply-reduction-relation*
-                      (-->d) `(,(AstEnv 0 ast (init-env) 'no-scope (init-ξ))
-                               • ,(init-store) ,(Σ* (init-Σ) (set) (set)))
-                      #:steps steps)))))
-
-; expand==> : Sexp -> (Setof ζ)
+;; expand==> : δ Sexp → (Setof ζ)
 (define (expand==> δ form)
   (define ==>d (==> δ))
   ((==>d)
    (ζ (Stxξ 0 (reader form) (init-ξ)) '∘ '• (Σ* (init-Σ) (set) (set)))))
 
-; expand==>* : (->* (Sexp) (#:steps (Option Natural)) (Setof ζ))
+;; expand==>* : δ Sexp → (Setof ζ)
 (define (expand==>* δ form #:steps [steps #f] #:compact [compact #t])
   (define ==>δ (==> δ))
   (let ([results (apply-reduction-relation*
@@ -50,5 +33,23 @@
     (if compact
         (match results
           [(set (ζ stx ex? _ _) ...)
-           (map cons (map (compose1 lst->list/recur stx->datum) stx) ex?)])
+           (list->set
+            (map cons (map (compose1 lst->list/recur stx->datum) stx) ex?))])
         results)))
+
+;; eval--> : δ Sexp → (Setof State)
+(define (eval--> δ form)
+  (define -->d (--> δ))
+  (results (do ast <- (lift (run δ form 'parse))
+               (lift ((-->d)
+                      `(,(AstEnv 0 ast (init-env) 'no-scope (init-ξ))
+                        • ,(init-store) ,(Σ* (init-Σ) (set) (set))))))))
+
+;; eval-->* : δ Sexp → (Setof State)
+(define (eval-->* δ form #:steps [steps #f])
+  (define -->d (--> δ))
+  (results (do ast <- (lift (run δ form 'parse))
+               (lift (apply-reduction-relation*
+                      (-->d) `(,(AstEnv 0 ast (init-env) 'no-scope (init-ξ))
+                               • ,(init-store) ,(Σ* (init-Σ) (set) (set)))
+                      #:steps steps)))))
