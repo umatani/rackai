@@ -17,7 +17,6 @@
 (define interp (interpreter run δ α ≤ₐ))
 
 ;; run suites
-(require (for-syntax racket/list))
 (define (test)
   (run-suite 'core   interp)
   (run-suite 'phases interp)

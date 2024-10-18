@@ -4,11 +4,11 @@
  "terms.rkt")
 (provide raw-eval interpreter reset-results get-results show-results)
 
-(define r:eval (current-eval)
-  #;
-  (make-evaluator
-   'racket
-   #:requires '(racket/list (for-syntax racket/list))))
+(define r:eval
+  ;; gain access to local-expand etc.
+  (parameterize ([sandbox-make-code-inspector (λ () (current-code-inspector))])
+      (make-evaluator 'racket
+                      #:requires '((for-syntax racket/list)))))
 
 
 ;; raw-eval : Sexp → (Setof Val)

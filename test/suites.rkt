@@ -10,10 +10,8 @@
                           phases:examples
                           full:examples
                           finite:examples))
- (only-in "../interpreter.rkt" get-results)
- (for-syntax (only-in racket/list second third fourth)))
-(provide get-suite get-a-test run-a-test run-suite
-         (for-syntax (all-from-out racket/list)))
+ (only-in "../interpreter.rkt" get-results))
+(provide get-suite get-a-test run-a-test run-suite)
 
 (define suites
   (hasheq 'core   (append ss:core:examples   org:core:examples)
