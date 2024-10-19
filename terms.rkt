@@ -56,14 +56,14 @@
 (define-term StoBind (scps nam))
 
 ;; Expand-time continuation
-(define-term κ       (stx ex? 𝓁))
+(define-term κ       (stxξ 𝓁))
 (define-term Hole    ())
 
 ;; Expand-time state (configuration)
-(define-term InEval  (state ξ))
-(define-term ζ       (stx ex? κ Σ))
+(define-term InEval  (state ζ))
+(define-term ζ       (stxξ κ Σ))
 
-(define-term Stxξ      (stx ξ))
+(define-term Stxξ    (stx ξ))
 
 (define 𝓁% (class* Atom% (equal<%>) ;(define-term 𝓁    Atom (nam))
              (inspect #f)
@@ -110,10 +110,10 @@
             (Σ       size tbl)
             (StoBind scps nam)
             (Stxξ    stx ξ)
-            (κ       stx ex? 𝓁)
+            (κ       stxξ 𝓁)
             (Hole)
-            (InEval  state ξ)
-            (ζ       stx ex? κ Σ)
+            (InEval  state ζ)
+            (ζ       stxξ κ Σ)
             (𝓁       nam)
             (LBind2  scps_p scps_u)
             (Defs    scp 𝓁)

@@ -1,7 +1,7 @@
 #lang racket/unit
 (require
  (only-in racket/match          match)
- (only-in "../../set.rkt"       set list→set)
+ (only-in "../../set.rkt"       set list→set set-map)
  (only-in "../../reduction.rkt" results do <- lift apply-reduction*)
  (only-in "../../syntax.rkt"    stx->datum)
  "../../signatures.rkt"
@@ -20,19 +20,18 @@
 
 ;; expand==> : δ Sexp → (Setof ζ)
 (define (expand==> δ form)
-  ((==> δ) (ζ (Stxξ (reader form) (init-ξ)) '◯ '● (init-Σ))))
+  ((==> δ) (ζ (Stxξ (reader form) (init-ξ)) '● (init-Σ))))
 
 ;; expand==>* : δ Sexp → (Setof ζ)
 (define (expand==>* δ form #:steps [steps #f] #:compact [compact #t])
   (let ([results (apply-reduction*
                   (==> δ)
-                  (ζ (Stxξ (reader form) (init-ξ)) '◯ '● (init-Σ))
+                  (ζ (Stxξ (reader form) (init-ξ)) '● (init-Σ))
                   #:steps steps)])
     (if compact
         (match results
-          [(set (ζ stx ex? _ _) ...)
-           (list→set
-            (map cons (map (compose1 lst->list/recur stx->datum) stx) ex?))])
+          [(set (ζ stx _ _) ...)
+           (list→set (map (compose1 lst->list/recur stx->datum) stx))])
         results)))
 
 ;; eval--> : δ Sexp → (Setof State)

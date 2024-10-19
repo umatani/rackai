@@ -29,8 +29,7 @@
   (syntax-rules (... ...)
     [(set p ... q (... ...))
      (and (app (compose1 r:set->list repl-elems)
-               (list-no-order p ... qs (... ...)))
-          (app (λ (_) (repl (r:list->set qs))) q))]
+               (list-no-order p ... q (... ...))))]
     [(set p ...)
      (app (compose1 r:set->list repl-elems) (list-no-order p ...))])
   (syntax-id-rules ()

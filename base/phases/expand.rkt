@@ -367,7 +367,7 @@
                       (empty-ctx))
                  . stl_exps)
             ctx) '◯ 𝓁_new) Σ_1)
-   ex-seq-cons]
+   ex-seq-car]
 
   [(ζ (Stx (Lst (Stxξ ph (? id? id_seq) ξ scps_p)
                  (Stx (Lst (? id? id_snoc)
@@ -390,7 +390,7 @@
        '◯ κ0 Σ)
    #:when (id=? ph id_seq '#%seq Σ)
    (ζ (Stx val_dones ctx) '● κ0 Σ)
-   ex-seq-nil])
+   ex-seq])
 
 
 (define-unit-from-reduction red@ ==>)
