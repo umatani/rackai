@@ -2,8 +2,8 @@
 (require
  (only-in racket             identity)
  (only-in racket/match       match-let)
- (only-in "../../set.rkt"    set set? subset? set-add in-set for/set
-                             set->list list->set set-map)
+ (only-in "../../set.rkt"    set set? ∅ ⊆ set-add set→list list→set
+                             for/set in-set set-map)
  (only-in "../../nondet.rkt" results lift)
  "../../signatures.rkt"
  "../../base/phases/terms.rkt"
@@ -23,14 +23,14 @@
                      (for/set ([sbs (in-set sbss)]
                                #:when (set? sbs))
                        (set-add sbs (StoBind (at-phase ctx_1 ph) nam))))
-                   (λ () (set (set)))))))
+                   (λ () (set ∅))))))
 
 ;; resolve : Ph Id Σ → (SetM Nam)
 (define (resolve ph id Σ0)
   (match-let ([(Stx (Sym nam) ctx) id])
-    (let* ([sbss (filter set? (set->list (results (lookup-Σ Σ0 nam))))]
+    (let* ([sbss (filter set? (set→list (results (lookup-Σ Σ0 nam))))]
            [scpsss
-            (map (λ (sbs) (set-map sbs (λ (sb) (StoBind-scps sb))))
+            (map (λ (sbs) (set-map (λ (sb) (StoBind-scps sb)) sbs))
                  sbss)]
            [scps_biggests (map (λ (scpss)
                                  (biggest-subset (at-phase ctx ph) scpss))
@@ -42,4 +42,4 @@
                       (binding-lookup sbs scps_biggest)))])
       (lift (if (null? nam_biggests)
               (set nam)
-              (list->set nam_biggests))))))
+              (list→set nam_biggests))))))

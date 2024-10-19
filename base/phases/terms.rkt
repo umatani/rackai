@@ -1,5 +1,6 @@
-#lang racket
+#lang racket/base
 (require
+ (for-syntax racket/base)
  (only-in "../../term.rkt" define-term use-term)
  (rename-in (except-in "../core/terms.rkt" Stxξ)
             [#%term-forms core:#%term-forms]

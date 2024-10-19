@@ -1,8 +1,10 @@
-#lang racket
+#lang racket/base
 (require
+ racket/unit
+ (only-in racket/match match-let)
  "../../reduction.rkt"
  (only-in "../../set.rkt" set)
- (only-in "../../mix.rkt" define-mixed-unit)
+ (only-in "../../mix.rkt" define-mixed-unit inherit)
  "../../signatures.rkt"
  "terms.rkt")
 (provide --> eval@)

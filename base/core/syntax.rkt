@@ -1,5 +1,8 @@
-#lang racket
+#lang racket/base
 (require
+ racket/unit
+ (only-in racket/match    match)
+ (only-in "../../set.rkt" ∅ set-add)
  "../../signatures.rkt"
  "terms.rkt"
  (prefix-in common: "../../syntax.rkt"))
@@ -22,7 +25,7 @@
   (define strip    common:strip)
 
   ;; empty-ctx : → Scps
-  (define (empty-ctx) (set))
+  (define (empty-ctx) ∅)
 
   ;; in-hole : Stx Stx → Stx
   (define (in-hole stx x)

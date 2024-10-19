@@ -1,6 +1,8 @@
-#lang racket
+#lang racket/base
 (require
- (only-in "../../mix.rkt"       define-mixed-unit)
+ racket/unit
+ (only-in racket/match          match)
+ (only-in "../../mix.rkt"       define-mixed-unit inherit)
  "../../signatures.rkt"
  "terms.rkt"
  (prefix-in common: "../../syntax.rkt")

@@ -1,7 +1,10 @@
-#lang racket
+#lang racket/base
 (require
- (only-in "../../mix.rkt"                define-mixed-unit)
- (only-in "../../misc.rkt"               union)
+ racket/unit
+ (only-in racket/match                 match)
+ (only-in "../../mix.rkt"              define-mixed-unit inherit)
+ (only-in "../../misc.rkt"             union)
+ (only-in "../../set.rkt"              set ∅ ∅? set→list)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/full/terms.rkt"
@@ -33,7 +36,7 @@
    #:when (id? stx_fun)
    #:with name <- (resolve ph stx_fun Σ)
    #:with   at := (results (lookup-ξ ξ name))
-   #:when (and (set-empty? at)
+   #:when (and (∅? at)
                (not (member name
                             '(lambda let quote syntax let-syntax if
                                #%app #%kont #%seq #%ls-kont #%snoc))))
@@ -41,7 +44,7 @@
    #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '∘
        (κ (Stx (Pair id_app (Hole)) ctx) '• Σ*_0 𝓁_new)
-       (Σ* Σ_1 scps_p (set)))
+       (Σ* Σ_1 scps_p ∅))
    ex-app-free-var]
 
   ;; reference
@@ -79,7 +82,7 @@
         (ζ stx_new '• '• Σ*_new) <- (if (and (not (InEval? ζ₀))
                                              (eq? (ζ-ex? ζ₀) '•))
                                       (pure ζ₀)
-                                      (lift (set)))
+                                      (lift ∅))
         (pure (cons stx_new Σ*_new)))))
 
 (define-compound-unit/infer expand@

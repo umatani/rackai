@@ -1,5 +1,6 @@
-#lang racket
-(require (only-in "misc.rkt" require&provide))
+#lang racket/base
+(require
+ (only-in "misc.rkt" require&provide))
 
 (require&provide
  ["cont-unit.rkt"  cont@ ]

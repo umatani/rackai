@@ -1,7 +1,7 @@
-#lang racket
+#lang racket/base
 (require
- (only-in racket/match match match*)
- (only-in "set.rkt"    set-member? set-add set-remove set-union set-subtract)
+ (only-in racket/match match match* match-λ)
+ (only-in "set.rkt"    ∈ set-add set-remove set-subtract)
  "terms.rkt")
 (provide (all-defined-out))
 
@@ -70,6 +70,6 @@
 ;; ⊕ : Scp Scps → Scps
 ;;   Adds or cancels a scope
 (define (⊕ scp scps)
-  (if (set-member? scps scp)
+  (if (∈ scp scps)
     (set-remove scps scp)
     (set-add scps scp)))

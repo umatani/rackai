@@ -1,8 +1,10 @@
-#lang racket
+#lang racket/base
 (require
- (only-in "../../set.rkt"                  set)
- (only-in "../../mix.rkt"                  define-mixed-unit)
- (only-in "../../misc.rkt"                 union)
+ racket/unit
+ (only-in racket/match                   match)
+ (only-in "../../set.rkt"                set ∅ ∅? set→list)
+ (only-in "../../mix.rkt"                define-mixed-unit inherit)
+ (only-in "../../misc.rkt"               union)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/phases/terms.rkt"
@@ -35,7 +37,7 @@
    #:when (id? stx_fun)
    #:with name <- (resolve ph stx_fun Σ)
    #:with   at := (results (lookup-ξ ξ name))
-   #:when (and (set-empty? at)
+   #:when (and (∅? at)
                (not (member name
                             '(lambda let quote syntax let-syntax if
                                #%app #%kont #%seq #%ls-kont #%snoc))))
@@ -50,7 +52,7 @@
   [(ζ (Stxξ ph (and id (Stx (Sym nam) ctx)) ξ scps_p) '∘ κ0 Σ)
    #:with    nam <- (resolve ph id Σ)
    #:with     at := (results (lookup-ξ ξ nam))
-   #:with id_new <- (if (set-empty? at)
+   #:with id_new <- (if (∅? at)
                         (error '==>p "unbound identifier: ~a" nam)
                         (do v <- (lift at)
                             (match v

@@ -1,6 +1,9 @@
-#lang racket
+#lang racket/base
 (require
- (only-in "../../set.rkt"    set)
+ racket/unit
+ (only-in racket/match       match*)
+ (only-in racket/pretty      pretty-print)
+ (only-in "../../set.rkt"    set ∅ set→list)
  (only-in "../../nondet.rkt" pure lift)
  "../../signatures.rkt"
  "../../terms.rkt")
@@ -13,7 +16,7 @@
 (define atom-⊤ (Atom))
 (define num-⊤  (Num 'num-⊤))
 (define sym-⊤  (Sym 'sym-⊤))
-(define stx-⊤  (Stx 'stx-⊤ (set)))
+(define stx-⊤  (Stx 'stx-⊤ ∅))
 (define list-⊤ (List))
 
 (define (≤e v1 v2)
@@ -38,8 +41,8 @@
   
   (define (α vs) vs)
   (define (≤ₐ vs1 vs2)
-    (define vs1* (set->list vs1))
-    (define vs2* (set->list vs2))
+    (define vs1* (set→list vs1))
+    (define vs2* (set→list vs2))
     (define (∈a v1) (ormap (λ (v2) (≤e v1 v2)) vs2*))
     (andmap ∈a vs1*))
 
@@ -56,7 +59,7 @@
        (pure num-⊤)]
       [((Prim (? (λ (op) (or (eq? op '+) (eq? op '*)))) _)
         (list _ ...))
-       (lift (set))]
+       (lift ∅)]
 
       [((Prim (? (λ (op) (or (eq? op '-) (eq? op '/)))) _)
         (list (Num n) (Num ns) ...))
@@ -71,7 +74,7 @@
        (pure num-⊤)]
       [((Prim (? (λ (op) (or (eq? op '-) (eq? op '/)))) _)
         (list _ ...))
-       (lift (set))]
+       (lift ∅)]
 
       [((Prim (? (λ (op) (or (eq? op '<) (eq? op '=)))) _)
         (list (Num n) (Num ns) ...))
@@ -86,17 +89,17 @@
        (lift (set (Bool #t) (Bool #f)))]
       [((Prim (? (λ (op) (or (eq? op '<) (eq? op '=)))) _)
         (list _ ...))
-       (lift (set))]
+       (lift ∅)]
 
       [((Prim 'eq? _) (list v1 v2))
        (lift (set (Bool #t) (Bool #f)))]
       [((Prim 'eq? _) (list _ ...))
-       (lift (set))]
+       (lift ∅)]
 
       [((Prim 'cons _) (list v1 v2))
        (pure list-⊤)]
       [((Prim 'cons _) (list _ ...))
-       (lift (set))]
+       (lift ∅)]
 
       [((Prim 'list _) (list vs ...))
        (pure list-⊤)]
@@ -110,7 +113,7 @@
        (pure val-⊤)]
       [((Prim (? (λ (op) (or (eq? op 'car) (eq? op 'cdr)))) _)
         (list _ ...))
-       (list (set))]
+       (list ∅)]
 
       [((Prim 'syntax-e _)
         (list (? (λ (x) (or (Stx? x)
@@ -118,7 +121,7 @@
                              (equal? x val-⊤))))))
        (pure val-⊤)]
       [((Prim 'syntax-e _) (list _ ...))
-       (lift (set))]
+       (lift ∅)]
 
       [((Prim 'syntax->datum _)
         (list (? (λ (x) (or (Stx? x)
@@ -126,7 +129,7 @@
                              (equal? x val-⊤))))))
        (pure val-⊤)]
       [((Prim 'syntax->datum _) (list _ ...))
-       (lift (set))]
+       (lift ∅)]
 
       [((Prim 'datum->syntax _)
         (list (? (λ (x) (or (Stx? x)
@@ -135,7 +138,7 @@
               v))
        (pure stx-⊤)]
       [((Prim 'datum->syntax _) (list _ ...))
-       (lift (set))]
+       (lift ∅)]
 
       ;; for debug
       [((Prim 'printe _) (list v1 v2))

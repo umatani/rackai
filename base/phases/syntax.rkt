@@ -1,5 +1,8 @@
-#lang racket
+#lang racket/base
 (require
+ racket/unit
+ (only-in racket/match match)
+ (only-in "../../set.rkt" ∅ set-add)
  "../../signatures.rkt"
  "terms.rkt"
  (only-in "../../misc.rkt" subtract)
@@ -34,7 +37,7 @@
 
   ;; at-phase : Ctx Ph → Scps
   (define (at-phase ctx ph)
-    (hash-ref ctx ph (set)))
+    (hash-ref ctx ph ∅))
 
   ;; update-ctx : Ctx Ph Scps → Ctx
   ;;   Updates the mapping of a `ctx` at a particular phase

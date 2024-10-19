@@ -1,7 +1,9 @@
-#lang racket
+#lang racket/base
 (require
- (only-in "../../set.rkt"  set)
- (only-in "../../mix.rkt"  define-mixed-unit)
+ racket/unit
+ (only-in racket/match     match match-let)
+ (only-in "../../set.rkt"  set ∅ set→list)
+ (only-in "../../mix.rkt"  define-mixed-unit inherit)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "terms.rkt"
@@ -162,7 +164,7 @@
    #:with   (values 𝓁_new Σ_4) := (push-κ Σ_3 stx κ0)
    #:with            stx_body2 := (add ph stx_body scp_new)
    #:with              scps_p2 := (union (set scp_new) scps_p)
-   (ζ (Stxξ (add1 ph) stx_rhs (init-ξ) (set))
+   (ζ (Stxξ (add1 ph) stx_rhs (init-ξ) ∅)
        '∘
        (κ (Stx (Lst id-kont
                      id_ls
@@ -216,7 +218,7 @@
 
   [(InEval (list (? stx? stx_exp) '• store_0)
            (ζ (Stxξ ph (Stx (Bool #f) ctx_i) ξ scps_p) '∘ κ0 Σ))
-   #:with scp_i := (car (set->list (at-phase ctx_i ph)))
+   #:with scp_i := (car (set→list (at-phase ctx_i ph)))
    (ζ (Stxξ ph (flip ph stx_exp scp_i) ξ scps_p) '∘ κ0 Σ)
    ex-macapp-flip]
 

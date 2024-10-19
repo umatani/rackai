@@ -1,6 +1,9 @@
-#lang racket
+#lang racket/base
 (require
- racket/sandbox
+ (only-in racket/match   match-λ match-define)
+ (only-in racket/list    first)
+ (only-in racket/sandbox sandbox-make-code-inspector make-evaluator)
+ (only-in "set.rkt" set)
  "terms.rkt")
 (provide raw-eval interpreter reset-results get-results show-results)
 
@@ -22,8 +25,7 @@
      [(? symbol? s)  (Sym s)]
      [(cons a d)     (Pair (r→v a) (r→v d))]))
   (set (r→v (first (call-with-values
-                    (λ () (call-with-trusted-sandbox-configuration
-                           (λ () (r:eval form))))
+                    (λ () (r:eval form))
                     (λ vs vs))))))
 
 (struct interp (run δ α ≤ₐ results)

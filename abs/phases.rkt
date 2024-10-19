@@ -1,8 +1,12 @@
-#lang racket
+#lang racket/base
 (require
+ racket/unit
+ (only-in racket/list                 remove-duplicates append-map)
+ (only-in racket/match                match match-let)
  "../interpreter.rkt"
  "../test/suites.rkt"
- (only-in "../mix.rkt"                define-mixed-unit)
+ (only-in "../set.rkt"                set set? ∅ ∅? set→list list→set set-map)
+ (only-in "../mix.rkt"                define-mixed-unit inherit)
  (only-in "../misc.rkt"               union)
  "../reduction.rkt"
  "../signatures.rkt"
@@ -29,11 +33,11 @@
   (define (resolve ph id Σ0)
     (match-let ([(Stx (Sym nam) ctx) id])
       ;(printf "resolve: ~a\n" nam)
-      (let* ([sbss (filter set? (set->list (results (lookup-Σ Σ0 nam))))]
+      (let* ([sbss (filter set? (set→list (results (lookup-Σ Σ0 nam))))]
              ;[_ (printf "sbss: ~a\n" sbss)]
              [scpsss
               (let ([scpsss (map (λ (sbs)
-                                   (set-map sbs (λ (sb) (StoBind-scps sb))))
+                                   (set-map (λ (sb) (StoBind-scps sb)) sbs))
                                  sbss)])
                 (map remove-duplicates scpsss))]
              ;[_ (printf "scpsss: ~a\n" scpsss)]
@@ -53,7 +57,7 @@
         ;(printf "nam_biggests: ~a\n" nam_biggests)
         (let ([r (if (null? nam_biggests)
                    (set nam)
-                   (list->set nam_biggests))])
+                   (list→set nam_biggests))])
           ;(printf "resolve done: ~a\n" r)
           (lift r))))))
 
@@ -113,15 +117,15 @@
 
 
 (module+ test1
-  (process '(let ([z 1])
-              ((let-syntax ([x (lambda (stx) #'z)])
-                 (lambda (z) (x))) 2)))
+  (interp '(let ([z 1])
+             ((let-syntax ([x (lambda (stx) #'z)])
+                (lambda (z) (x))) 2)))
 
-  (process '(let ([z 1])
-              ((let-syntax ([x (lambda (stx) #'z)])
-                 (lambda (z) z)) 2))))
+  (interp '(let ([z 1])
+             ((let-syntax ([x (lambda (stx) #'z)])
+                (lambda (z) z)) 2))))
 
 (module+ test2
-  (process '((lambda (f x) (f x))
-             (lambda (x) x)
-             100)))
+  (interp '((lambda (f x) (f x))
+            (lambda (x) x)
+            100)))

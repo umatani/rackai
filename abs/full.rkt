@@ -1,5 +1,6 @@
-#lang racket
+#lang racket/base
 (require
+ racket/unit
  "../interpreter.rkt"
  "../test/suites.rkt"
  (only-in "../mix.rkt"             define-mixed-unit)
@@ -42,18 +43,18 @@
 
 
 (module+ test1
-  (process '(let ([z 1])
-              ((let-syntax ([x (lambda (stx) #'z)])
-                 (lambda (z) (x))) 2)))
+  (interp '(let ([z 1])
+             ((let-syntax ([x (lambda (stx) #'z)])
+                (lambda (z) (x))) 2)))
 
-  (process '(let ([z 1])
-              ((let-syntax ([x (lambda (stx) #'z)])
-                 (lambda (z) z)) 2))))
+  (interp '(let ([z 1])
+             ((let-syntax ([x (lambda (stx) #'z)])
+                (lambda (z) z)) 2))))
 
 (module+ test2
-  (process '((lambda (f x) (f x))
-             (lambda (x) x)
-             100)))
+  (interp '((lambda (f x) (f x))
+            (lambda (x) x)
+            100)))
 
 ;; aとbの引数の名前を別にしたり，zが定義されていないだけで問題は生じない．Why?
 ;; -->
@@ -69,23 +70,23 @@
 ;;   の一部(とくに κ の一部でもある) Stx 全体を有限化することで根本治療ができるはず．
 (module+ test3
   ;; これはbのlambda式のparseの時点で4つ結果が生じるが問題なし．
-  (process '(let-syntax ([z 1])
-              (let-syntax ([a (lambda (stx)
-                                #'2)])
-                (let-syntax ([b (lambda (stx)
-                                  stx)])
-                  3))))
+  (interp '(let-syntax ([z 1])
+             (let-syntax ([a (lambda (stx)
+                               #'2)])
+               (let-syntax ([b (lambda (stx)
+                                 stx)])
+                 3))))
   ;; こちらは問題あり．上と何が違う？
-  (process '(let-syntax ([z 1])
-              (let-syntax ([a (lambda (stx)
-                                stx)])
-                (let-syntax ([b (lambda (stx)
-                                  stx)])
-                  3))))
+  (interp '(let-syntax ([z 1])
+             (let-syntax ([a (lambda (stx)
+                               stx)])
+               (let-syntax ([b (lambda (stx)
+                                 stx)])
+                 3))))
   ;; これもダメ．どうやらevalの結果が同じlambdaだとダメ？
-  (process '(let-syntax ([z 1])
-              (let-syntax ([a (lambda ()
-                                99)])
-                (let-syntax ([b (lambda ()
-                                  99)])
-                  3)))))
+  (interp '(let-syntax ([z 1])
+             (let-syntax ([a (lambda ()
+                               99)])
+               (let-syntax ([b (lambda ()
+                                 99)])
+                 3)))))

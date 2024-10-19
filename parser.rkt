@@ -1,5 +1,6 @@
-#lang racket
+#lang racket/base
 (require
+ racket/unit
  "signatures.rkt")
 (provide core-parser@ phases-parser@)
 

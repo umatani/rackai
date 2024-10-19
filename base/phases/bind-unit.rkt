@@ -1,7 +1,7 @@
 #lang racket/unit
 (require
  (only-in racket/match     match-let)
- (only-in "../../set.rkt"  set set-add set->list)
+ (only-in "../../set.rkt"  ∅ set-add set→list)
  "../../signatures.rkt"
  "../../terms.rkt"
  (only-in "../../misc.rkt" biggest-subset binding-lookup))
@@ -20,13 +20,13 @@
     (Σ size (hash-update tbl nam₀
                          (λ (sbs)
                            (set-add sbs (StoBind (at-phase ctx₀ ph) nam)))
-                         (set)))))
+                         ∅))))
 
 ;; resolve : Ph Id Σ → Nam
 (define (resolve ph id Σ₀)
   (match-let ([(Stx (Sym nam) ctx) id])
     (let* ([sbs (lookup-Σ Σ₀ nam)]
-           [scpss (map (λ (sb) (StoBind-scps sb)) (set->list sbs))]
+           [scpss (map (λ (sb) (StoBind-scps sb)) (set→list sbs))]
            [scps_biggest (biggest-subset (at-phase ctx ph) scpss)]
            [nam_biggest (binding-lookup sbs scps_biggest)])
       (or nam_biggest nam))))

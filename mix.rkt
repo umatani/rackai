@@ -1,9 +1,12 @@
-#lang racket
-(require (for-syntax racket racket/syntax racket/unit-exptime
-                     syntax/parse syntax/stx syntax/id-set))
-(provide define-mixed-unit)
+#lang racket/base
+(require (for-syntax racket/base racket/syntax racket/unit-exptime
+                     racket/set syntax/parse syntax/stx syntax/id-set)
+         racket/unit)
+(provide define-mixed-unit inherit)
 
 ;; Simple unit wrapper for mixins
+
+(define-syntax inherit (λ (_) (raise-syntax-error 'inherit "must not be used")))
 
 (define-syntax (define-mixed-unit stx)
   (define-syntax-class member-spec

@@ -1,7 +1,9 @@
-#lang racket
+#lang racket/base
 (require
- (only-in "../../set.rkt"  set)
- (only-in "../../mix.rkt"  define-mixed-unit)
+ racket/unit
+ (only-in racket/match     match match-let)
+ (only-in "../../set.rkt"  set ∅)
+ (only-in "../../mix.rkt"  define-mixed-unit inherit)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "terms.rkt"
@@ -188,7 +190,7 @@
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
    #:with (values stx_arg2) := (add ph (flip ph stx_arg maybe-scp_i) scp_defs)
    (InExpand (ζ (Stxξ (add1 ph) stx_arg2 (init-ξ))
-                 '∘ '• (Σ* Σ (set) (set)))
+                 '∘ '• (Σ* Σ ∅ ∅))
              `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
                       `(,(Stx (Sym 'syntax-local-bind-syntaxes2)
                               `((0 . ,scps_p) (1 . ,scps_u)))
@@ -209,7 +211,7 @@
             `(,(Stx (Sym 'syntax-local-bind-syntaxes2)
                     `((0 . ,scps_p) (1 . ,scps_u)))
               (,id_arg) ,(Defs scp_defs 𝓁)) '() loc_new)
-     ,store_1 ,(Σ* Σ_2 scps_p (set)))
+     ,store_1 ,(Σ* Σ_2 scps_p ∅))
    ev-slbsm2]
 
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
@@ -385,5 +387,5 @@
   ;; evaluate : Ast → Val
   (define (evaluate δ ast)
     (call-with-values
-     (λ () (eval δ 0 ast 'no-scope (init-ξ) (Σ* (init-Σ) (set) (set))))
+     (λ () (eval δ 0 ast 'no-scope (init-ξ) (Σ* (init-Σ) ∅ ∅)))
      (λ (val Σ*) val))))

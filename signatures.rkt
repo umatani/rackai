@@ -1,4 +1,6 @@
-#lang racket
+#lang racket/base
+(require
+ (only-in racket/unit define-signature))
 (provide (all-defined-out))
 
 

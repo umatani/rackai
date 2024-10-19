@@ -1,9 +1,12 @@
-#lang racket
+#lang racket/base
 (require
+ racket/unit
+ (only-in racket/list               remove-duplicates append-map)
+ (only-in racket/match              match match-let)
  "../interpreter.rkt"
  "../test/suites.rkt"
- (only-in "../set.rkt"              set)
- (only-in "../mix.rkt"              define-mixed-unit)
+ (only-in "../set.rkt"              set set? ∅ ∅? set→list list→set set-map)
+ (only-in "../mix.rkt"              define-mixed-unit inherit)
  "../reduction.rkt"
  "../signatures.rkt"
  "../base/core/terms.rkt"
@@ -27,11 +30,11 @@
   (define (resolve id Σ0)
     (match-let ([(Stx (Sym nam) ctx) id])
       ;(printf "resolve: ~a\n" nam)
-      (let* ([sbss (filter set? (set->list (results (lookup-Σ Σ0 nam))))]
+      (let* ([sbss (filter set? (set→list (results (lookup-Σ Σ0 nam))))]
              ;[_ (printf "sbss: ~a\n" sbss)]
              [scpsss
               (let ([scpsss (map (λ (sbs)
-                                   (set-map sbs (λ (sb) (StoBind-scps sb))))
+                                   (set-map (λ (sb) (StoBind-scps sb)) sbs))
                                  sbss)])
                 (map remove-duplicates scpsss))]
              ;[_ (printf "scpsss: ~a\n" scpsss)]
@@ -49,7 +52,7 @@
         ;(printf "nam_biggests: ~a\n" nam_biggests)
         (let ([r (if (null? nam_biggests)
                    (set nam)
-                   (list->set nam_biggests))])
+                   (list→set nam_biggests))])
           ;(printf "resolve done: ~a\n" r)
           (lift r))))))
 
@@ -77,7 +80,7 @@
                                                 • ,(init-store))))
         (if (and (val? val) (eq? done? '•))
           (pure val)
-          (lift (set))))))
+          (lift ∅)))))
 
 
 ;; ==> : ζ -> (Setof ζ)
@@ -143,11 +146,11 @@
 ;; baseと同じ {1} だけに戻るはず．
 
 (module+ test1
-  (process '(let ([z 1])
+  (interp '(let ([z 1])
               ((let-syntax ([x (lambda (stx) #'z)])
                  (lambda (z) (x))) 2)))
 
-  (process '(let ([z 1])
+  (interp '(let ([z 1])
               ((let-syntax ([x (lambda (stx) #'z)])
                  (lambda (z) z)) 2))))
 
@@ -165,9 +168,9 @@
 ;; 精度が上がるはず(この例だと2つのbinding xで別々のscopeを生成)
 
 (module+ test2
-  (process '((lambda (f x) (f x))
-             (lambda (x) x)
-             100)))
+  (interp '((lambda (f x) (f x))
+            (lambda (x) x)
+            100)))
 
 ;; resolveに関連して問題が発生している <- 上のTODOのようなalloc-scopeの解決
 ;; で十分？ctx部分の表現の工夫(PRO時点)はどう影響？

@@ -1,7 +1,7 @@
 #lang racket/unit
 (require
  (only-in racket/match match-let)
- (only-in "../set.rkt" set)
+ (only-in "../set.rkt" ∅)
  "../signatures.rkt"
  "../terms.rkt")
 
@@ -19,7 +19,7 @@
 ;; lookup-Σ : Σ Nam → (Setof StoBind)
 ;;          : Σ 𝓁   → (U Val ξ κ)
 (define (lookup-Σ Σ₀ k)
-  (hash-ref (Σ-tbl Σ₀) k (set)))
+  (hash-ref (Σ-tbl Σ₀) k ∅))
 
 ;; update-Σ : Σ Nam (Setof StoBind) → Σ
 ;;          : Σ 𝓁   (U Val ξ κ)     → Σ

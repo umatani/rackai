@@ -1,6 +1,9 @@
-#lang racket
-(require (for-syntax racket racket/syntax
-                     syntax/parse syntax/stx syntax/id-table))
+#lang racket/base
+(require
+ (for-syntax racket racket/syntax
+             syntax/parse syntax/stx syntax/id-table)
+ (only-in racket/match define-match-expander)
+ racket/class)
 (provide (all-defined-out))
 
 (begin-for-syntax

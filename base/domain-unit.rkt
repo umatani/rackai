@@ -1,9 +1,9 @@
 #lang racket/unit
 (require
- (only-in racket        identity)
- (only-in racket/match  match*)
- (only-in racket/pretty pretty-print)
- (only-in "../set.rkt"  set subset?)
+ (only-in racket/function identity)
+ (only-in racket/match    match*)
+ (only-in racket/pretty   pretty-print)
+ (only-in "../set.rkt"    set ⊆)
  "../signatures.rkt"
  "../terms.rkt")
 
@@ -17,7 +17,7 @@
 (define α  set)
 
 ;; ≤ₐ : (Setof Val) (Setof Val) → Boolean
-(define ≤ₐ subset?)
+(define ≤ₐ ⊆)
 
 (define (plus          . ns) (apply +     ns))
 (define (minus       n . ns) (apply -   n ns))

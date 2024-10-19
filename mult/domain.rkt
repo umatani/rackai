@@ -1,7 +1,12 @@
-#lang racket
+#lang racket/base
 (require
+ racket/unit
+ (only-in racket/match              match*)
+ (only-in racket/function           identity)
+ (only-in racket/pretty             pretty-print)
  (only-in "../nondet.rkt"           pure do <-)
- (only-in "../mix.rkt"              define-mixed-unit)
+ (only-in "../mix.rkt"              define-mixed-unit inherit)
+ (only-in "../set.rkt"              ⊆)
  "../signatures.rkt"
  "../terms.rkt"
  (only-in "../base/domain-unit.rkt" [domain@ base:domain@]))
@@ -16,7 +21,7 @@
   (inherit [base:domain@ val? stx? stl? proper-stl?])
 
   (define α  identity)
-  (define ≤ₐ subset?)
+  (define ≤ₐ ⊆)
 
   (define (plus . ns) (apply + ns))
   (define (minus n . ns) (apply - n ns))

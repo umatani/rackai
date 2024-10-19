@@ -1,7 +1,9 @@
-#lang racket
+#lang racket/base
 (require
+ racket/unit
  (only-in "../nondet.rkt"     lift)
- (only-in "../mix.rkt"        define-mixed-unit)
+ (only-in "../mix.rkt"        define-mixed-unit inherit)
+ (only-in "../set.rkt"        ∅ set-add)
  "../signatures.rkt"
  "../terms.rkt"
  (only-in "../base/units.rkt" [store@ base:store@]))
@@ -22,11 +24,11 @@
   (define (update-store store0 loc u)
     (Store (Store-size store0)
            (hash-update (Store-tbl store0) loc
-                        (λ (old) (set-add old u)) (set))))
+                        (λ (old) (set-add old u)) ∅)))
 
   ; update-store* : Store (Listof Loc) (Listof (U Val Cont)) -> Store
   (define (update-store* store0 locs us)
     (Store (Store-size store0)
            (foldl (λ (loc u tbl)
-                    (hash-update tbl loc (λ (old) (set-add old u)) (set)))
+                    (hash-update tbl loc (λ (old) (set-add old u)) ∅))
                   (Store-tbl store0) locs us))))

@@ -1,8 +1,11 @@
-#lang racket
+#lang racket/base
 (require
+ racket/unit
+ (only-in racket/match                match)
  "../../interpreter.rkt"
  "../../test/suites.rkt"
- (only-in "../../mix.rkt"             define-mixed-unit)
+ (only-in "../../set.rkt"             set ∅? set→list)
+ (only-in "../../mix.rkt"             define-mixed-unit inherit)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/core/terms.rkt"

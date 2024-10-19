@@ -1,8 +1,10 @@
-#lang racket
+#lang racket/base
 (require
+ (only-in racket/match match match-let)
+ racket/unit
  "../../reduction.rkt"
- (only-in "../../set.rkt" set)
- (only-in "../../mix.rkt" define-mixed-unit)
+ (only-in "../../set.rkt" set set→list)
+ (only-in "../../mix.rkt" define-mixed-unit inherit)
  "../../signatures.rkt"
  "terms.rkt")
 (provide ==> red@ expand/red@ expand@)
@@ -200,7 +202,7 @@
 
   [(InEval (list (? stx? stx_exp) '• store_0)
            (ζ (Stxξ (Stx #f scps) ξ) '∘ κ Σ))
-   #:with scp_i := (car (set->list scps))
+   #:with scp_i := (car (set→list scps))
    (ζ (Stxξ (flip stx_exp scp_i) ξ) '∘ κ Σ)
    ex-macapp-flip]
 

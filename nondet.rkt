@@ -1,6 +1,8 @@
-#lang racket
-(require "set.rkt"
-         (for-syntax racket syntax/parse))
+#lang racket/base
+(require
+ (for-syntax racket/base racket/string syntax/parse)
+ (only-in racket/match match-lambda match-lambda**)
+ (only-in "set.rkt" set ∅ ∪ set-map))
 (provide := <-
          pure lift results aborts
          do
@@ -10,16 +12,16 @@
 (define <- (gensym '<-))
 
 ;; non-deterministic & failure monad
-(define (pure  x) (cons (set x) (set)))
-(define (lift xs) (cons xs      (set)))
-(define (break x) (cons (set)   (set x)))
+(define (pure    x) (cons (set x) ∅))
+(define (lift   xs) (cons xs      ∅))
+(define (break   x) (cons ∅       (set x)))
 (define (results m) (car m))
 (define (aborts  m) (cdr m))
 
-(define (bind r k)
-  (let ([r′ (set-map (car r) k)])
-    (cons (apply set-union (set)   (map car r′))
-          (apply set-union (cdr r) (map cdr r′)))))
+(define (bind m k)
+  (let ([m′ (set-map k (results m))])
+    (cons (apply ∪            (map results m′))
+          (apply ∪ (aborts m) (map aborts  m′)))))
 
 (define (gen-bind kind r k #:multi-values? [is-mv #f])
   (cond

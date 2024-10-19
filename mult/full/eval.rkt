@@ -1,6 +1,8 @@
-#lang racket
+#lang racket/base
 (require
- (only-in "../../set.rkt"            set)
+ racket/unit
+ (only-in racket/match               match)
+ (only-in "../../set.rkt"            set ∅ ∅?)
  (only-in "../../misc.rkt"           union)
  "../../reduction.rkt"
  "../../signatures.rkt"
@@ -41,7 +43,7 @@
             ['() (pure '())]
             [(cons n ns*)
              (do  a <- (let ([as (lookup-ξ  ξ n)])
-                         (if (set-empty? (results as))
+                         (if (∅? (results as))
                              (pure 'not-found)
                              as))
                  as <- (lookup-ξ* ξ ns*)
@@ -83,7 +85,7 @@
   ;; evaluate : Ast → (SetM Val)
   (define (evaluate δ ast)
     (do (cons val _Σ*) <- (eval δ 0 ast 'no-scope (init-ξ)
-                                (Σ* (init-Σ) (set) (set)))
+                                (Σ* (init-Σ) ∅ ∅))
         (pure val))))
 
 (define-compound-unit/infer eval@

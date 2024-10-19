@@ -1,8 +1,13 @@
-#lang racket
-(require "set.rkt" "queue.rkt" "nondet.rkt"
-         (for-syntax racket racket/syntax
-                     syntax/parse syntax/stx
-                     racket/unit-exptime))
+#lang racket/base
+(require
+ (for-syntax racket racket/syntax racket/unit-exptime
+             syntax/parse syntax/stx)
+ (only-in racket/match match)
+ (prefix-in r: racket/set)
+ racket/unit
+ (only-in "set.rkt" ∅ ∅? ∪ list→set in-set)
+ (only-in "queue.rkt"  make-queue queue-empty? dequeue! enqueue!)
+ "nondet.rkt")
 (provide (all-defined-out)
          (all-from-out "nondet.rkt")
          (for-syntax (all-defined-out)))
@@ -71,7 +76,7 @@
                       super-args
                       (append sub-clause-names
                               (clause-map-rule-names clause-map)))
-                     #'(set))))
+                     #'∅)))
     (let* ([args (or maybe-args #'())]
            [params (if maybe-args
                      (reduction-desc-params red-desc)
@@ -96,9 +101,8 @@
                   [(p b ... _rule-name)
                    #`(let ([nexts #,body])
                        (match #,s
-                         [p (set-union
-                             nexts
-                             (results (do #,@(make-match-body #'(b ...)))))]
+                         [p (∪ nexts
+                               (results (do #,@(make-match-body #'(b ...)))))]
                          [_ nexts]))]))))))
 
   (define-syntax-class red-spec
@@ -328,26 +332,24 @@
                     (import i-id ... ...))]))
 
 
-; (: apply-reduction-relation* (∀ [A] (→* ((→ A (Setof A)) A)
-;                                         (#:steps (Option Natural))
-;                                         (Setof A))))
+;; apply-reduction-relation* : (∀ [A] (A → (Setof A)) A → (Setof A))
 (define (apply-reduction-relation* --> s #:steps [steps #f])
-  (let ([all-states (mutable-set)]
-        [irreducibles (mutable-set)]
-        [worklist (make-queue)])
+  (let ([all-states   (r:mutable-set)]
+        [irreducibles (r:mutable-set)]
+        [worklist     (make-queue)])
     (define (loop steps)
       (unless (or (queue-empty? worklist)
                   (and steps (<= steps 0)))
         (let* ([s (dequeue! worklist)]
                [nexts (--> s)])
-          (if (set-empty? nexts)
-            (set-add! irreducibles s)
+          (if (∅? nexts)
+            (r:set-add! irreducibles s)
             (for ([next (in-set nexts)]
-                  #:when (not (set-member? all-states next)))
-              (set-add! all-states next)
+                  #:when (not (r:set-member? all-states next)))
+              (r:set-add! all-states next)
               (enqueue! worklist next))))
         (loop (and steps (sub1 steps)))))
-    (set-add! all-states s)
+    (r:set-add! all-states s)
     (enqueue! worklist s)
     (loop steps)
-    (if steps all-states irreducibles)))
+    (list→set (r:set->list (if steps all-states irreducibles)))))

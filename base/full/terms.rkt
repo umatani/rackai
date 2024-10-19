@@ -1,5 +1,6 @@
-#lang racket
+#lang racket/base
 (require
+ (for-syntax racket/base)
  (only-in "../../term.rkt" define-term use-terms)
  (rename-in (except-in "../phases/terms.rkt" Stxξ AstEnv KApp SApp κ ζ)
             [#%term-forms phases:#%term-forms]

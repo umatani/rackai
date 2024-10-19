@@ -1,7 +1,9 @@
-#lang racket
+#lang racket/base
 (require
- (only-in "../../set.rkt"  set)
- (only-in "../../mix.rkt"  define-mixed-unit)
+ racket/unit
+ (only-in racket/match     match match-let)
+ (only-in "../../set.rkt"  set ∅ set→list)
+ (only-in "../../mix.rkt"  define-mixed-unit inherit)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "terms.rkt"
@@ -72,7 +74,7 @@
    #:with           (values 𝓁_new Σ_3) := (push-κ Σ_2 stx κ0)
    #:with                         Σ*_3 := (Σ* Σ_3
                                               (union (set scp_new) scps_p)
-                                              (set))
+                                              ∅)
    (ζ (Stxξ ph (add ph stx_body scp_new) ξ_new) '∘
        (κ (Stx (Lst id_lam
                      (Stx stl_args2 ctx_0)
@@ -94,7 +96,7 @@
    #:with           (values 𝓁_new Σ_3) := (push-κ Σ_2 stx κ0)
    #:with                         Σ*_3 := (Σ* Σ_3
                                               (union (set scp_new) scps_p)
-                                              (set))
+                                              ∅)
    (ζ (Stxξ ph (add ph stx_body scp_new) ξ_new) '∘
        (κ (Stx (Lst id-kont
                      id_let
@@ -126,7 +128,7 @@
                                stx_body)
                           ctx)
                   ξ) '∘ Σ*_0 𝓁_new)
-       (Σ* Σ_1 scps_p (set)))
+       (Σ* Σ_1 scps_p ∅))
    ex-let-rhs]  
 
   [(ζ (Stxξ ph (Stx (Lst (? id? id_kont)
@@ -187,14 +189,14 @@
    #:with                  Σ_3 := (bind ph Σ_2 id_new nam_new)
    #:with   (values 𝓁_new Σ_4) := (push-κ Σ_3 stx κ0)
    (ζ (Stxξ (add1 ph) stx_rhs (init-ξ)) '∘
-       (κ (Stx (Lst id-kont
-                     id_ls
-                     (Stx (Lst (Stx (Lst id_new (Hole)) ctx_0)) ctx_1)
-                     (Stxξ ph stx_body ξ)
-                     (add ph (Stx (Bool #f) (empty-ctx)) scp_new))
-                ctx)
-           '∘ Σ*_0 𝓁_new)
-       (Σ* Σ_4 (set) (set)))
+      (κ (Stx (Lst id-kont
+                   id_ls
+                   (Stx (Lst (Stx (Lst id_new (Hole)) ctx_0)) ctx_1)
+                   (Stxξ ph stx_body ξ)
+                   (add ph (Stx (Bool #f) (empty-ctx)) scp_new))
+              ctx)
+         '∘ Σ*_0 𝓁_new)
+      (Σ* Σ_4 ∅ ∅))
    ex-ls-push-rhs]
 
   [(ζ (Stx (Lst (? id? id_kont)
@@ -211,12 +213,12 @@
    ;(printf "    stx_body: ~a\n" stx_body)
    #:with ast_exp :=<1> (parse (add1 ph) stx_exp Σ)
    (InEval (list (AstEnv ph ast_exp (init-env) 'no-scope ξ)
-                 '• (init-store) (Σ* Σ scps_p (set)))
+                 '• (init-store) (Σ* Σ scps_p ∅))
            (ζ (Stx (Lst (Stx (Sym nam_new) (empty-ctx))
-                         (Stxξ ph stx_body ξ)
-                         (Stx (Bool #f) ctx_new))
-                    (empty-ctx)) '∘
-               κ (Σ* Σ scps_p (set))))
+                        (Stxξ ph stx_body ξ)
+                        (Stx (Bool #f) ctx_new))
+                   (empty-ctx)) '∘
+              κ (Σ* Σ scps_p ∅)))
    ex-ls-eval]
 
   [(InEval (list (? val? val) '• store_0 (Σ* Σ _ _))
@@ -225,12 +227,12 @@
                          (Stx (Bool #f) ctx_new))
                     _) '∘ κ (Σ* _ scps_p _)))
    ;(printf "after eval: ~a\n" val)
-   #:with scp_new   := (car (set->list (at-phase ctx_new ph)))
+   #:with scp_new   := (car (set→list (at-phase ctx_new ph)))
    #:with ξ_new     := (extend-ξ ξ nam_new val)
    #:with stx_body2 := (add ph stx_body scp_new)
    ;(printf "    stx_body2: ~a\n" stx_body2)
    (ζ (Stxξ ph stx_body2 ξ_new) '∘
-       κ (Σ* Σ (union (set scp_new) scps_p) (set)))
+      κ (Σ* Σ (union (set scp_new) scps_p) ∅))
    ex-ls-ξ]
 
   ;; macro invocation
@@ -256,7 +258,7 @@
 
   [(InEval (list (? stx? stx_exp) '• store_0 Σ*)
            (ζ (Stxξ ph (Stx (Bool #f) ctx_i) ξ) '∘ κ _))
-   #:with scp_i := (car (set->list (at-phase ctx_i ph)))
+   #:with scp_i := (car (set→list (at-phase ctx_i ph)))
    (ζ (Stxξ ph (flip ph stx_exp scp_i) ξ) '∘ κ Σ*)
    ex-macapp-flip]
 
@@ -268,7 +270,7 @@
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil . stl_exps) ctx) ξ) '∘
        (κ (Stxξ ph (Stx (Lst id-kont id_if (Hole)) ctx) ξ)
            '∘ Σ*_0 𝓁_new)
-       (Σ* Σ_1 scps_p (set)))
+       (Σ* Σ_1 scps_p ∅))
    ex-if]
 
   [(ζ (Stxξ ph (Stx (Lst (? id? id_kont)
@@ -290,7 +292,7 @@
    #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '∘
        (κ (Stx (Pair id_app (Hole)) ctx) '• Σ*_0 𝓁_new)
-       (Σ* Σ_1 scps_p (set)))
+       (Σ* Σ_1 scps_p ∅))
    ex-#%app]
 
   ;; application (canonical #%app version, same as phases)
@@ -303,7 +305,7 @@
    #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '∘
        (κ (Stx (Pair id_app (Hole)) ctx) '• Σ*_0 𝓁_new)
-       (Σ* Σ_1 scps_p (set)))
+       (Σ* Σ_1 scps_p ∅))
    ex-#%app2]
 
   ;; application (bound var-ref, same as phases)
@@ -317,7 +319,7 @@
    #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '∘
        (κ (Stx (Pair id_app (Hole)) ctx) '• Σ*_0 𝓁_new)
-       (Σ* Σ_1 scps_p (set)))
+       (Σ* Σ_1 scps_p ∅))
    ex-app-bound-var]
 
   ;; application (free var-ref, same as phases)
@@ -334,7 +336,7 @@
    #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '∘
        (κ (Stx (Pair id_app (Hole)) ctx) '• Σ*_0 𝓁_new)
-       (Σ* Σ_1 scps_p (set)))
+       (Σ* Σ_1 scps_p ∅))
    ex-app-free-var]
 
   ;; application (primitive or lambda)
@@ -345,7 +347,7 @@
    #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '∘
        (κ (Stx (Pair id_app (Hole)) ctx) '• Σ*_0 𝓁_new)
-       (Σ* Σ_1 scps_p (set)))
+       (Σ* Σ_1 scps_p ∅))
    ex-app-prim-lambda]
 
   ;; reference (same as phases)
@@ -398,7 +400,7 @@
                           (empty-ctx))
                      . stl_exps)
                 ctx) '∘ Σ*_0 𝓁_new)
-       (Σ* Σ_1 scps_p (set)))
+       (Σ* Σ_1 scps_p ∅))
    ex-seq-cons]
 
   [(ζ (Stx (Lst (Stxξ ph (? id? id_seq) ξ)

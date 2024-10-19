@@ -1,6 +1,6 @@
 #lang racket/unit
 (require
- (only-in racket             match)
+ (only-in racket/match       match)
  (only-in "../../nondet.rkt" pure do <- :=)
  "../../signatures.rkt"
  "../../base/core/terms.rkt")

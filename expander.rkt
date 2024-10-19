@@ -1,6 +1,9 @@
-#lang racket
+#lang racket/base
 (require
+ racket/unit
+ (only-in racket/match match-let)
  (only-in "nondet.rkt" do <- pure)
+ (only-in "set.rkt" set ∅)
  "signatures.rkt")
 (provide core-expander@ phases-expander@
          base-full-expander@ mult-full-expander@)
@@ -25,7 +28,7 @@
   (export expander^)
 
   (define (expander δ stx)
-    (expand δ 0 stx (init-ξ) (set) (init-Σ))))
+    (expand δ 0 stx (init-ξ) ∅ (init-Σ))))
 
 
 (require "base/full/terms.rkt")
@@ -38,7 +41,7 @@
 
   (define (expander δ stx)
     (match-let ([(cons stx′ (Σ* Σ _ _))
-                 (expand δ 0 stx (init-ξ) (Σ* (init-Σ) (set) (set)))])
+                 (expand δ 0 stx (init-ξ) (Σ* (init-Σ) ∅ ∅))])
       (cons stx′ Σ))))
 
 (define-unit mult-full-expander@
@@ -49,5 +52,5 @@
 
   (define (expander δ stx)
     (do (cons stx′ (Σ* Σ _ _)) <- (expand δ 0 stx (init-ξ)
-                                          (Σ* (init-Σ) (set) (set)))
+                                          (Σ* (init-Σ) ∅ ∅))
         (pure (cons stx′ Σ)))))

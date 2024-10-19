@@ -1,8 +1,8 @@
-#lang racket
+#lang racket/base
 (require
- (only-in "../../set.rkt"            set)
+ racket/unit
  "../../reduction.rkt"
- (only-in "../../mix.rkt"            define-mixed-unit)
+ (only-in "../../mix.rkt"            define-mixed-unit inherit)
  "../../signatures.rkt"
  "../../base/core/terms.rkt"
  (only-in "../../base/core/eval.rkt" [--> base:-->]))

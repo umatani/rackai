@@ -1,6 +1,8 @@
-#lang racket
+#lang racket/base
 (require
- (for-syntax syntax/parse)
+ (for-syntax racket/base syntax/parse)
+ (only-in racket/match match define-match-expander)
+ racket/class
  (only-in "term.rkt" define-term use-terms))
 (provide (all-defined-out))
 
