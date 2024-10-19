@@ -7,6 +7,7 @@
  (only-in "../../mix.rkt"               define-mixed-unit inherit)
  (only-in "../../misc.rkt"              union)
  (only-in "../../set.rkt"               set ∅ ∅? set→list)
+ (only-in "../../syntax.rkt"            snoc)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/phases/terms.rkt"
@@ -65,7 +66,7 @@
               (equal? stx_exp atom-⊤)
               (equal? stx_exp stx-⊤))
    (ζ (Stxξ ph stx_exp ξ scps_p) '◯ κ0 Σ)
-   ex-macapp-flip-abs]
+   ex-macapp-abs]
 
   ;; abstract value
   [(ζ (Stxξ ph val _ _) '◯ κ0 Σ)

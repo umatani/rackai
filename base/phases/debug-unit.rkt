@@ -1,7 +1,8 @@
 #lang racket/unit
 (require
- (only-in racket/match    match)
- (only-in "../../set.rkt" set ∅ list→set)
+ (only-in racket/match       match)
+ (only-in "../../set.rkt"    set ∅ list→set)
+ (only-in "../../syntax.rkt" stx->datum)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "terms.rkt")

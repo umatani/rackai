@@ -4,7 +4,8 @@
  (only-in "../../set.rkt" set ∅ list→set)
  "../../reduction.rkt"
  "../../signatures.rkt"
- "terms.rkt")
+ "terms.rkt"
+ (only-in "../../syntax.rkt" stx->datum))
 
 (import (only env^       init-env)
         (only store^     init-store)

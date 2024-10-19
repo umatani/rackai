@@ -147,10 +147,6 @@
       [(_ . xs:id)  #'(and (List? xs) xs)]
       [(_ y ys ... . xs:id)  #'(Pair y (Lst ys ... . xs))])))
 
-
-;; Additional constructor
-(define (id nam ctx) (Stx (Sym nam) ctx))
-
 ;; List utils
 
 (define (lst->list l)
@@ -169,14 +165,9 @@
     [(Pair a d) (cons (lst->list/recur a) (lst->list/recur d))]
     [_ x]))
 
+;; Additional constructor
+(define (id nam ctx) (Stx (Sym nam) ctx))
 
-; snoc : ProperStl Stx -> ProperStl
-(define (snoc stl stx)
-  (cond
-    [(Null? stl) (Pair stx (Null))]
-    [(Pair? stl) (Pair (Pair-a stl) (snoc (Pair-d stl) stx))]
-    [else (error "no such case")]))
-  
 ;; Additional predicates
 (define (id? x)
   (match x
@@ -199,29 +190,3 @@
               box unbox set-box!
               syntax-local-make-definition-context
               syntax-local-bind-syntaxes)))
-
-;; syntax->datum (especially useful for displaying κ)
-
-(define (stx->datum stx)
-  (cond
-    [(Hole? stx) (Sym '□)]
-    [(Stxξ? stx) (stx->datum (Stxξ-stx stx))]
-    [(Stx? stx) (let ([e (Stx-e stx)])
-                  (cond
-                    [(prim? e) (Sym e)]
-                    [(Stx? e)  (stx->datum e)]
-                    [(Atom? e) e]
-                    [(Null? e) (Null)]
-                    [(Pair? e) (Pair (stx->datum (Pair-a e))
-                                     (stl->datum (Pair-d e)))]
-                    [else e]))]
-    [else stx]))
-
-(define (stl->datum stl)
-  (cond
-    [(Hole? stl) (Sym '□)]
-    [(Null? stl) (Null)]
-    [(Stx? stl)  (stx->datum stl)]
-    [(Pair? stl) (Pair (stx->datum (Pair-a stl))
-                       (stl->datum (Pair-d stl)))]
-    [else stl]))

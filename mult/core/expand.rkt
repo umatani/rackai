@@ -3,6 +3,7 @@
  racket/unit
  (only-in racket/match                 match)
  (only-in "../../set.rkt"              set ∅? set→list)
+ (only-in "../../syntax.rkt"           snoc)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/core/terms.rkt"
@@ -38,13 +39,13 @@
    #:when (and (∅? at)
                (not (member name
                             '(lambda let quote syntax let-syntax if
-                               #%app #%kont #%seq #%ls-kont #%snoc))))
+                               #%app #%kont #%seq #%snoc))))
    #:with             id_app := (Stx (Sym '#%app) ctx)
    #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
    (ζ (Stxξ (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '◯
        (κ (Stx (Pair id_app (Hole)) ctx) '● 𝓁_new)
        Σ_1)
-   ex-app-free-var]
+   ex-app-free]
 
   ;; reference
   [(ζ (Stxξ (and id (Stx (Sym nam) ctx)) ξ) '◯ κ Σ)

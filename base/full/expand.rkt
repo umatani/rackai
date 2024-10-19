@@ -1,8 +1,9 @@
 #lang racket/base
 (require
  racket/unit
- (only-in racket/match     match match-let)
- (only-in "../../set.rkt"  set ∅ set→list)
+ (only-in racket/match       match match-let)
+ (only-in "../../set.rkt"    set ∅ set→list)
+ (only-in "../../syntax.rkt" snoc)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "terms.rkt"
@@ -143,7 +144,7 @@
    (ζ (Stx (Lst id_let (Stx (zip stl_vars val_rhs ctx_1) ctx_1)
                  stx_body)
             ctx) '● κ Σ*_0)
-   ex-let-rhs2]
+   ex-let]
 
   ;; quote (same as phases)
   [(ζ (Stxξ ph (and stx (Stx (Lst (? id? id_quote) _) _)) ξ) '◯
@@ -172,7 +173,7 @@
                  (Stx (Lst (Stx (Lst id stx_rhs) ctx_0)) ctx_1)
                  (Stxξ ph stx_body ξ))
             ctx) '◯ κ Σ*_0)
-   ex-ξ-ls]
+   ex-ls-ξ]
 
   [(ζ (and stx (Stx (Lst (? id? id_ls)
                           (Stx (Lst (Stx (Lst (? id? id) stx_rhs) ctx_0))
@@ -196,7 +197,7 @@
               ctx)
          '◯ Σ*_0 𝓁_new)
       (Σ* Σ_4 ∅ ∅))
-   ex-ls-push-rhs]
+   ex-ls-rhs]
 
   [(ζ (Stx (Lst (? id? id_kont)
                  (? id? id_ls)
@@ -232,7 +233,7 @@
    ;(printf "    stx_body2: ~a\n" stx_body2)
    (ζ (Stxξ ph stx_body2 ξ_new) '◯
       κ (Σ* Σ (union (set scp_new) scps_p) ∅))
-   ex-ls-ξ]
+   ex-ls]
 
   ;; macro invocation
   [(ζ (Stxξ ph (and stx_macapp (Stx (Lst (? id? id_mac) _ ...) ctx)) ξ) '◯
@@ -259,7 +260,7 @@
            (ζ (Stxξ ph (Stx (Bool #f) ctx_i) ξ) '◯ κ _))
    #:with scp_i := (car (set→list (at-phase ctx_i ph)))
    (ζ (Stxξ ph (flip ph stx_exp scp_i) ξ) '◯ κ Σ*)
-   ex-macapp-flip]
+   ex-macapp]
 
   ;; if
   [(ζ (Stxξ ph (and stx (Stx (Lst (? id? id_if) . stl_exps) ctx)) ξ) '◯
@@ -270,7 +271,7 @@
        (κ (Stxξ ph (Stx (Lst id-kont id_if (Hole)) ctx) ξ)
            '◯ Σ*_0 𝓁_new)
        (Σ* Σ_1 scps_p ∅))
-   ex-if]
+   ex-if-seq]
 
   [(ζ (Stxξ ph (Stx (Lst (? id? id_kont)
                            (? id? id_if)
@@ -280,19 +281,7 @@
    #:when (and (id=? ph id_kont '#%kont ξ Σ)
                (id=? ph id_if   'if     ξ Σ))
    (ζ (Stx (Lst id_if . val_exps) ctx) '● κ Σ*_0)
-   ex-if-kont]
-
-  ;; application (non-canonical #%app version, same as phases)
-  [(ζ (Stxξ ph (and stx (Stx (Lst (? id? id_app)
-                                    stx_fun . stl_args)
-                               ctx)) ξ) '◯
-       κ0 (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (id=? ph id_app '#%app ξ Σ)
-   #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
-   (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '◯
-       (κ (Stx (Pair id_app (Hole)) ctx) '● Σ*_0 𝓁_new)
-       (Σ* Σ_1 scps_p ∅))
-   ex-#%app]
+   ex-if]
 
   ;; application (canonical #%app version, same as phases)
   [(ζ (Stxξ ph (and stx (Stx (Pair (? id? id_app)
@@ -305,9 +294,32 @@
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '◯
        (κ (Stx (Pair id_app (Hole)) ctx) '● Σ*_0 𝓁_new)
        (Σ* Σ_1 scps_p ∅))
-   ex-#%app2]
+   ex-#%app]
 
-  ;; application (bound var-ref, same as phases)
+  ;; application (non-canonical #%app version, same as phases)
+  [(ζ (Stxξ ph (and stx (Stx (Lst (? id? id_app)
+                                    stx_fun . stl_args)
+                               ctx)) ξ) '◯
+       κ0 (and Σ*_0 (Σ* Σ scps_p _)))
+   #:when (id=? ph id_app '#%app ξ Σ)
+   #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
+   (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '◯
+       (κ (Stx (Pair id_app (Hole)) ctx) '● Σ*_0 𝓁_new)
+       (Σ* Σ_1 scps_p ∅))
+   ex-#%app′]
+
+  ;; application (lambda or primitive)
+  [(ζ (Stxξ ph (and stx (Stx (Lst stx_fun . stl_args) ctx)) ξ) '◯
+       κ0 (and Σ*_0 (Σ* Σ scps_p _)))
+   #:when (not (id? stx_fun))
+   #:with             id_app := (Stx (Sym '#%app) ctx)
+   #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
+   (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '◯
+       (κ (Stx (Pair id_app (Hole)) ctx) '● Σ*_0 𝓁_new)
+       (Σ* Σ_1 scps_p ∅))
+   ex-app]
+
+  ;; application (bound var ref, same as phases)
   [(ζ (Stxξ ph (and stx (Stx (Lst stx_fun . stl_args) ctx)) ξ) '◯
        κ0 (and Σ*_0 (Σ* Σ scps_p _)))
    #:when (id? stx_fun)
@@ -319,9 +331,9 @@
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '◯
        (κ (Stx (Pair id_app (Hole)) ctx) '● Σ*_0 𝓁_new)
        (Σ* Σ_1 scps_p ∅))
-   ex-app-bound-var]
+   ex-app-bound]
 
-  ;; application (free var-ref, same as phases)
+  ;; application (free var ref, same as phases)
   [(ζ (Stxξ ph (and stx (Stx (Lst stx_fun . stl_args) ctx)) ξ) '◯
        κ0 (and Σ*_0 (Σ* Σ scps_p _)))
    #:when (id? stx_fun)
@@ -330,24 +342,13 @@
    #:when (and (eq? 'not-found at)
                (not (member name
                             '(lambda let quote syntax let-syntax if
-                               #%app #%kont #%seq #%ls-kont #%snoc))))
+                               #%app #%kont #%seq #%snoc))))
    #:with             id_app := (Stx (Sym '#%app) ctx)
    #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '◯
        (κ (Stx (Pair id_app (Hole)) ctx) '● Σ*_0 𝓁_new)
        (Σ* Σ_1 scps_p ∅))
-   ex-app-free-var]
-
-  ;; application (primitive or lambda)
-  [(ζ (Stxξ ph (and stx (Stx (Lst stx_fun . stl_args) ctx)) ξ) '◯
-       κ0 (and Σ*_0 (Σ* Σ scps_p _)))
-   #:when (not (id? stx_fun))
-   #:with             id_app := (Stx (Sym '#%app) ctx)
-   #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
-   (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '◯
-       (κ (Stx (Pair id_app (Hole)) ctx) '● Σ*_0 𝓁_new)
-       (Σ* Σ_1 scps_p ∅))
-   ex-app-prim-lambda]
+   ex-app-free]
 
   ;; reference (same as phases)
   [(ζ (Stxξ ph (and id (Stx (Sym nam) ctx)) ξ) '◯
@@ -368,7 +369,7 @@
   ;; primitive operator (same as phases)
   [(ζ (Stxξ ph (Stx (? prim? prim) ctx) ξ) '◯ κ Σ*)
    (ζ (Stx (Lst (Stx (Sym 'quote) ctx) (Stx prim ctx)) ctx) '● κ Σ*)
-   ex-prim-op]
+   ex-prim]
 
   ;; pop κ (merge Σ*)
   [(ζ stx '● (κ stx_c ex? (Σ* _ scps_p scps_u) 𝓁) (Σ* Σ _ _))
@@ -381,10 +382,15 @@
    (ζ (in-hole stx_c stx) ex? κ0 (Σ* Σ scps_p scps_u))
    ex-pop-κ]
 
-  ;;; expression sequence
+  ;; in-eval
+  [(InEval s1 ζ0)
+   #:with s2 <- (lift ((-->) s1)) ;; extra call due to mut. rec. defs
+   (InEval s2 ζ0)
+   ex-in-eval]
 
-  ;; (#%seq (done ...) exp0 exp ...) -->
-  ;;   (#%seq (done ... (expand exp0)) exp ...)
+  ;;;; expression sequence
+
+  ;; (#%seq (d ...) e₀ e ...) ==> (#%seq (d ... (expand e₀)) e ...)
   [(ζ (Stxξ ph (and stx (Stx (Lst (? id? id_seq)
                                     (Stx val_dones _)
                                     stx_exp0
@@ -418,20 +424,15 @@
                       ctx) ξ) '◯ κ Σ*_0)
    ex-seq-snoc]
 
-  ;; (#%seq (done ...)) --> (done ...)
+  ;; (#%seq (d ...)) ==> (d ...)
   [(ζ (Stxξ ph (Stx (Lst (? id? id_seq)
                            (Stx val_dones _))
                       ctx) ξ) '◯
        κ (and Σ*_0 (Σ* Σ _ _)))
    #:when (id=? ph id_seq '#%seq ξ Σ)
    (ζ (Stx val_dones ctx) '● κ Σ*_0)
-   ex-seq-nil]
+   ex-seq-nil])
 
-  ;; in-eval
-  [(InEval s1 ζ0)
-   #:with s2 <- (lift ((-->) s1)) ;; extra call due to mut. rec. defs
-   (InEval s2 ζ0)
-   ex-in-eval])
 
 (define-unit-from-reduction red@ ==>)
 

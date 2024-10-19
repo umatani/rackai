@@ -1,6 +1,7 @@
 #lang racket/unit
 (require
  (only-in "../nondet.rkt" aborts do := <- lift)
+ (only-in "../syntax.rkt" stx->datum)
  "../signatures.rkt"
  "../terms.rkt")
 

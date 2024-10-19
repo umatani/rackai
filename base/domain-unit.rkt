@@ -5,7 +5,8 @@
  (only-in racket/pretty   pretty-print)
  (only-in "../set.rkt"    set ⊆)
  "../signatures.rkt"
- "../terms.rkt")
+ "../terms.rkt"
+ (only-in "../syntax.rkt" stx->datum))
 
 (import)
 (export domain^)

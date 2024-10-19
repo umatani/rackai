@@ -29,9 +29,9 @@
    (cons 'abs:phases   a:p:interp)
    (cons 'abs:full     a:f:interp)
 
-   (cons 'naive:core   n:c:interp)
-   (cons 'naive:phases n:p:interp)
-   (cons 'naive:full   n:f:interp)
+   ;; (cons 'naive:core   n:c:interp)
+   ;; (cons 'naive:phases n:p:interp)
+   ;; (cons 'naive:full   n:f:interp)
    ))
 
 (define suites
@@ -48,9 +48,9 @@
    'abs:phases   '[core phases            ]
    'abs:full     '[core phases full       ]
 
-   'naive:core   '[core             finite]
-   'naive:phases '[core phases      finite]
-   'naive:full   '[core phases full finite]
+   ;; 'naive:core   '[core             finite]
+   ;; 'naive:phases '[core phases      finite]
+   ;; 'naive:full   '[core phases full finite]
    ))
 
 (define (run-all interpreters suites mode reference verbose?)

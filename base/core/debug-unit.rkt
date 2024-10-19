@@ -3,6 +3,7 @@
  (only-in racket/match          match)
  (only-in "../../set.rkt"       set list→set)
  (only-in "../../reduction.rkt" results do <- lift apply-reduction*)
+ (only-in "../../syntax.rkt"    stx->datum)
  "../../signatures.rkt"
  "terms.rkt")
 

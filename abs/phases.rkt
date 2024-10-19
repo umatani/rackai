@@ -8,6 +8,7 @@
  (only-in "../set.rkt"                set set? ∅ ∅? set→list list→set set-map)
  (only-in "../mix.rkt"                define-mixed-unit inherit)
  (only-in "../misc.rkt"               union)
+ (only-in "../syntax.rkt"             snoc)
  "../reduction.rkt"
  "../signatures.rkt"
  "../base/phases/terms.rkt"

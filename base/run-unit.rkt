@@ -4,7 +4,8 @@
  (only-in "../set.rkt"    set)
  (only-in "../nondet.rkt" aborts do :=)
  "../signatures.rkt"
- "../terms.rkt")
+ "../terms.rkt"
+ (only-in "../syntax.rkt" stx->datum))
 
 ;;;; runner
 

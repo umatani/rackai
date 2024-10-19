@@ -7,6 +7,7 @@
  "../test/suites.rkt"
  (only-in "../set.rkt"              set set? ∅ ∅? set→list list→set set-map)
  (only-in "../mix.rkt"              define-mixed-unit inherit)
+ (only-in "../syntax.rkt"           snoc)
  "../reduction.rkt"
  "../signatures.rkt"
  "../base/core/terms.rkt"

@@ -4,6 +4,7 @@
  "../interpreter.rkt"
  "../test/suites.rkt"
  (only-in "../mix.rkt"             define-mixed-unit)
+ (only-in "../syntax.rkt"          snoc)
  "../reduction.rkt"
  "../signatures.rkt"
  "../base/full/terms.rkt"

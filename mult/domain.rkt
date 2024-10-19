@@ -7,6 +7,7 @@
  (only-in "../nondet.rkt"           pure do <-)
  (only-in "../mix.rkt"              define-mixed-unit inherit)
  (only-in "../set.rkt"              ⊆)
+ (only-in "../syntax.rkt"           stx->datum)
  "../signatures.rkt"
  "../terms.rkt"
  (only-in "../base/domain-unit.rkt" [domain@ base:domain@]))
