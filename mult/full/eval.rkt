@@ -74,12 +74,12 @@
   ;; eval : Ph Ast MaybeScp ξ Σ* → (SetM (Cons Val Σ*))
   (define (eval δ ph ast maybe-scp_i ξ Σ*)
     (define -->d (--> δ))
-    (do `(,(? val? val) • ,_store ,Σ*_2) <- (lift
-                                             (apply-reduction-relation*
+    (do `(,(? val? val) ● ,_store ,Σ*_2) <- (lift
+                                             (apply-reduction*
                                               (-->d)
                                               `(,(AstEnv ph ast (init-env)
                                                          maybe-scp_i ξ)
-                                                • ,(init-store) ,Σ*)))
+                                                ● ,(init-store) ,Σ*)))
         (pure (cons val Σ*_2))))
 
   ;; evaluate : Ast → (SetM Val)

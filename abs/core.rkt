@@ -75,10 +75,10 @@
   (define (evaluate δ ast)
     (define -->d (--> δ))
 
-    (do `(,val ,done? ,_store) <- (lift (apply-reduction-relation*
+    (do `(,val ,done? ,_store) <- (lift (apply-reduction*
                                          -->d `(,(AstEnv ast (init-env))
-                                                • ,(init-store))))
-        (if (and (val? val) (eq? done? '•))
+                                                ● ,(init-store))))
+        (if (and (val? val) (eq? done? '●))
           (pure val)
           (lift ∅)))))
 
@@ -100,12 +100,12 @@
                        (only mcont^    push-κ)
                        (only parse^    parse)]
   ;; reference
-  [(ζ (Stxξ (and id (Stx (Sym nam) ctx)) ξ) '∘ κ Σ)
+  [(ζ (Stxξ (and id (Stx (Sym nam) ctx)) ξ) '◯ κ Σ)
    #:with nam <- (resolve id Σ)
    #:with  at <- (lookup-ξ ξ nam)
    ;(printf "ref: ~a ~a\n" nam at)
    (match at
-     [(TVar id_new) (ζ id_new '• κ Σ)]
+     [(TVar id_new) (ζ id_new '● κ Σ)]
      [_ (error '==> "unbound identifier: ~a" nam)])
    ex-var])
 

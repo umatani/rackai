@@ -36,8 +36,8 @@
   ;; evaluate : Ast → (SetM Val)
   (define (evaluate δ ast)
     (define -->δ (--> δ))
-    (do `(,(? val? val) • ,_store) <- (lift (apply-reduction-relation*
+    (do `(,(? val? val) ● ,_store) <- (lift (apply-reduction*
                                              -->δ
                                              `(,(AstEnv ast (init-env))
-                                               • ,(init-store))))
+                                               ● ,(init-store))))
         (pure val))))

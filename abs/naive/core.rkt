@@ -82,23 +82,23 @@
                        (only mcont^    push-κ)
                        (only parse^    parse)]
 
-  [(InEval (list stx_exp '• store_0)
-           (ζ (Stxξ (Stx #f scps) ξ) '∘ κ Σ))
+  [(InEval (list stx_exp '● store_0)
+           (ζ (Stxξ (Stx #f scps) ξ) '◯ κ Σ))
    #:when (or (equal? stx_exp val-⊤)
               (equal? stx_exp atom-⊤)
               (equal? stx_exp stx-⊤))
-   (ζ (Stxξ stx_exp ξ) '∘ κ Σ)
+   (ζ (Stxξ stx_exp ξ) '◯ κ Σ)
    ex-macapp-flip-abs]
 
   ;; abstract value
-  [(ζ (Stxξ val ξ) '∘ κ0 Σ)
+  [(ζ (Stxξ val ξ) '◯ κ0 Σ)
    #:when (or (equal? val val-⊤)
               (equal? val atom-⊤)
               (equal? val num-⊤)
               (equal? val sym-⊤)
               (equal? val stx-⊤)
               (equal? val list-⊤))
-   (ζ val '• κ0 Σ)
+   (ζ val '● κ0 Σ)
    ex-abs-⊤])
 
 (define-unit-from-reduction ex:red@ ==>)

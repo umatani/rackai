@@ -114,7 +114,7 @@
   ; evaluate : δ Ast → Val
   (define (evaluate δ ast)
     (define -->δ (--> δ))
-    (match-let ([(set `(,(? val? v) • ,_store))
-                 (apply-reduction-relation*
-                  -->δ `(,(AstEnv ast (init-env)) • ,(init-store)))])
+    (match-let ([(set `(,(? val? v) ● ,_store))
+                 (apply-reduction*
+                  -->δ `(,(AstEnv ast (init-env)) ● ,(init-store)))])
       v)))

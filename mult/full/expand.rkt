@@ -2,7 +2,6 @@
 (require
  racket/unit
  (only-in racket/match                 match)
- (only-in "../../mix.rkt"              define-mixed-unit inherit)
  (only-in "../../misc.rkt"             union)
  (only-in "../../set.rkt"              set ∅ ∅? set→list)
  "../../reduction.rkt"
@@ -31,7 +30,7 @@
                        (only parse^    parse)]
 
   ;; application (free var-ref, same as phases)
-  [(ζ (Stxξ ph (and stx (Stx (Lst stx_fun . stl_args) ctx)) ξ) '∘
+  [(ζ (Stxξ ph (and stx (Stx (Lst stx_fun . stl_args) ctx)) ξ) '◯
        κ0 (and Σ*_0 (Σ* Σ scps_p _)))
    #:when (id? stx_fun)
    #:with name <- (resolve ph stx_fun Σ)
@@ -42,8 +41,8 @@
                                #%app #%kont #%seq #%ls-kont #%snoc))))
    #:with             id_app := (Stx (Sym '#%app) ctx)
    #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
-   (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '∘
-       (κ (Stx (Pair id_app (Hole)) ctx) '• Σ*_0 𝓁_new)
+   (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '◯
+       (κ (Stx (Pair id_app (Hole)) ctx) '● Σ*_0 𝓁_new)
        (Σ* Σ_1 scps_p ∅))
    ex-app-free-var]
 
@@ -51,43 +50,39 @@
   ;; set-basedにすることにより，bind-syntaxesがbinding storeに多重化をもたらし，
   ;; 名前の解決が正しくできなくなる．その場合(atがempty)が生じたら
   ;; unbound errorで停止するのではなく，探索候補から削除する．
-  [(ζ (Stxξ ph (and id (Stx (Sym nam) ctx)) ξ) '∘
+  [(ζ (Stxξ ph (and id (Stx (Sym nam) ctx)) ξ) '◯
        κ (and Σ*_0 (Σ* Σ _ _)))
    #:with nam <- (resolve ph id Σ)
    #:with  at <- (lookup-ξ ξ nam)
    #:when (TVar? at)
-   (ζ (TVar-id at) '• κ Σ*_0)
+   (ζ (TVar-id at) '● κ Σ*_0)
    ex-var])
 
 (define-unit-from-reduction red@ ==>)
 
-(define-mixed-unit expand/red@
-  (import (only eval^
-                -->)
-          (only red^
-                reducer))
+(define-unit expand/red@
+  (import (only eval^    -->)
+          (only  red^    reducer))
   (export expand^)
-  (inherit)
 
   (define (==> δ) (λ () (reducer (--> δ))))
   
   ; expand : Ph Stx ξ Σ* → (SetM (Cons Stx Σ*))
   (define (expand δ ph stx ξ Σ*)
-    (define ==>δ   (==> δ))
-    (define init-ζ (ζ (Stxξ ph stx ξ) '∘ '• Σ*))
-    (do ζ₀ <- (lift (apply-reduction-relation* (==>δ) init-ζ))
+    (define ==>δ (==> δ))
+    (define ζᵢ   (ζ (Stxξ ph stx ξ) '◯ '● Σ*))
+
+    (do ζ′ <- (lift (apply-reduction* (==>δ) ζᵢ))
         ;; set-baseにすることで stuck が生じる．
         ;; stuckの原因は，set-box!とbind-syntaxesがstoreへのassignmentで
         ;; あることによりstore中の値の多重化が生じること．
-        (ζ stx_new '• '• Σ*_new) <- (if (and (not (InEval? ζ₀))
-                                             (eq? (ζ-ex? ζ₀) '•))
-                                      (pure ζ₀)
-                                      (lift ∅))
-        (pure (cons stx_new Σ*_new)))))
+        (ζ stx′ '● '● Σ*′) <- (if (and (not (InEval? ζ′)) (eq? (ζ-ex? ζ′) '●))
+                                (pure ζ′)
+                                (lift ∅))
+        (pure (cons stx′ Σ*′)))))
 
 (define-compound-unit/infer expand@
   (import domain^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^
           bind^ id^ parse^)
   (export expand^)
   (link expand/red@ red@))
-

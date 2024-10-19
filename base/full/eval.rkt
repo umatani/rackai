@@ -190,7 +190,7 @@
      ,cont ,store ,(and Σ*_0 (Σ* Σ scps_p scps_u)))
    #:with (values stx_arg2) := (add ph (flip ph stx_arg maybe-scp_i) scp_defs)
    (InExpand (ζ (Stxξ (add1 ph) stx_arg2 (init-ξ))
-                 '∘ '• (Σ* Σ ∅ ∅))
+                 '◯ '● (Σ* Σ ∅ ∅))
              `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
                       `(,(Stx (Sym 'syntax-local-bind-syntaxes2)
                               `((0 . ,scps_p) (1 . ,scps_u)))
@@ -198,7 +198,7 @@
                ,cont ,store ,Σ*_0))
    ev-slbsm]
 
-  [(InExpand (ζ stx_exp '• '• (Σ* Σ_2 _ _))
+  [(InExpand (ζ stx_exp '● '● (Σ* Σ_2 _ _))
              `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
                       `(,(Stx (Sym 'syntax-local-bind-syntaxes2)
                               `((0 . ,scps_p) (1 . ,scps_u)))
@@ -248,12 +248,12 @@
                                  nams_stop
                                  ats_stop))
    (InExpand
-    (ζ (Stxξ ph (flip ph stx maybe-scp_i) ξ_stops) '∘ '• Σ*_0)
+    (ζ (Stxξ ph (flip ph stx maybe-scp_i) ξ_stops) '◯ '● Σ*_0)
     `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) '())
       ,cont ,store ,Σ*_0))
    ev-lexpand]  
 
-  [(InExpand (ζ stx_exp '• '• Σ*)
+  [(InExpand (ζ stx_exp '● '● Σ*)
              `(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) '())
                ,cont ,store ,_))
    `(,(flip ph stx_exp maybe-scp_i) ,cont ,store ,Σ*)
@@ -282,7 +282,7 @@
    ; しかし，flipないとdefs-begin-with-defnの挙動が実際の処理系と異なってしまう．
    (InExpand
     (ζ (Stxξ ph (add ph (flip ph stx maybe-scp_i) scp_defs)
-               ξ_stops) '∘ '• Σ*_0)
+               ξ_stops) '◯ '● Σ*_0)
     `(,(SApp lbl `(,ph ,maybe-scp_i ,ξ) `(,(Sym 'local-expand2)) `())
       ,cont ,store ,Σ*_0))
    ev-lexpand-defs]
@@ -378,10 +378,10 @@
   ;; eval : Ph Ast MaybeScp ξ Σ* → (Values Val Σ*)
   (define (eval δ ph ast maybe-scp_i ξ Σ*)
     (define -->δ (--> δ))
-    (match-let ([(set `(,(? val? val) • ,_store ,Σ*_2))
-                 (apply-reduction-relation*
+    (match-let ([(set `(,(? val? val) ● ,_store ,Σ*_2))
+                 (apply-reduction*
                   (-->δ) `(,(AstEnv ph ast (init-env) maybe-scp_i ξ)
-                           • ,(init-store) ,Σ*))])
+                           ● ,(init-store) ,Σ*))])
       (values val Σ*_2)))
 
   ;; evaluate : Ast → Val

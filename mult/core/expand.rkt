@@ -3,7 +3,6 @@
  racket/unit
  (only-in racket/match                 match)
  (only-in "../../set.rkt"              set ∅? set→list)
- (only-in "../../mix.rkt"              define-mixed-unit inherit)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/core/terms.rkt"
@@ -32,7 +31,7 @@
                        (only parse^    parse)]
 
   ;; application (free var-ref)
-  [(ζ (Stxξ (and stx (Stx (Lst stx_fun . stl_args) ctx)) ξ) '∘ κ0 Σ)
+  [(ζ (Stxξ (and stx (Stx (Lst stx_fun . stl_args) ctx)) ξ) '◯ κ0 Σ)
    #:when (id? stx_fun)
    #:with name <- (resolve stx_fun Σ)
    #:with   at := (results (lookup-ξ ξ name))
@@ -42,13 +41,13 @@
                                #%app #%kont #%seq #%ls-kont #%snoc))))
    #:with             id_app := (Stx (Sym '#%app) ctx)
    #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
-   (ζ (Stxξ (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '∘
-       (κ (Stx (Pair id_app (Hole)) ctx) '• 𝓁_new)
+   (ζ (Stxξ (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '◯
+       (κ (Stx (Pair id_app (Hole)) ctx) '● 𝓁_new)
        Σ_1)
    ex-app-free-var]
 
   ;; reference
-  [(ζ (Stxξ (and id (Stx (Sym nam) ctx)) ξ) '∘ κ Σ)
+  [(ζ (Stxξ (and id (Stx (Sym nam) ctx)) ξ) '◯ κ Σ)
    #:with    nam <- (resolve id Σ)
    #:with    at  := (results (lookup-ξ ξ nam))
    #:with id_new <- (if (∅? at)
@@ -57,27 +56,26 @@
                             (match v
                               [(TVar id_new) (pure id_new)]
                               [_ (error '==> "unbound identifier: ~a" nam)])))
-   (ζ id_new '• κ Σ)
+   (ζ id_new '● κ Σ)
    ex-var])
 
 (define-unit-from-reduction red@ ==>)
 
-(define-mixed-unit expand/red@
+(define-unit expand/red@
   (import (only eval^    -->)
           (only  red^    reducer))
   (export expand^)
-  (inherit)
 
   ;; δ → ζ → (Setof ζ)
   (define (==> δ) (reducer (--> δ)))
 
   ;; expand : δ Stx ξ Σ → (SetM (Cons Stx Σ))
-  (define (expand δ stx0 ξ Σ)
-    (define ==>δ   (==> δ))
-    (define init-ζ (ζ (Stxξ stx0 ξ) '∘ '• Σ))
-    (do (ζ stx_new '• '• Σ_new) <- (lift
-                                    (apply-reduction-relation* ==>δ init-ζ))
-        (pure (cons stx_new Σ_new)))))
+  (define (expand δ stx ξ Σ)
+    (define ==>δ (==> δ))
+    (define ζᵢ   (ζ (Stxξ stx ξ) '◯ '● Σ))
+
+    (do (ζ stx′ '● '● Σ′) <- (lift (apply-reduction* ==>δ ζᵢ))
+        (pure (cons stx′ Σ′)))))
 
 (define-compound-unit/infer expand@
   (import domain^ syntax^ env^ store^ eval^ menv^ mstore^

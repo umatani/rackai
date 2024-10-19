@@ -332,8 +332,8 @@
                     (import i-id ... ...))]))
 
 
-;; apply-reduction-relation* : (∀ [A] (A → (Setof A)) A → (Setof A))
-(define (apply-reduction-relation* --> s #:steps [steps #f])
+;; apply-reduction* : (∀ [A] (A → (Setof A)) A → (Setof A))
+(define (apply-reduction* --> s #:steps [steps #f])
   (let ([all-states   (r:mutable-set)]
         [irreducibles (r:mutable-set)]
         [worklist     (make-queue)])

@@ -80,11 +80,11 @@
                        (only mcont^    push-κ)
                        (only parse^    parse)]
   ;; reference
-  [(ζ (Stxξ ph (and id (Stx (Sym nam) ctx)) ξ scps_p) '∘ κ0 Σ)
+  [(ζ (Stxξ ph (and id (Stx (Sym nam) ctx)) ξ scps_p) '◯ κ0 Σ)
    #:with nam <- (resolve ph id Σ)
    #:with  at <- (lookup-ξ ξ nam)
    (match at
-     [(TVar id_new) (ζ id_new '• κ0 Σ)]
+     [(TVar id_new) (ζ id_new '● κ0 Σ)]
      [_ (error '==>p "unbound identifier: ~a" nam)])
    ex-var])
 
