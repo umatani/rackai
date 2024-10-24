@@ -164,25 +164,19 @@
       κ₀
       (Σ* Σ₀ scpsₚ scpsᵤ))
    #:when (id=? ph id_ls 'let-syntax ξ Σ₀)
-   #:with (values nam Σ₁) := (alloc-name   id Σ₀)
-   #:with (values scp Σ₂) := (alloc-scope 'ls Σ₁)
-   #:with             id′ := (add ph id scp)
-   #:with              Σ₃ := (bind ph Σ₂ id′ nam)
-   #:with   (values 𝓁 Σ₄) := (push-κ Σ₃ stx κ₀)
+   #:with   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ (Stxξ (add1 ph) stx_rhs (init-ξ))
       (κ (Stxξ ph (Stx (Lst id-kont id_ls
-                            (Stx (Lst (Stx (Lst id′ (Hole)) ctx_bind))
+                            (Stx (Lst (Stx (Lst id (Hole)) ctx_bind))
                                  ctx_binds)
-                            stx_body (add ph (Stx (Bool #f) (empty-ctx)) scp))
-                       ctx) ξ) scpsₚ scpsᵤ 𝓁)
-      (Σ* Σ₄ ∅ ∅))
+                            stx_body) ctx) ξ) scpsₚ scpsᵤ 𝓁)
+      (Σ* Σ₁ ∅ ∅))
    ex-ls-rhs]
 
   [(ζ (Stxξ ph (Stx (Lst (? id? id_kont) (? id? id_ls)
-                         (Stx (Lst (Stx (Lst (? id? id′) stx_rhs′) _ctx_bind))
+                         (Stx (Lst (Stx (Lst (? id? id) stx_rhs′) _ctx_bind))
                               _ctx_binds)
-                         stx_body (Stx (Bool #f) ctx_scp))
-                    ctx) ξ)
+                         stx_body) ctx) ξ)
       κ
       (Σ* Σ scpsₚ scpsᵤ))
    #:when (and (id=? ph id_kont '#%kont     ξ Σ)
@@ -191,26 +185,26 @@
    (InEval (list (AstEnv ph ast (init-env) 'no-scope ξ)
                  '● (init-store)
                  (Σ* Σ scpsₚ ∅))
-           (ζ (Stxξ ph (Stx (Lst id′ stx_body (Stx (Bool #f) ctx_scp))
-                            (empty-ctx)) ξ)
+           (ζ (Stxξ ph (Stx (Lst id stx_body) (empty-ctx)) ξ)
               κ
               (Σ* Σ scpsₚ scpsᵤ)))
    ex-ls-eval]
 
   [(InEval (list (? val? val) '● _sto (Σ* Σ₀ _scpsₚ _scpsᵤ))
-           (ζ (Stxξ ph (Stx (Lst (? id? id′) stx_body
-                                 (Stx (Bool #f) ctx_scp))
-                            _ctx) ξ)
+           (ζ (Stxξ ph (Stx (Lst (? id? id) stx_body) _ctx) ξ)
               κ₀
               (Σ* _Σ scpsₚ scpsᵤ)))
-   #:with       nam     :=<1> (resolve ph id′ Σ₀)
-   #:with (set scp)     :=    (at-phase ctx_scp ph)
-   #:with        ξ′     :=    (extend-ξ ξ nam val)
-   #:with stx_body′     :=    (add ph stx_body scp)
-   #:with (values 𝓁 Σ₁) :=    (push-κ Σ₀ stx_body κ₀)
+
+   #:with (values nam Σ₁) := (alloc-name   id Σ₀)
+   #:with (values scp Σ₂) := (alloc-scope 'ls Σ₁)
+   #:with             id′ := (add ph id scp)
+   #:with              Σ₃ := (bind ph Σ₂ id′ nam)
+   #:with              ξ′ := (extend-ξ ξ nam val)
+   #:with       stx_body′ := (add ph stx_body scp)
+   #:with   (values 𝓁 Σ₄) := (push-κ Σ₃ stx_body κ₀)
    (ζ (Stxξ ph stx_body′ ξ′)
       (κ (Hole) scpsₚ scpsᵤ 𝓁)
-      (Σ* Σ₁ (set-add scpsₚ scp) ∅))
+      (Σ* Σ₄ (set-add scpsₚ scp) ∅))
    ex-ls]
 
   ;; macro invocation
