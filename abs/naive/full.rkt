@@ -42,27 +42,27 @@
   ;; (syntax-local-value <abs> _ ...)
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(,(Prim 'syntax-local-value _) ,id ,_ ...) '())
-     ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
+     ,cont ,store ,(and Σ̂_0 (Σ̂ Σ _ _)))
    #:when (or (equal? id val-⊤) (equal? id atom-⊤)
               (equal? id stx-⊤))
-   `(,val-⊤ ,cont ,store ,Σ*_0)
+   `(,val-⊤ ,cont ,store ,Σ̂_0)
    ev-lval-abs]
 
   ;; (syntax-local-identifier-as-binding <abs>)
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(,(Prim 'syntax-local-identifier-as-binding _) ,id) '())
-     ,cont ,store ,(and Σ*_0 (Σ* _ _ scps_u)))
+     ,cont ,store ,(and Σ̂_0 (Σ̂ _ _ scps_u)))
    #:when (or (equal? id val-⊤)
               (equal? id atom-⊤)
               (equal? id stx-⊤)
               (and (Stx? id) (equal? (Stx-e id) sym-⊤)))
-   `(,stx-⊤ ,cont ,store ,Σ*_0)
+   `(,stx-⊤ ,cont ,store ,Σ̂_0)
    ev-lbinder-abs]
 
   ;; (syntax-local-bind-syntaxes <abs> <abs> <abs>)
   [`(,(SApp _lbl `(,ph ,maybe-scp_i ,ξ)
             `(,(Prim 'syntax-local-bind-syntaxes _)
-              ,ids ,rhs ,defs) '()) ,cont ,store ,Σ*_0)
+              ,ids ,rhs ,defs) '()) ,cont ,store ,Σ̂_0)
    #:when (or (or (equal? ids list-⊤)
                   (and (Pair? ids) (Null? (Pair-d ids))
                        (let ([id (Pair-a ids)])
@@ -76,31 +76,31 @@
                   (equal? rhs stx-⊤))
               (or (equal? defs val-⊤)
                   (equal? defs atom-⊤)))
-   `(,list-⊤ ,cont ,store ,Σ*_0)
+   `(,list-⊤ ,cont ,store ,Σ̂_0)
    ev-slbs-abs]
   
   ;; (local-expand <abs> contextv idstops defs?)
   [`(,(SApp lbl `(,ph ,maybe-scp_i ,ξ)
             `(,(Prim 'local-expand _)
               ,stx ,val_contextv ,val_idstops ,val_defs ...) '())
-     ,cont ,store ,(and Σ*_0 (Σ* Σ _ _)))
+     ,cont ,store ,(and Σ̂_0 (Σ̂ Σ _ _)))
    #:when (or (equal? stx val-⊤)
               (equal? stx atom-⊤)
               (equal? stx stx-⊤))
-   `(,stx-⊤ ,cont ,store ,Σ*_0)
+   `(,stx-⊤ ,cont ,store ,Σ̂_0)
    ev-lexpand-abs]
 
   ;; β (<abs> ...)
-  [`(,(SApp _lbl `(,_ph ,_maybe-scp_i ,_ξ) (cons f _) '()) ,cont ,store ,Σ*)
+  [`(,(SApp _lbl `(,_ph ,_maybe-scp_i ,_ξ) (cons f _) '()) ,cont ,store ,Σ̂)
    #:when (equal? f val-⊤)
-   `(,f ,cont ,store ,Σ*)
+   `(,f ,cont ,store ,Σ̂)
    ev-β-abs]
 
   ;; (if <abs> ...)
-  [`(,(SIf _lbl v _ tm_else) ,cont ,store ,Σ*)
+  [`(,(SIf _lbl v _ tm_else) ,cont ,store ,Σ̂)
    #:when (or (equal? v val-⊤)
               (equal? v atom-⊤))
-   `(,tm_else ,cont ,store ,Σ*)
+   `(,tm_else ,cont ,store ,Σ̂)
    ev-if-abs-#f])
 
 (define-unit-from-reduction ev:red@ -->)
@@ -144,23 +144,23 @@
                        (only mcont^    push-κ)
                        (only parse^    parse)]
   
-  [(InEval (list stx_exp '● store_0 Σ*)
+  [(InEval (list stx_exp '● store_0 Σ̂)
            (ζ (Stxξ ph (Stx (Bool #f) ctx_i) ξ) '◯ κ _))
    #:when (or (equal? stx_exp val-⊤)
               (equal? stx_exp atom-⊤)
               (equal? stx_exp stx-⊤))
-   (ζ (Stxξ ph stx_exp ξ) '◯ κ Σ*)
+   (ζ (Stxξ ph stx_exp ξ) '◯ κ Σ̂)
    ex-macapp-abs]
 
   ;; abstract value
-  [(ζ (Stxξ ph val ξ) '◯ κ Σ*)
+  [(ζ (Stxξ ph val ξ) '◯ κ Σ̂)
    #:when (or (equal? val val-⊤)
               (equal? val atom-⊤)
               (equal? val num-⊤)
               (equal? val sym-⊤)
               (equal? val stx-⊤)
               (equal? val list-⊤))
-   (ζ val '● κ Σ*)
+   (ζ val '● κ Σ̂)
    ex-abs-⊤])
 
 (define-unit-from-reduction ex:red@ ==>)

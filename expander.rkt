@@ -40,8 +40,8 @@
   (export expander^)
 
   (define (expander δ stx)
-    (match-let ([(cons stx′ (Σ* Σ _ _))
-                 (expand δ 0 stx (init-ξ) (Σ* (init-Σ) ∅ ∅))])
+    (match-let ([(cons stx′ (Σ̂ Σ _ _))
+                 (expand δ 0 stx (init-ξ) (Σ̂ (init-Σ) ∅ ∅))])
       (cons stx′ Σ))))
 
 (define-unit mult-full-expander@
@@ -51,6 +51,6 @@
   (export expander^)
 
   (define (expander δ stx)
-    (do (cons stx′ (Σ* Σ _ _)) <- (expand δ 0 stx (init-ξ)
-                                          (Σ* (init-Σ) ∅ ∅))
+    (do (cons stx′ (Σ̂ Σ _ _)) <- (expand δ 0 stx (init-ξ)
+                                         (Σ̂ (init-Σ) ∅ ∅))
         (pure (cons stx′ Σ)))))

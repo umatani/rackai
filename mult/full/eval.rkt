@@ -71,21 +71,21 @@
   ;; --> : δ → → State → (Setof State)
   (define (--> δ) (λ () (reducer δ (==> δ))))
 
-  ;; eval : Ph Ast MaybeScp ξ Σ* → (SetM (Cons Val Σ*))
-  (define (eval δ ph ast maybe-scp_i ξ Σ*)
+  ;; eval : Ph Ast MaybeScp ξ Σ̂ → (SetM (Cons Val Σ̂))
+  (define (eval δ ph ast maybe-scp_i ξ Σ̂)
     (define -->d (--> δ))
-    (do `(,(? val? val) ● ,_store ,Σ*_2) <- (lift
+    (do `(,(? val? val) ● ,_store ,Σ̂_2) <- (lift
                                              (apply-reduction*
                                               (-->d)
                                               `(,(AstEnv ph ast (init-env)
                                                          maybe-scp_i ξ)
-                                                ● ,(init-store) ,Σ*)))
-        (pure (cons val Σ*_2))))
+                                                ● ,(init-store) ,Σ̂)))
+        (pure (cons val Σ̂_2))))
 
   ;; evaluate : Ast → (SetM Val)
   (define (evaluate δ ast)
-    (do (cons val _Σ*) <- (eval δ 0 ast 'no-scope (init-ξ)
-                                (Σ* (init-Σ) ∅ ∅))
+    (do (cons val _Σ̂) <- (eval δ 0 ast 'no-scope (init-ξ)
+                                (Σ̂ (init-Σ) ∅ ∅))
         (pure val))))
 
 (define-compound-unit/infer eval@

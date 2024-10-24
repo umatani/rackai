@@ -21,7 +21,7 @@
 (define (expand==> δ form)
   (define ==>d (==> δ))
   ((==>d)
-   (ζ (Stxξ 0 (reader form) (init-ξ)) '● (Σ* (init-Σ) ∅ ∅))))
+   (ζ (Stxξ 0 (reader form) (init-ξ)) '● (Σ̂ (init-Σ) ∅ ∅))))
 
 ;; expand==>* : δ Sexp → (Setof ζ)
 (define (expand==>* δ form #:steps [steps #f] #:compact [compact #t])
@@ -29,7 +29,7 @@
   (let ([results (apply-reduction*
                   (==>δ)
                   (ζ (Stxξ 0 (reader form) (init-ξ)) '●
-                     (Σ* (init-Σ) ∅ ∅))
+                     (Σ̂ (init-Σ) ∅ ∅))
                   #:steps steps)])
     (if compact
       (match results
@@ -43,7 +43,7 @@
   (results (do ast <- (lift (run δ form 'parse))
                (lift ((-->d)
                       `(,(AstEnv 0 ast (init-env) 'no-scope (init-ξ))
-                        ● ,(init-store) ,(Σ* (init-Σ) ∅ ∅)))))))
+                        ● ,(init-store) ,(Σ̂ (init-Σ) ∅ ∅)))))))
 
 ;; eval-->* : δ Sexp → (Setof State)
 (define (eval-->* δ form #:steps [steps #f])
@@ -51,5 +51,5 @@
   (results (do ast <- (lift (run δ form 'parse))
                (lift (apply-reduction*
                       (-->d) `(,(AstEnv 0 ast (init-env) 'no-scope (init-ξ))
-                               ● ,(init-store) ,(Σ* (init-Σ) ∅ ∅))
+                               ● ,(init-store) ,(Σ̂ (init-Σ) ∅ ∅))
                       #:steps steps)))))

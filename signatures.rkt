@@ -61,12 +61,12 @@
 (define-signature expand^
   (==>           ; δ →   ζ → (Setof ζ)                          (core, phases)
                  ; δ → → ζ → (Setof ζ)                          (full)
-   expand        ; δ    Stx ξ      Σ  →       (Cons Stx Σ )     (base/core)
-                 ; δ Ph Stx ξ Scps Σ  →       (Cons Stx Σ )     (base/phases)
-                 ; δ Ph Stx ξ      Σ* →       (Cons Stx Σ*)     (base/full)
-                 ; δ    Stx ξ      Σ  → (SetM (Cons Stx Σ ))    (mult/core)
-                 ; δ Ph Stx ξ Scps Σ  → (SetM (Cons Stx Σ ))    (mult/phases)
-                 ; δ Ph Stx ξ      Σ* → (SetM (Cons Stx Σ*))    (mult/full)
+   expand        ; δ    Stx ξ      Σ →       (Cons Stx Σ )      (base/core)
+                 ; δ Ph Stx ξ Scps Σ →       (Cons Stx Σ )      (base/phases)
+                 ; δ Ph Stx ξ      Σ̂ →       (Cons Stx Σ̂)       (base/full)
+                 ; δ    Stx ξ      Σ → (SetM (Cons Stx Σ ))     (mult/core)
+                 ; δ Ph Stx ξ Scps Σ → (SetM (Cons Stx Σ ))     (mult/phases)
+                 ; δ Ph Stx ξ      Σ̂ → (SetM (Cons Stx Σ̂))      (mult/full)
    ))
 
 ;; ----------------------------------------

@@ -60,59 +60,59 @@
         ;; box-update : Σ 𝓁 Val → Σ
         (define (box-update Σ 𝓁 v) (update-Σ Σ 𝓁 v))]
   ;; value
-  [`(,(AstEnv _ph (? val? val) _env _maybe-scpᵢ _ξ) ,cnt ,sto ,Σ*)
-   `(,val ,cnt ,sto ,Σ*)
+  [`(,(AstEnv _ph (? val? val) _env _maybe-scpᵢ _ξ) ,cnt ,sto ,Σ̂)
+   `(,val ,cnt ,sto ,Σ̂)
    ev-val]
 
   ;; reference
-  [`(,(AstEnv _ph (? Var? var) env _maybe-scpᵢ _ξ) ,cnt ,sto ,Σ*)
+  [`(,(AstEnv _ph (? Var? var) env _maybe-scpᵢ _ξ) ,cnt ,sto ,Σ̂)
    #:with loc :=<1> (lookup-env env var)
    #:with val :=<1> (lookup-store sto loc)
-   `(,val ,cnt ,sto ,Σ*)
+   `(,val ,cnt ,sto ,Σ̂)
    ev-x]
 
   ;; lambda
-  [`(,(AstEnv _ph (Fun vars ast) env _maybe-scpᵢ _ξ) ,cnt ,sto ,Σ*)
-   `(,(VFun vars ast env) ,cnt ,sto ,Σ*)
+  [`(,(AstEnv _ph (Fun vars ast) env _maybe-scpᵢ _ξ) ,cnt ,sto ,Σ̂)
+   `(,(VFun vars ast env) ,cnt ,sto ,Σ̂)
    ev-lam]
 
   ;; application
-  [`(,(AstEnv ph (App lbl ast asts) env maybe-scpᵢ ξ) ,cnt ,sto ,Σ*)
+  [`(,(AstEnv ph (App lbl ast asts) env maybe-scpᵢ ξ) ,cnt ,sto ,Σ̂)
    #:with (values loc sto′) := (push-cont sto lbl cnt)
    `(,(AstEnv ph ast env maybe-scpᵢ ξ)
      ,(KApp '() asts `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-     ,sto′ ,Σ*)
+     ,sto′ ,Σ̂)
    ev-push-app]
 
   [`(,(? val? val)
      ,(KApp vals (cons ast asts) `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-     ,sto ,Σ*)
+     ,sto ,Σ̂)
    `(,(AstEnv ph ast env maybe-scpᵢ ξ)
      ,(KApp (append vals (list val)) asts `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-     ,sto ,Σ*)
+     ,sto ,Σ̂)
    ev-pop-app₁]
 
   [`(,(? val? val)
      ,(KApp '() '() `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-     ,sto ,Σ*)
-   `(,val ,(KApp′ '() `(,ph ,env ,maybe-scpᵢ ,ξ) loc) ,sto ,Σ*)
+     ,sto ,Σ̂)
+   `(,val ,(KApp′ '() `(,ph ,env ,maybe-scpᵢ ,ξ) loc) ,sto ,Σ̂)
    ev-pop-app₂]
 
   [`(,(? val? val)
      ,(KApp (cons val′ vals) '() `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-     ,sto ,Σ*)
+     ,sto ,Σ̂)
    `(,val′ ,(KApp′ (append vals (list val))
-                   `(,ph ,env ,maybe-scpᵢ ,ξ) loc) ,sto ,Σ*)
+                   `(,ph ,env ,maybe-scpᵢ ,ξ) loc) ,sto ,Σ̂)
    ev-pop-app₃]
 
   ;; local value
   [`(,(Prim 'syntax-local-value _stx)
      ,(KApp′ `(,(? id? id)) `(,ph ,_env ,_maybe-scpᵢ ,ξ) loc)
-     ,sto ,(Σ* Σ scpsₚ scpsᵤ))
+     ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    #:with nam :=<1> (resolve ph id Σ)
    #:with val :=<1> (lookup-ξ ξ nam)
    #:with cnt :=<1> (lookup-store sto loc)
-   `(,val ,cnt ,sto ,(Σ* Σ scpsₚ scpsᵤ))
+   `(,val ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    ev-lval]
 
   ;; local value with definition context
@@ -124,38 +124,38 @@
   [`(,(Prim 'syntax-local-value _stx)
      ,(KApp′ `(,(? id? id) ,(Bool #f) ,(Defs _scp 𝓁))
              `(,ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
-     ,sto ,(Σ* Σ scpsₚ scpsᵤ))
+     ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    #:with ξ_defs :=<1> (def-ξ-lookup Σ 𝓁)
    #:with    nam :=<1> (resolve ph id Σ)
    #:with    val :=<1> (lookup-ξ ξ_defs nam)
    #:with    cnt :=<1> (lookup-store sto loc)
-   `(,val ,cnt ,sto ,(Σ* Σ scpsₚ scpsᵤ))
+   `(,val ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    ev-lval-defs]
 
   ;; local binder
   [`(,(Prim 'syntax-local-identifier-as-binding _stx)
      ,(KApp′ `(,(? id? id)) `(,ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
-     ,sto ,(Σ* Σ scpsₚ scpsᵤ))
+     ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    #:with    cnt :=<1> (lookup-store sto loc)
-   `(,(prune ph id scpsᵤ) ,cnt ,sto ,(Σ* Σ scpsₚ scpsᵤ))
+   `(,(prune ph id scpsᵤ) ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    ev-lbinder]
 
   ;; create definition context
   [`(,(Prim 'syntax-local-make-definition-context stx)
      ,(KApp′ `() `(,_ph ,_env ,_maybe-scpᵢ ,ξ) loc)
-     ,sto ,(Σ* Σ₀ scpsₚ scpsᵤ))
+     ,sto ,(Σ̂ Σ₀ scpsₚ scpsᵤ))
    #:with (values scp Σ₁) :=    (alloc-scope 'defs Σ₀)
    #:with   (values 𝓁 Σ₂) :=    (alloc-def-ξ stx Σ₁)
    #:with             cnt :=<1> (lookup-store sto loc)
    `(,(Defs scp 𝓁) ,cnt ,sto
-                   ,(Σ* (def-ξ-update Σ₂ 𝓁 ξ) (set-add scpsₚ scp) scpsᵤ))
+                   ,(Σ̂ (def-ξ-update Σ₂ 𝓁 ξ) (set-add scpsₚ scp) scpsᵤ))
    ev-slmdc]
 
   ;; create definition binding (for a variable)
   [`(,(Prim 'syntax-local-bind-syntaxes _stx)
      ,(KApp′ `(,(Lst (? id? id)) ,(Bool #f) ,(Defs scp 𝓁))
              `(,ph ,_env ,maybe-scpᵢ ,_ξ) loc)
-     ,sto ,(Σ* Σ₀ scpsₚ scpsᵤ))
+     ,sto ,(Σ̂ Σ₀ scpsₚ scpsᵤ))
    #:with              id′ := (add ph (prune ph (flip ph id maybe-scpᵢ) scpsᵤ)
                                    scp)
    #:with (values nam Σ₁) :=    (alloc-name id′ Σ₀)
@@ -164,49 +164,49 @@
    #:with              Σ₃ :=    (def-ξ-update Σ₂ 𝓁
                                   (extend-ξ ξ_defs nam (TVar id′)))
    #:with             cnt :=<1> (lookup-store sto loc)
-   `(,(Lst id′) ,cnt ,sto ,(Σ* Σ₃ scpsₚ scpsᵤ))
+   `(,(Lst id′) ,cnt ,sto ,(Σ̂ Σ₃ scpsₚ scpsᵤ))
    ev-slbsv]
 
   ;; create macro definition binding
   [`(,(Prim 'syntax-local-bind-syntaxes stx)
      ,(KApp′ `(,(Lst (? id? id)) ,(? stx? stx_arg) ,(Defs scp 𝓁))
              `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-     ,sto ,(Σ* Σ scpsₚ scpsᵤ))
+     ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    (InExpand
     (ζ (Stxξ (add1 ph)
              (add ph (flip ph stx_arg maybe-scpᵢ) scp) (init-ξ))
-       '● (Σ* Σ ∅ ∅))
+       '● (Σ̂ Σ ∅ ∅))
     `(,(Prim 'syntax-local-bind-syntaxes2 stx)
       ,(KApp′ `(,id ,(Defs scp 𝓁)) `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-      ,sto ,(Σ* Σ ;; not used
+      ,sto ,(Σ̂ Σ ;; not used
                 scpsₚ scpsᵤ)))
    ev-slbsm]
 
-  [(InExpand (ζ (? Stx? stx_arg′) '● (Σ* Σ _scpsₚ _scpsᵤ))
+  [(InExpand (ζ (? Stx? stx_arg′) '● (Σ̂ Σ _scpsₚ _scpsᵤ))
              `(,(Prim 'syntax-local-bind-syntaxes2 _stx)
                ,(KApp′ `(,id ,(Defs scp 𝓁)) `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-               ,sto ,(Σ* _Σ scpsₚ scpsᵤ)))
+               ,sto ,(Σ̂ _Σ scpsₚ scpsᵤ)))
    #:with ast :=<1> (parse (add1 ph) stx_arg′ Σ)
    `(,(AstEnv ph ast (init-env) 'no-scope ξ)
      ,(KApp `(,(Prim 'syntax-local-bind-syntaxes2
                      (Stx (Bool #f) `((0 . ,scpsₚ) (1 . ,scpsᵤ))))
               ,id ,(Defs scp 𝓁)) '()
             `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-     ,sto ,(Σ* Σ scpsₚ ∅))
+     ,sto ,(Σ̂ Σ scpsₚ ∅))
    ev-slbsm′]
 
   [`(,(Prim 'syntax-local-bind-syntaxes2
             (Stx (Bool #f) `((0 . ,scpsₚ) (1 . ,scpsᵤ))))
      ,(KApp′ `(,(? id? id) ,(Defs scp 𝓁) ,val)
              `(,ph ,_env ,maybe-scpᵢ ,_ξ) loc)
-     ,sto ,(Σ* Σ₀ _scpsₚ _scpsᵤ))
+     ,sto ,(Σ̂ Σ₀ _scpsₚ _scpsᵤ))
    #:with          ξ_defs :=<1> (def-ξ-lookup Σ₀ 𝓁)
    #:with             id′ :=    (add ph (prune ph (flip ph id maybe-scpᵢ) scpsᵤ)
                                      scp)
    #:with (values nam Σ₁) :=    (alloc-name id′ Σ₀)
    #:with              Σ₂ :=    (bind ph Σ₁ id′ nam)
    #:with             cnt :=<1> (lookup-store sto loc)
-   `(,(Lst id′) ,cnt ,sto ,(Σ* (def-ξ-update Σ₂ 𝓁 (extend-ξ ξ_defs nam val))
+   `(,(Lst id′) ,cnt ,sto ,(Σ̂ (def-ξ-update Σ₂ 𝓁 (extend-ξ ξ_defs nam val))
                                scpsₚ scpsᵤ))
    ev-slbsm″]
 
@@ -214,7 +214,7 @@
   [`(,(Prim 'local-expand stx)
      ,(KApp′ `(,(? stx? stx_arg) ,_val_context ,ids_stop)
              `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-     ,sto ,(Σ* Σ scpsₚ scpsᵤ))
+     ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    #:with   ξ′ :=    (make-immutable-hash
                       (hash-map ξ (λ (nam at) (cons nam (unstop at)))))
    #:with nams :=<1> (resolve* ph (lst->list ids_stop) Σ)
@@ -222,19 +222,19 @@
    #:with   ξ″ :=    (extend-ξ* ξ′ (map (λ (nam at) (cons nam (TStop at)))
                                         nams ats))
    (InExpand
-    (ζ (Stxξ ph (flip ph stx_arg maybe-scpᵢ) ξ″) '● (Σ* Σ scpsₚ scpsᵤ))
+    (ζ (Stxξ ph (flip ph stx_arg maybe-scpᵢ) ξ″) '● (Σ̂ Σ scpsₚ scpsᵤ))
     `(,(Prim 'local-expand stx)
       ,(KApp′ '() `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-      ,sto ,(Σ* Σ ;; not used
+      ,sto ,(Σ̂ Σ ;; not used
                 ∅ ∅)))
    ev-lexpand]
 
-  [(InExpand (ζ (? Stx? stx_arg′) '● Σ*)
+  [(InExpand (ζ (? Stx? stx_arg′) '● Σ̂)
              `(,(Prim 'local-expand _stx)
                ,(KApp′ '() `(,ph ,_env ,maybe-scpᵢ ,_ξ) loc)
-               ,sto ,_Σ*))
+               ,sto ,_Σ̂))
    #:with cnt :=<1> (lookup-store sto loc)
-   `(,(flip ph stx_arg′ maybe-scpᵢ) ,cnt ,sto ,Σ*)
+   `(,(flip ph stx_arg′ maybe-scpᵢ) ,cnt ,sto ,Σ̂)
    ev-lexpand′]
 
   ;; local expand with definition context
@@ -243,7 +243,7 @@
   [`(,(Prim 'local-expand stx)
      ,(KApp′ `(,(? stx? stx_arg) ,_val_context ,ids_stop ,(Defs scp 𝓁))
              `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-     ,sto ,(Σ* Σ scpsₚ scpsᵤ))
+     ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
 
    #:with ξ_defs :=<1> (def-ξ-lookup Σ 𝓁)
    #:with     ξ′ :=    (make-immutable-hash
@@ -257,10 +257,10 @@
    ; しかし，flipないとdefs-begin-with-defnの挙動が実際の処理系と異なってしまう．
    (InExpand
     (ζ (Stxξ ph (add ph (flip ph stx_arg maybe-scpᵢ) scp) ξ″)
-       '● (Σ* Σ scpsₚ scpsᵤ))
+       '● (Σ̂ Σ scpsₚ scpsᵤ))
     `(,(Prim 'local-expand stx)
       ,(KApp′ '() `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-      ,sto ,(Σ* Σ ;; not used
+      ,sto ,(Σ̂ Σ ;; not used
                 ∅ ∅)))
    ev-lexpand-defs]
 
@@ -272,73 +272,73 @@
   ;; box
   [`(,(Prim 'box stx)
      ,(KApp′ `(,val) `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
-     ,sto ,(Σ* Σ scpsₚ scpsᵤ))
+     ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    #:with (values 𝓁 Σ′) :=    (alloc-box stx Σ)
    #:with           cnt :=<1> (lookup-store sto loc)
-   `(,𝓁 ,cnt ,sto ,(Σ* (box-update Σ′ 𝓁 val) scpsₚ scpsᵤ))
+   `(,𝓁 ,cnt ,sto ,(Σ̂ (box-update Σ′ 𝓁 val) scpsₚ scpsᵤ))
    ev-box]
 
   ;; unbox
   [`(,(Prim 'unbox _stx)
      ,(KApp′ `(,(? 𝓁? 𝓁)) `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
-     ,sto ,(Σ* Σ scpsₚ scpsᵤ))
+     ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    #:with val :=<1> (box-lookup Σ 𝓁)
    #:with cnt :=<1> (lookup-store sto loc)
-   `(,val ,cnt ,sto ,(Σ* Σ scpsₚ scpsᵤ))
+   `(,val ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    ev-unbox]
 
   ;; set-box!
   [`(,(Prim 'set-box! _stx)
      ,(KApp′ `(,(? 𝓁? 𝓁) ,val) `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-     ,sto ,(Σ* Σ scpsₚ scpsᵤ))
+     ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    #:with cnt :=<1> (lookup-store sto loc)
-   `(,val ,cnt ,sto ,(Σ* (box-update Σ 𝓁 val) scpsₚ scpsᵤ))
+   `(,val ,cnt ,sto ,(Σ̂ (box-update Σ 𝓁 val) scpsₚ scpsᵤ))
    ev-set-box!]
 
   ;; β
   [`(,(VFun vars ast env)
-     ,(KApp′ args `(,ph ,_env ,maybe-scpᵢ ,ξ) loc) ,sto ,Σ*)
+     ,(KApp′ args `(,ph ,_env ,maybe-scpᵢ ,ξ) loc) ,sto ,Σ̂)
    #:with `(,(Var nams) ...) :=    vars
    #:with (values locs sto′) :=    (alloc-loc* nams sto)
    #:with               env′ :=    (extend-env* env vars locs)
    #:with               sto″ :=    (update-store* sto′ locs args)
    #:with                cnt :=<1> (lookup-store sto″ loc)
-   `(,(AstEnv ph ast env′ maybe-scpᵢ ξ) ,cnt ,sto″ ,Σ*)
+   `(,(AstEnv ph ast env′ maybe-scpᵢ ξ) ,cnt ,sto″ ,Σ̂)
    ev-β]
 
   ;; primitive application (except StxPrim)
   [`(,(and (Prim nam _stx) prim)
-     ,(KApp′ args `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc) ,sto ,Σ*)
+     ,(KApp′ args `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc) ,sto ,Σ̂)
    #:when (not (stx-prim? nam))
    #:with val :=<1> (δ prim args)
    #:with cnt :=<1> (lookup-store sto loc)
-   `(,val ,cnt ,sto ,Σ*)
+   `(,val ,cnt ,sto ,Σ̂)
    ev-δ]
 
   ;; if
   [`(,(AstEnv ph (If lbl ast₀ ast₁ ast₂) env maybe-scpᵢ ξ)
-     ,cnt ,sto ,Σ*)
+     ,cnt ,sto ,Σ̂)
    #:with (values loc sto′) := (push-cont sto lbl cnt)
    `(,(AstEnv ph ast₀ env maybe-scpᵢ ξ)
      ,(KIf ast₁ ast₂ `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-     ,sto′ ,Σ*)
+     ,sto′ ,Σ̂)
    ev-push-if]
 
   [`(,(Bool #f)
      ,(KIf _ast₁ ast₂ `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
-     ,sto ,Σ*)   
+     ,sto ,Σ̂)   
    #:with cnt :=<1> (lookup-store sto loc)
    `(,(AstEnv ph ast₂ env maybe-scpᵢ ξ)
-     ,cnt ,sto ,Σ*)
+     ,cnt ,sto ,Σ̂)
    ev-if-#f]
 
   [`(,(? val? val)
      ,(KIf ast₁ _ast₂ (list ph env maybe-scpᵢ ξ) loc)
-     ,sto ,Σ*)   
+     ,sto ,Σ̂)   
    #:when (not (equal? val (Bool #f)))
    #:with cnt :=<1> (lookup-store sto loc)
    `(,(AstEnv ph ast₁ env maybe-scpᵢ ξ)
-     ,cnt ,sto ,Σ*)
+     ,cnt ,sto ,Σ̂)
    ev-if-#t]
 
   ;; in-expand
@@ -363,17 +363,17 @@
   ;; δ → → State → (Setof State)
   (define (--> δ) (λ () (reducer δ (==> δ) :=)))
 
-  ;; eval : Ph Ast MaybeScp ξ Σ* → (Values Val Σ*)
-  (define (eval δ ph ast maybe-scpᵢ ξ Σ*)
+  ;; eval : Ph Ast MaybeScp ξ Σ̂ → (Values Val Σ̂)
+  (define (eval δ ph ast maybe-scpᵢ ξ Σ̂)
     (define -->δ (--> δ))
-    (match-let ([(set `(,(? val? val) ● ,_sto ,Σ*′))
+    (match-let ([(set `(,(? val? val) ● ,_sto ,Σ̂′))
                  (apply-reduction*
                   (-->δ) `(,(AstEnv ph ast (init-env) maybe-scpᵢ ξ)
-                           ● ,(init-store) ,Σ*))])
-      (values val Σ*′)))
+                           ● ,(init-store) ,Σ̂))])
+      (values val Σ̂′)))
 
   ;; evaluate : Ast → Val
   (define (evaluate δ ast)
     (call-with-values
-     (λ () (eval δ 0 ast 'no-scope (init-ξ) (Σ* (init-Σ) ∅ ∅)))
-     (λ (val Σ*) val))))
+     (λ () (eval δ 0 ast 'no-scope (init-ξ) (Σ̂ (init-Σ) ∅ ∅)))
+     (λ (val Σ̂) val))))

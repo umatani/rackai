@@ -22,13 +22,13 @@
 ;; add ph, maybe-scp, and ξ
 (define-term AstEnv   phases:AstEnv (ph maybe-scp ξ))
 ;; new
-(define-term Σ*                     (Σ scpsₚ scpsᵤ))
+(define-term Σ̂                      (Σ scpsₚ scpsᵤ))
 ;; new
 (define-term InExpand               (ζ state))
 ;; add scpsₚ and scpsᵤ
 (define-term κ        phases:κ      (scpsₚ scpsᵤ))
-;; change Σ to Σ*
-(define-term ζ        phases:ζ      (Σ*) #:remove [Σ])
+;; change Σ to Σ̂
+(define-term ζ        phases:ζ      (Σ̂) #:remove [Σ])
 
 ;; used only in full
 (define-term LBind2   Val           (scps_p scps_u))
@@ -38,12 +38,12 @@
 (define-syntax #%term-forms
   (append '((Stxξ     ph stx ξ))
           '((AstEnv   ph ast env maybe-scp ξ)
-            (Σ*       Σ scpsₚ scpsᵤ)
+            (Σ̂        Σ scpsₚ scpsᵤ)
             (InExpand ζ state)
             (κ        stxξ scpsₚ scpsᵤ 𝓁)
-            (ζ        stxξ κ Σ*)
+            (ζ        stxξ κ Σ̂)
             (LBind2   scpsₚ scpsᵤ)
             (Defs     scp 𝓁))
           (syntax-local-value #'phases:#%term-forms)))
 
-(use-terms Stxξ AstEnv Σ* InExpand κ ζ LBind2 Defs)
+(use-terms Stxξ AstEnv Σ̂ InExpand κ ζ LBind2 Defs)
