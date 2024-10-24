@@ -11,10 +11,10 @@
                      core:Stxξ%))
 
 ;;; updated (ph scps)
-(define-term Stxξ core:Stxξ (ph scps))
+(define-term Stxξ core:Stxξ (ph scpsₚ))
 
 (define-syntax #%term-forms
-  (append '((Stxξ ph stx ξ scps))
+  (append '((Stxξ ph stx ξ scpsₚ))
           (syntax-local-value #'core:#%term-forms)))
 
 (use-term Stxξ)

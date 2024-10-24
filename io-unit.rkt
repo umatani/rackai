@@ -37,7 +37,8 @@
     [(Num  n)     n]
     [(Sym  nam)   nam]
     [(𝓁 nam)      nam]
-    [(Defs scp 𝓁) '(Defs)]))
+    ;[(Defs scp 𝓁) '(Defs)]
+    ))
 
 (define (printer val)
   (match val

@@ -33,37 +33,34 @@
 (define-term Null List  ())
 (define-term Pair List  (a d))
 
-(define-term Stx  Atom (e ctx)) ;; Syntax objects (a subset of values)
+(define-term Stx  Atom  (e ctx)) ;; Syntax objects (a subset of values)
 
 ;;;; ----------------------------------------
 ;;;; Internal Configurations
 
 ;; Eval-time continuation, environment, and store
-(define-term AstEnv  (ast env))
-(define-term Store   (size tbl))
-(define-term KApp    (lbl vals tms loc))  ;; (v ... □ t ...)
-(define-term KIf     (lbl thn els loc))   ;; (if □ t t)
-(define-term SApp    (lbl vals tms))
-(define-term SIf     (lbl tst thn els))
-(define-term SSeq    (tms))               ;; used only in full
+(define-term AstEnv     (ast env))
+(define-term Store      (size tbl))
+(define-term KApp       (vals tms env loc))  ;; (v ... □ t ...)
+(define-term KApp′      (vals     env loc))  ;; (v ...)
+(define-term KIf        (thn els env loc))   ;; (if □ t t)
 
 ;; Expand-time environment
-(define-term TVar    (id))
-(define-term TStop   (all-transform))
+(define-term TVar       (id))
+(define-term TStop      (all-transform))
 
 ;; Expand-time store
-(define-term Σ       (size tbl))
-(define-term StoBind (scps nam))
+(define-term Σ          (size tbl))
+(define-term StoBind    (scps nam))
 
 ;; Expand-time continuation
-(define-term κ       (stxξ 𝓁))
-(define-term Hole    ())
+(define-term κ          (stxξ 𝓁))
+(define-term Hole       ())
 
 ;; Expand-time state (configuration)
-(define-term InEval  (state ζ))
-(define-term ζ       (stxξ κ Σ))
-
-(define-term Stxξ    (stx ξ))
+(define-term InEval     (state ζ))
+(define-term ζ          (stxξ κ Σ))
+(define-term Stxξ       (stx ξ))
 
 (define 𝓁% (class* Atom% (equal<%>) ;(define-term 𝓁    Atom (nam))
              (inspect #f)
@@ -75,11 +72,6 @@
                (eq-hash-code nam))
              (define/public (equal-secondary-hash-code-of hash-code)
                (eq-hash-code nam))))
-
-;; used only in full
-(define-term LBind2 Val (scps_p scps_u))
-(define-term Defs Atom (scp 𝓁))
-
 
 ;; for compact use-term(s)
 (define-syntax #%term-forms
@@ -100,28 +92,24 @@
             (Stx     e ctx))
           '((AstEnv  ast env)
             (Store   size tbl)
-            (KApp    lbl vals tms loc)
-            (KIf     lbl thn els loc)
-            (SApp    lbl vals tms)
-            (SIf     lbl tst thn els)
-            (SSeq    tms)
+            (KApp    vals tms env loc)
+            (KApp′   vals     env loc)
+            (KIf     thn els env loc)
             (TVar    id)
             (TStop   all-transform)
             (Σ       size tbl)
             (StoBind scps nam)
-            (Stxξ    stx ξ)
             (κ       stxξ 𝓁)
             (Hole)
             (InEval  state ζ)
             (ζ       stxξ κ Σ)
+            (Stxξ    stx ξ)
             (𝓁       nam)
-            (LBind2  scps_p scps_u)
-            (Defs    scp 𝓁)
             )))
 
-(use-terms Var Fun App If VFun LBind2 Val Atom List Bool Num Sym Prim Null
-           Pair Defs 𝓁 Stx Hole AstEnv Store KApp KIf SApp SIf SSeq
-           TVar TStop Σ StoBind Stxξ κ InEval ζ)
+(use-terms Var Fun App If VFun Val Atom List Bool Num Sym Prim Null
+           Pair 𝓁 Stx Hole AstEnv Store KApp KApp′ KIf
+           TVar TStop Σ StoBind κ InEval ζ Stxξ)
 
 
 ;;;; Extra utils
@@ -189,4 +177,6 @@
               syntax-local-identifier-as-binding
               box unbox set-box!
               syntax-local-make-definition-context
-              syntax-local-bind-syntaxes)))
+              syntax-local-bind-syntaxes
+              syntax-local-bind-syntaxes2 ;; used internally
+              )))

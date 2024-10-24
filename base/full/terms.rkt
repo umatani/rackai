@@ -2,51 +2,48 @@
 (require
  (for-syntax racket/base)
  (only-in "../../term.rkt" define-term use-terms)
- (rename-in (except-in "../phases/terms.rkt" Stxξ AstEnv KApp SApp κ ζ)
+ (rename-in (except-in "../phases/terms.rkt" Stxξ AstEnv κ ζ
+                       )
             [#%term-forms phases:#%term-forms]
             [Stxξ%        phases:Stxξ%]
             [AstEnv%      phases:AstEnv%]
-            [KApp%        phases:KApp%]
-            [SApp%        phases:SApp%]
             [κ%           phases:κ%]
             [ζ%           phases:ζ%]))
 (provide (all-defined-out)
          (except-out (all-from-out "../phases/terms.rkt")
                      phases:Stxξ%
                      phases:AstEnv%
-                     phases:KApp%
-                     phases:SApp%
                      phases:κ%
                      phases:ζ%))
 
 ;; remove scps from those of phases
-(define-term Stxξ     phases:Stxξ   () #:remove [scps])
+(define-term Stxξ     phases:Stxξ   () #:remove [scpsₚ])
 
 ;; add ph, maybe-scp, and ξ
 (define-term AstEnv   phases:AstEnv (ph maybe-scp ξ))
 ;; new
-(define-term Σ*                     (Σ scps_p scps_u))
-;; add ctx (List Ph MaybeScp ξ)
-(define-term KApp     phases:KApp   (ctx))
-;; add ctx (List Ph MaybeScp ξ)
-(define-term SApp     phases:SApp   (ctx))
+(define-term Σ*                     (Σ scpsₚ scpsᵤ))
 ;; new
 (define-term InExpand               (ζ state))
-;; add Σ*
-(define-term κ        phases:κ      (Σ*))
-;; Σ -> Σ*
+;; add scpsₚ and scpsᵤ
+(define-term κ        phases:κ      (scpsₚ scpsᵤ))
+;; change Σ to Σ*
 (define-term ζ        phases:ζ      (Σ*) #:remove [Σ])
+
+;; used only in full
+(define-term LBind2   Val           (scps_p scps_u))
+(define-term Defs     Atom          (scp 𝓁))
 
 
 (define-syntax #%term-forms
   (append '((Stxξ     ph stx ξ))
           '((AstEnv   ph ast env maybe-scp ξ)
-            (Σ*       Σ scps_p scps_u)
-            (KApp     ctx lbl vals tms loc)
-            (SApp     ctx lbl vals tms)
+            (Σ*       Σ scpsₚ scpsᵤ)
             (InExpand ζ state)
-            (κ        stx ex? Σ* 𝓁)
-            (ζ        stx ex? κ Σ*))
+            (κ        stxξ scpsₚ scpsᵤ 𝓁)
+            (ζ        stxξ κ Σ*)
+            (LBind2   scpsₚ scpsᵤ)
+            (Defs     scp 𝓁))
           (syntax-local-value #'phases:#%term-forms)))
 
-(use-terms Stxξ AstEnv Σ* KApp SApp InExpand κ ζ)
+(use-terms Stxξ AstEnv Σ* InExpand κ ζ LBind2 Defs)

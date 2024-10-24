@@ -12,7 +12,7 @@
 (provide ==> expand/red@ expand@)
 
 ;; ==> : ζ → (Setof ζ)
-(define-reduction (==> -->) #:super (base:==> <- -->)
+(define-reduction (==> -->) #:super (base:==> --> <-)
   #:within-signatures [(only domain^
                              val? stx? proper-stl?)
                        (only syntax^
