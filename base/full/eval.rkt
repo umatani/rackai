@@ -179,7 +179,7 @@
     `(,(Prim 'syntax-local-bind-syntaxes2 stx)
       ,(KApp′ `(,id ,(Defs scp 𝓁)) `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
       ,sto ,(Σ̂ Σ ;; not used
-                scpsₚ scpsᵤ)))
+               scpsₚ scpsᵤ)))
    ev-slbsm]
 
   [(InExpand (ζ (? Stx? stx_arg′) '● (Σ̂ Σ _scpsₚ _scpsᵤ))
@@ -207,7 +207,7 @@
    #:with              Σ₂ :=    (bind ph Σ₁ id′ nam)
    #:with             cnt :=<1> (lookup-store sto loc)
    `(,(Lst id′) ,cnt ,sto ,(Σ̂ (def-ξ-update Σ₂ 𝓁 (extend-ξ ξ_defs nam val))
-                               scpsₚ scpsᵤ))
+                              scpsₚ scpsᵤ))
    ev-slbsm″]
 
   ;; local expand
@@ -226,7 +226,7 @@
     `(,(Prim 'local-expand stx)
       ,(KApp′ '() `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
       ,sto ,(Σ̂ Σ ;; not used
-                ∅ ∅)))
+               ∅ ∅)))
    ev-lexpand]
 
   [(InExpand (ζ (? Stx? stx_arg′) '● Σ̂)
@@ -261,7 +261,7 @@
     `(,(Prim 'local-expand stx)
       ,(KApp′ '() `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
       ,sto ,(Σ̂ Σ ;; not used
-                ∅ ∅)))
+               ∅ ∅)))
    ev-lexpand-defs]
 
   ;; ----------------------------------------
