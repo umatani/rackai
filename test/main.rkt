@@ -3,9 +3,9 @@
  (prefix-in b:c: "../base/core/main.rkt")
  (prefix-in b:p: "../base/phases/main.rkt")
  (prefix-in b:f: "../base/full/main.rkt")
- ;; (prefix-in m:c: "../mult/core/main.rkt")
- ;; (prefix-in m:p: "../mult/phases/main.rkt")
- ;; (prefix-in m:f: "../mult/full/main.rkt")
+ (prefix-in m:c: "../mult/core/main.rkt")
+ (prefix-in m:p: "../mult/phases/main.rkt")
+ (prefix-in m:f: "../mult/full/main.rkt")
  ;; (prefix-in a:c: "../abs/core.rkt")
  ;; (prefix-in a:p: "../abs/phases.rkt")
  ;; (prefix-in a:f: "../abs/full.rkt")
@@ -21,9 +21,9 @@
    (cons 'base:phases  b:p:interp)
    (cons 'base:full    b:f:interp)
 
-   ;; (cons 'mult:core    m:c:interp)
-   ;; (cons 'mult:phases  m:p:interp)
-   ;; (cons 'mult:full    m:f:interp)
+   (cons 'mult:core    m:c:interp)
+   (cons 'mult:phases  m:p:interp)
+   (cons 'mult:full    m:f:interp)
 
    ;; (cons 'abs:core     a:c:interp)
    ;; (cons 'abs:phases   a:p:interp)
@@ -40,9 +40,9 @@
    'base:phases  '[core phases      finite]
    'base:full    '[core phases full finite]
 
-   ;; 'mult:core    '[core             finite]
-   ;; 'mult:phases  '[core phases      finite]
-   ;; 'mult:full    '[core phases full finite]
+   'mult:core    '[core             finite]
+   'mult:phases  '[core phases      finite]
+   'mult:full    '[core phases full finite]
 
    ;; 'abs:core     '[core                   ]
    ;; 'abs:phases   '[core phases            ]

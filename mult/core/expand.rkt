@@ -12,52 +12,46 @@
 
 ;; Revised reduction rules
 
-;; ==> : ζ -> (Setof ζ)
+;; ==> : ζ → (Setof ζ)
 (define-reduction (==> -->) #:super (base:==> --> <-)
-  #:within-signatures [(only domain^
-                             val? stx? proper-stl?)
-                       (only syntax^
-                             empty-ctx zip unzip add flip in-hole)
-                       (only env^
-                             init-env)
-                       (only store^
-                             init-store)
-                       (only menv^
-                             init-ξ lookup-ξ extend-ξ)
-                       (only mstore^
-                             lookup-Σ alloc-name alloc-scope)
-                       (only  bind^    bind resolve)
-                       (only    id^    id=?)
-                       (only mcont^    push-κ)
-                       (only parse^    parse)]
+  #:within-signatures [(only domain^    val? stx? proper-stl?)
+                       (only syntax^    empty-ctx zip unzip add flip in-hole)
+                       (only    env^    init-env)
+                       (only  store^    init-store)
+                       (only   menv^    init-ξ lookup-ξ extend-ξ)
+                       (only mstore^    lookup-Σ alloc-name alloc-scope)
+                       (only   bind^    bind resolve)
+                       (only     id^    id=?)
+                       (only  mcont^    push-κ)
+                       (only  parse^    parse)]
 
   ;; application (free var-ref)
-  [(ζ (Stxξ (and stx (Stx (Lst stx_fun . stl_args) ctx)) ξ) '◯ κ0 Σ)
-   #:when (id? stx_fun)
-   #:with name <- (resolve stx_fun Σ)
-   #:with   at := (results (lookup-ξ ξ name))
+  [(ζ (Stxξ (and (Stx (Lst stx_f . stl) ctx) stx) ξ) κ₀ Σ₀)
+   #:when (id? stx_f)
+   #:with nam <- (resolve stx_f Σ₀)
+   #:with  at := (results (lookup-ξ ξ nam))
    #:when (and (∅? at)
-               (not (member name
+               (not (member nam
                             '(lambda let quote syntax let-syntax if
                                #%app #%kont #%seq #%snoc))))
-   #:with             id_app := (Stx (Sym '#%app) ctx)
-   #:with (values 𝓁_new Σ_1) := (push-κ Σ stx κ0)
-   (ζ (Stxξ (Stx (Lst id-seq stx-nil stx_fun . stl_args) ctx) ξ) '◯
-       (κ (Stx (Pair id_app (Hole)) ctx) '● 𝓁_new)
-       Σ_1)
+   #:with        id_app := (Stx (Sym '#%app) ctx)
+   #:with (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
+   (ζ (Stxξ (Stx (Lst id-seq stx-nil stx_f . stl) ctx) ξ)
+      (κ (Stx (Pair id_app (Hole)) ctx) 𝓁)
+      Σ₁)
    ex-app-free]
 
   ;; reference
-  [(ζ (Stxξ (and id (Stx (Sym nam) ctx)) ξ) '◯ κ Σ)
-   #:with    nam <- (resolve id Σ)
-   #:with    at  := (results (lookup-ξ ξ nam))
-   #:with id_new <- (if (∅? at)
+  [(ζ (Stxξ (? id? id) ξ) κ Σ)
+   #:with nam <- (resolve id Σ)
+   #:with at  := (results (lookup-ξ ξ nam))
+   #:with id′ <- (if (∅? at)
                         (error '==> "unbound identifier: ~a" nam)
                         (do v <- (lift at)
                             (match v
-                              [(TVar id_new) (pure id_new)]
+                              [(TVar id′) (pure id′)]
                               [_ (error '==> "unbound identifier: ~a" nam)])))
-   (ζ id_new '● κ Σ)
+   (ζ id′ κ Σ)
    ex-var])
 
 (define-unit-from-reduction red@ ==>)
@@ -73,9 +67,9 @@
   ;; expand : δ Stx ξ Σ → (SetM (Cons Stx Σ))
   (define (expand δ stx ξ Σ)
     (define ==>δ (==> δ))
-    (define ζᵢ   (ζ (Stxξ stx ξ) '◯ '● Σ))
+    (define ζᵢ   (ζ (Stxξ stx ξ) '● Σ))
 
-    (do (ζ stx′ '● '● Σ′) <- (lift (apply-reduction* ==>δ ζᵢ))
+    (do (ζ stx′ '● Σ′) <- (lift (apply-reduction* ==>δ ζᵢ))
         (pure (cons stx′ Σ′)))))
 
 (define-compound-unit/infer expand@
