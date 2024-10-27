@@ -13,9 +13,8 @@
       (make-evaluator 'racket
                       #:requires '((for-syntax racket/list)))))
 
-
 ;; raw-eval : Sexp → (Setof Val)
-;;   Host evaluater for checking results
+;;   Host evaluator for checking results
 (define (raw-eval form)
   (define r→v
     (match-λ

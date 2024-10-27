@@ -2,15 +2,16 @@
 (require
  racket/unit
  "../../interpreter.rkt"
- "../../test/suites.rkt"
  "../../signatures.rkt"
+ (only-in "../../reduction.rkt" enable-tracing)
+ "../../test/suites.rkt"
  "units.rkt")
 (provide interp)
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export domain^ run^ debug^)
-   (link domain@ syntax@ env@ store@ cont@ eval@
+   (link domain@ syntax@ env@ store@ cont@ eval@ evaluator@
          menv@ mstore@ bind@ id@ mcont@ parse@ parser@ expand@ expander@
          io@ run@ debug@))
   (import) (export domain^ run^ debug^))

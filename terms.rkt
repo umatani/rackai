@@ -119,7 +119,7 @@
   (λ (stx)
     (syntax-case stx (... ...)
       [(_ p (... ...))
-       #'(? List? (app lst->list (list p (... ...))))]
+       #'(? List? (app lst→list (list p (... ...))))]
       [p (syntax-parse #'p
            #:datum-literals [|.|]
            [(_) #'(Null)]
@@ -137,20 +137,20 @@
 
 ;; List utils
 
-(define (lst->list l)
+(define (lst→list l)
   (match l
     [(Null) '()]
-    [(Pair a d) (cons a (lst->list d))]))
+    [(Pair a d) (cons a (lst→list d))]))
 
-(define (list->lst l)
+(define (list→lst l)
   (match l
     ['() (Null)]
-    [(cons a d) (Pair a (list->lst d))]))
+    [(cons a d) (Pair a (list→lst d))]))
 
-(define (lst->list/recur x)
+(define (lst→list/recur x)
   (match x
     [(Null) '()]
-    [(Pair a d) (cons (lst->list/recur a) (lst->list/recur d))]
+    [(Pair a d) (cons (lst→list/recur a) (lst→list/recur d))]
     [_ x]))
 
 ;; Additional constructor

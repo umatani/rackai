@@ -4,12 +4,13 @@
  (only-in racket/match                 match)
  (only-in "../../misc.rkt"             union)
  (only-in "../../set.rkt"              set ∅ ∅? set-add set→list)
+ (only-in "../../mix.rkt"              define-mixed-unit inherit)
  (only-in "../../syntax.rkt"           snoc)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/full/terms.rkt"
  (only-in "../../base/full/expand.rkt" [==> base:==>]))
-(provide ==> red@ expand/red@ expand@)
+(provide ==> define-expand-unit expand@)
 
 (define-reduction (==> -->) #:super (base:==> --> <-)
   #:within-signatures [(only domain^    val? stx? proper-stl?)
@@ -57,29 +58,13 @@
 
 (define-unit-from-reduction red@ ==>)
 
-(define-unit expand/red@
-  (import (only eval^    -->)
-          (only  red^    reducer))
-  (export expand^)
+(define-syntax-rule (define-expand-unit expand@ red@)
+  (define-mixed-unit expand@
+    (import  domain^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^
+             bind^ id^ parse^)
+    (export  expand^)
+    (inherit [red@    reducer])
 
-  (define (==> δ) (λ () (reducer (--> δ))))
-  
-  ; expand : Ph Stx ξ Σ̂ → (SetM (Cons Stx Σ̂))
-  (define (expand δ ph stx ξ Σ̂)
-    (define ==>δ (==> δ))
-    (define ζᵢ   (ζ (Stxξ ph stx ξ) '● Σ̂))
+    (define (==> δ) (λ () (reducer (--> δ))))))
 
-    (do ζ′ <- (lift (apply-reduction* (==>δ) ζᵢ))
-        ;; set-baseにすることで stuck が生じる．
-        ;; stuckの原因は，set-box!とbind-syntaxesがstoreへのassignmentで
-        ;; あることによりstore中の値の多重化が生じること．
-        (ζ stx′ '● Σ̂′) <- (if (not (InEval? ζ′))
-                            (pure ζ′)
-                            (lift ∅))
-        (pure (cons stx′ Σ̂′)))))
-
-(define-compound-unit/infer expand@
-  (import domain^ syntax^ env^ store^ eval^ menv^ mstore^ mcont^
-          bind^ id^ parse^)
-  (export expand^)
-  (link expand/red@ red@))
+(define-expand-unit expand@ red@)

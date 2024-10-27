@@ -17,7 +17,7 @@
 ;; ----------------------------------------
 ;; Simple parsing of already-expanded code
 
-;; build-var-list : Ph (Listof Id) -> (SetM (Listof Var))
+;; build-var-list : Ph (Listof Id) → (SetM (Listof Var))
 (define (build-var-list ph ids Σ)
   (if (null? ids)
     (pure '())
@@ -25,14 +25,14 @@
         vs  <- (build-var-list ph (cdr ids) Σ)
         (pure (cons (Var nam) vs)))))
 
-;; parse1 : Ph Stx Σ -> (SetM Ast)
+;; parse1 : Ph Stx Σ → (SetM Ast)
 (define ((parse1 prs1 prs*) ph stx Σ)
   (match stx
     ; (lambda (id ...) stx_body)
     [(Stx (Lst (? id? (? (core-form? ph 'lambda Σ)))
                (Stx (? proper-stl? stl_ids) _)
                stx_body) _)
-     (do vs <- (build-var-list ph (lst->list stl_ids) Σ)
+     (do vs <- (build-var-list ph (lst→list stl_ids) Σ)
          b  <- ((prs1 prs1 prs*) ph stx_body            Σ)
          (pure (Fun vs b)))]
     
@@ -41,7 +41,7 @@
                (Stx (? proper-stl? stl_binds) _)
                stx_body) _)
      (do (values stl_ids stl_rhs) := (unzip stl_binds)
-         vs <- (build-var-list  ph (lst->list stl_ids) Σ)
+         vs <- (build-var-list  ph (lst→list stl_ids) Σ)
          as <- ((prs* prs1 prs*) ph stl_rhs             Σ)
          b  <- ((prs1 prs1 prs*) ph stx_body            Σ)
          (pure (App (gensym 'let) (Fun vs b) as)))]
@@ -80,7 +80,7 @@
     [(Stx (? Atom? a) _)
      (pure a)]))
 
-;; parse* : Ph Stl Σ -> (SetM (Listof Ast))
+;; parse* : Ph Stl Σ → (SetM (Listof Ast))
 (define ((parse* prs1 prs*) ph stl Σ)
   (match stl
     [(Null)
@@ -95,5 +95,5 @@
      (do ast <- ((prs1 prs1 prs*) ph stx Σ)
          (pure (list ast)))]))
 
-;; parse : Ph Stx Σ -> (SetM Ast)
+;; parse : Ph Stx Σ → (SetM Ast)
 (define parse (parse1 parse1 parse*))

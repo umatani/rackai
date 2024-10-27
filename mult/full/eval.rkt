@@ -3,11 +3,12 @@
  racket/unit
  (only-in racket/match               match match-λ**)
  (only-in "../../set.rkt"            set ∅ ∅? set-add)
+ (only-in "../../mix.rkt"            define-mixed-unit inherit)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/full/terms.rkt"
  (only-in "../../base/full/eval.rkt" [--> base:-->]))
-(provide --> red@ eval/red@ eval@)
+(provide --> define-eval-unit eval@)
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> δ ==>) #:super (base:--> δ ==> <-)
@@ -44,36 +45,13 @@
 
 (define-unit-from-reduction red@ -->)
 
-(define-unit eval/red@
-  (import (only domain^    val?)
-          (only    env^    init-env)
-          (only  store^    init-store)
-          (only   menv^    init-ξ)
-          (only mstore^    init-Σ)
-          (only expand^    ==>)
-          (only    red^    reducer))
-  (export eval^)
+(define-syntax-rule (define-eval-unit eval@ red@)
+  (define-mixed-unit eval@
+    (import domain^ syntax^ env^ store^ cont^ menv^ mstore^ bind^ expand^ parse^)
+    (export eval^)
+    (inherit [red@    reducer])
 
-  ;; --> : δ → → State → (Setof State)
-  (define (--> δ) (λ () (reducer δ (==> δ))))
+    ;; --> : δ → → State → (Setof State)
+    (define (--> δ) (λ () (reducer δ (==> δ))))))
 
-  ;; eval : Ph Ast MaybeScp ξ Σ̂ → (SetM (Cons Val Σ̂))
-  (define (eval δ ph ast maybe-scpᵢ ξ Σ̂)
-    (define -->d (--> δ))
-    (do `(,(? val? val) ● ,_sto ,Σ̂′) <- (lift
-                                          (apply-reduction*
-                                           (-->d)
-                                           `(,(AstEnv ph ast (init-env)
-                                                      maybe-scpᵢ ξ)
-                                             ● ,(init-store) ,Σ̂)))
-        (pure (cons val Σ̂′))))
-
-  ;; evaluate : Ast → (SetM Val)
-  (define (evaluate δ ast)
-    (do (cons val _Σ̂) <- (eval δ 0 ast 'no-scope (init-ξ) (Σ̂ (init-Σ) ∅ ∅))
-        (pure val))))
-
-(define-compound-unit/infer eval@
-  (import domain^ syntax^ env^ store^ cont^ menv^ mstore^ bind^ expand^ parse^)
-  (export eval^)
-  (link eval/red@ red@))
+(define-eval-unit eval@ red@)

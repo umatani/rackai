@@ -1,48 +1,65 @@
 #lang racket/base
 (require
  racket/unit
- (only-in racket/match                match)
+ (only-in racket/match                 match)
  "../../interpreter.rkt"
- "../../test/suites.rkt"
- (only-in "../../set.rkt"             set ∅? set→list)
- (only-in "../../mix.rkt"             define-mixed-unit inherit)
- (only-in "../../syntax.rkt"          snoc)
- "../../reduction.rkt"
  "../../signatures.rkt"
+ (only-in "../../reduction.rkt"        define-reduction
+                                       define-unit-from-reduction
+                                       enable-tracing)
+ (only-in "../../nondet.rkt"           := <- pure lift results)
+ (only-in "../../set.rkt"              set ∅? set→list)
+ (only-in "../../mix.rkt"              define-mixed-unit inherit)
+ (only-in "../../syntax.rkt"           snoc)
+ "../../test/suites.rkt"
  "../../base/core/terms.rkt"
+ (only-in "../../mult/core/units.rkt"  [parse@ mult:parse@] parser@)
+ (only-in "../../mult/core/eval.rkt"   [--> mult:-->] define-eval-unit)
+ (only-in "../../mult/core/expand.rkt" define-expand-unit)
+ (only-in "../core.rkt"                [==> abs:==>] main-minus@)
+ (only-in "domain.rkt"                 domain@ val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤
+                                       list-⊤))
+(provide eval@ interp)
 
- (only-in "../../mult/core/units.rkt" expand/red@ [parse@ mult:parse@] parser@)
- (only-in "../../mult/core/eval.rkt"  [--> mult:-->])
- (only-in "../core.rkt"               eval/red@ [==> abs:==>] main-minus@)
- (only-in "domain.rkt"                domain@ val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤
-                                      list-⊤))
-(provide ev:red@ interp)
 
-;;;; Eval
+;;;; Expander
 
-;; Revise --> to interpret abstract values (val-⊤, stx-⊤, etc.)
-;; --> : State -> (Setof State)
-(define-reduction (--> δ) #:super (mult:--> δ)
-  #:within-signatures [(only env^
-                             extend-env* lookup-env)
-                       (only store^
-                             update-store* lookup-store alloc-loc*)
-                       (only cont^
-                             push-cont)]
-  ;; β (val-⊤ ...)
-  [`(,(SApp _lbl (cons f _) '()) ,cont ,store)
-   #:when (equal? f val-⊤)
-   `(,f ,cont ,store)
-   ev-β-abs]
+;; ==> : ζ -> (Setof ζ)
+(define-reduction (==> -->) #:super (abs:==> -->)
+  #:within-signatures [(only syntax^    empty-ctx zip unzip add flip in-hole)
+                       (only    env^    init-env)
+                       (only  store^    init-store)
+                       (only   menv^    init-ξ lookup-ξ extend-ξ)
+                       (only mstore^    lookup-Σ alloc-name alloc-scope)
+                       (only   bind^    bind resolve)
+                       (only     id^    id=?)
+                       (only  mcont^    push-κ)
+                       (only  parse^    parse)]
 
-  ;; (if ⊤ ...)
-  [`(,(SIf _lbl v _ tm_else) ,cont ,store)
-   #:when (or (equal? v val-⊤)
-              (equal? v atom-⊤))
-   `(,tm_else ,cont ,store)
-   ev-if-abs-#f])
+  [(InEval (list stx '● _sto)
+           (ζ (Stxξ (Stx (Bool #f) (set _scpᵢ)) ξ)
+              κ Σ))
+   #:when (or (equal? stx val-⊤)
+              (equal? stx atom-⊤)
+              (equal? stx stx-⊤))
+   (ζ (Stxξ stx ξ)
+      κ Σ)
+   ex-macapp-abs]
 
-(define-unit-from-reduction ev:red@ -->)
+  ;; abstract value
+  [(ζ (Stxξ val ξ) κ Σ)
+   #:when (or (equal? val val-⊤)
+              (equal? val atom-⊤)
+              (equal? val num-⊤)
+              (equal? val sym-⊤)
+              (equal? val stx-⊤)
+              (equal? val list-⊤))
+   (ζ val κ Σ)
+   ex-abs-⊤])
+
+(define-unit-from-reduction ex:red@ ==>)
+
+(define-expand-unit expand@ ex:red@)
 
 
 ;;;; Parser
@@ -64,55 +81,49 @@
   (define parse (parse1 parse1 parse*)))
 
 
-;;;; Expander
+;;;; Evaluator
 
-;; ==> : ζ -> (Setof ζ)
-(define-reduction (==> -->) #:super (abs:==> -->)
-  #:within-signatures [(only syntax^
-                             empty-ctx zip unzip add flip in-hole)
-                       (only env^
-                             init-env)
-                       (only store^
-                             init-store)
-                       (only menv^
-                             init-ξ lookup-ξ extend-ξ)
-                       (only mstore^
-                             lookup-Σ alloc-name alloc-scope)
-                       (only  bind^    bind resolve)
-                       (only    id^    id=?)
-                       (only mcont^    push-κ)
-                       (only parse^    parse)]
+;; Revise --> to interpret abstract values (val-⊤, stx-⊤, etc.)
+;; --> : State -> (Setof State)
+(define-reduction (--> δ) #:super (mult:--> δ)
+  #:within-signatures [(only   env^    extend-env* lookup-env)
+                       (only store^    update-store* lookup-store alloc-loc*)
+                       (only  cont^    push-cont)]
+  ;; β (val-⊤ ...)
+  [`(,f ,(KApp′ _args _env loc) ,sto)
+   #:when (equal? f val-⊤)
+   #:with cnt <- (lookup-store sto loc)
+   `(,f ,cnt ,sto)
+   ev-β-abs]
 
-  [(InEval (list stx_exp '● store_0)
-           (ζ (Stxξ (Stx #f scps) ξ) '◯ κ Σ))
-   #:when (or (equal? stx_exp val-⊤)
-              (equal? stx_exp atom-⊤)
-              (equal? stx_exp stx-⊤))
-   (ζ (Stxξ stx_exp ξ) '◯ κ Σ)
-   ex-macapp-abs]
+  [`(,(VFun vars ast env) ,(KApp′ args _env loc) ,sto)
+   #:with `(,(Var nams) ...) := vars
+   #:with (values locs sto′) := (alloc-loc* nams sto)
+   #:with env′ := (extend-env* env vars locs)
+   #:with sto″ := (update-store* sto′ locs args)
+   #:with cnt  <- (lookup-store sto″ loc)
+   `(,(AstEnv ast env′) ,cnt ,sto″)
+   ev-β]
 
-  ;; abstract value
-  [(ζ (Stxξ val ξ) '◯ κ0 Σ)
-   #:when (or (equal? val val-⊤)
-              (equal? val atom-⊤)
-              (equal? val num-⊤)
-              (equal? val sym-⊤)
-              (equal? val stx-⊤)
-              (equal? val list-⊤))
-   (ζ val '● κ0 Σ)
-   ex-abs-⊤])
+  ;; (if ⊤ ...)
+  [`(,(? val? val) ,(KIf _ast₁ ast₂ env loc) ,sto)
+   #:when (or (equal? val val-⊤) (equal? val atom-⊤))
+   #:with cnt <- (lookup-store sto loc)
+   `(,(AstEnv ast₂ env) ,cnt ,sto)
+   ev-if-abs-#f])
 
-(define-unit-from-reduction ex:red@ ==>)
+(define-unit-from-reduction ev:red@ -->)
+
+(define-eval-unit eval@ ev:red@)
+
 
 ;;;; Main
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export domain^ run^ debug^)
-   (link domain@ main-minus@
-         (() eval/red@ ev)   (([ev : red^]) ev:red@)
-         parse@ parser@
-         (() expand/red@ ex) (([ex : red^]) ex:red@)))
+   (link  main-minus@
+          domain@ eval@ parse@ parser@ expand@))
   (import) (export domain^ run^ debug^))
 
 (define interp (interpreter run δ α ≤ₐ))

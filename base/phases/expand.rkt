@@ -3,11 +3,12 @@
  racket/unit
  (only-in racket/match       match match-let)
  (only-in "../../set.rkt"    set ∅ set-add set→list)
+ (only-in "../../mix.rkt"    define-mixed-unit inherit)
  (only-in "../../syntax.rkt" snoc)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "terms.rkt")
-(provide ==> red@ expand/red@ expand@)
+(provide ==> expand@)
 
 ;; ----------------------------------------
 ;; The expander:
@@ -155,7 +156,7 @@
       κ Σ)
    #:when (and (id=? ph id_kont '#%kont     Σ)
                (id=? ph id_ls   'let-syntax Σ))
-   #:with ast :=<1> (parse (add1 ph) stx_rhs′ Σ)
+   #:with ast <- (parse (add1 ph) stx_rhs′ Σ)
    (InEval (list (AstEnv ast (init-env)) '● (init-store))
            (ζ (Stxξ ph (Stx (Lst id′ stx_body′) (empty-ctx)) ξ scpsₚ′)
               κ Σ))
@@ -362,25 +363,11 @@
 
 (define-unit-from-reduction red@ ==>)
 
-(define-unit expand/red@
-  (import (only eval^    -->)
-          (only  red^    reducer))
-  (export expand^)
+(define-mixed-unit expand@
+  (import  domain^ syntax^ env^ store^ eval^
+           menv^ mstore^ mcont^ bind^ id^ parse^)
+  (export  expand^)
+  (inherit [red@    reducer])
 
   ;; δ → ζ → (Setof ζ)
-  (define (==> δ) (reducer (--> δ) :=))
-
-  ;; expand : δ Ph Stx ξ Scps Σ → (Cons Stx Σ)
-  (define (expand δ ph stx ξ scpsₚ Σ)
-    (define ==>δ (==> δ))
-    (define ζᵢ (ζ (Stxξ ph stx ξ scpsₚ) '● Σ))
-
-    (match-let ([(set (ζ stx′ '● Σ′)) (apply-reduction* ==>δ ζᵢ)])
-      (cons stx′ Σ′))))
-
-(define-compound-unit/infer expand@
-  (import domain^ syntax^ env^ store^ eval^
-          menv^ mstore^ mcont^ bind^ id^ parse^)
-  (export expand^)
-  (link expand/red@ red@))
-
+  (define (==> δ) (reducer (--> δ) :=)))

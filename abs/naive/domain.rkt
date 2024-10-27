@@ -46,7 +46,7 @@
     (define (∈a v1) (ormap (λ (v2) (≤e v1 v2)) vs2*))
     (andmap ∈a vs1*))
 
-  ; δ : Prim (Listof Val) -> (SetM Val)
+  ; δ : Prim (Listof Val) → (SetM Val)
   (define (δ p vs)
     (match* (p vs)
       [((Prim (? (λ (op) (or (eq? op '+) (eq? op '*)))) _)
@@ -142,7 +142,7 @@
 
       ;; for debug
       [((Prim 'printe _) (list v1 v2))
-       (pretty-print (lst->list/recur v1))
+       (pretty-print (lst→list/recur v1))
        (pure v2)]))
 
   ;; adapt to abstract value

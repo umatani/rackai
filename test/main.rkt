@@ -1,18 +1,20 @@
 #lang racket
 (require
+ (only-in "../reduction.rkt" enable-tracing)
+ "../interpreter.rkt"
+
  (prefix-in b:c: "../base/core/main.rkt")
  (prefix-in b:p: "../base/phases/main.rkt")
  (prefix-in b:f: "../base/full/main.rkt")
  (prefix-in m:c: "../mult/core/main.rkt")
  (prefix-in m:p: "../mult/phases/main.rkt")
  (prefix-in m:f: "../mult/full/main.rkt")
- ;; (prefix-in a:c: "../abs/core.rkt")
- ;; (prefix-in a:p: "../abs/phases.rkt")
+ (prefix-in a:c: "../abs/core.rkt")
+ (prefix-in a:p: "../abs/phases.rkt")
  ;; (prefix-in a:f: "../abs/full.rkt")
  ;; (prefix-in n:c: "../abs/naive/core.rkt")
  ;; (prefix-in n:p: "../abs/naive/phases.rkt")
  ;; (prefix-in n:f: "../abs/naive/full.rkt")
- "../interpreter.rkt"
  "suites.rkt")
 
 (define interpreters
@@ -25,8 +27,8 @@
    (cons 'mult:phases  m:p:interp)
    (cons 'mult:full    m:f:interp)
 
-   ;; (cons 'abs:core     a:c:interp)
-   ;; (cons 'abs:phases   a:p:interp)
+   (cons 'abs:core     a:c:interp)
+   (cons 'abs:phases   a:p:interp)
    ;; (cons 'abs:full     a:f:interp)
 
    ;; (cons 'naive:core   n:c:interp)
@@ -44,8 +46,8 @@
    'mult:phases  '[core phases      finite]
    'mult:full    '[core phases full finite]
 
-   ;; 'abs:core     '[core                   ]
-   ;; 'abs:phases   '[core phases            ]
+   'abs:core     '[core                   ]
+   'abs:phases   '[core phases            ]
    ;; 'abs:full     '[core phases full       ]
 
    ;; 'naive:core   '[core             finite]

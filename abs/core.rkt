@@ -1,26 +1,29 @@
 #lang racket/base
 (require
  racket/unit
- (only-in racket/list               remove-duplicates append-map)
- (only-in racket/match              match match-let)
+ (only-in racket/list        remove-duplicates append-map)
+ (only-in racket/match       match match-let)
  "../interpreter.rkt"
- "../test/suites.rkt"
- (only-in "../set.rkt"              set set? ∅ ∅? set→list list→set set-map)
- (only-in "../mix.rkt"              define-mixed-unit inherit)
- (only-in "../syntax.rkt"           snoc)
- "../reduction.rkt"
  "../signatures.rkt"
+ (only-in "../reduction.rkt" define-reduction define-unit-from-reduction
+                             apply-reduction* enable-tracing)
+ (only-in "../nondet.rkt"    do := <- pure lift results)
+ (only-in "../set.rkt"       set set? ∅ ∅? set→list list→set set-map)
+ (only-in "../mix.rkt"       define-mixed-unit inherit)
+ (only-in "../syntax.rkt"    snoc)
+ "../test/suites.rkt"
  "../base/core/terms.rkt"
-
  (only-in "../mult/core/units.rkt"
           io@ cont@ mcont@ debug@ expander@ syntax@ domain@ env@ menv@ run@
-          ev:red@ parse@ parser@ expand/red@ [bind@ mult:bind@] id@)
- (only-in "../mult/core/expand.rkt" [==> mult:==>])
+          eval@ parse@ parser@ [bind@ mult:bind@] id@)
+ (only-in "../mult/core/expand.rkt" [==> mult:==>] define-expand-unit)
  (only-in "alloc.rkt"               store@ mstore@
                                     biggest-subset binding-lookup))
-(provide syntax@ eval/red@ ==> main-minus@
+(provide syntax@ evaluator@ ==> main-minus@
          interp eval-->* expand==>*)
 
+
+;;;; bind^
 
 (define-mixed-unit bind@
   (import  (only mstore^    lookup-Σ))
@@ -58,77 +61,69 @@
           (lift r))))))
 
 
-;; filter out stuck states
-
-(define-unit eval/red@
-  (import (only env^
-                init-env)
-          (only store^
-                init-store)
-          (only red^
-                reducer))
-  (export eval^)
-
-  ;; δ → State → (Setof State)
-  (define (--> δ) (reducer δ))
-
-  ;; evaluate : Ast → (SetM Val)
-  (define (evaluate δ ast)
-    (define -->d (--> δ))
-
-    (do `(,val ,done? ,_store) <- (lift (apply-reduction*
-                                         -->d `(,(AstEnv ast (init-env))
-                                                ● ,(init-store))))
-        (if (and (val? val) (eq? done? '●))
-          (pure val)
-          (lift ∅)))))
-
+;;;; Expander
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (mult:==> -->)
-  #:within-signatures [(only syntax^
-                             empty-ctx zip unzip add flip in-hole)
-                       (only env^
-                             init-env)
-                       (only store^
-                             init-store)
-                       (only menv^
-                             init-ξ lookup-ξ extend-ξ)
-                       (only mstore^
-                             lookup-Σ alloc-name alloc-scope)
-                       (only  bind^    bind resolve)
-                       (only    id^    id=?)
-                       (only mcont^    push-κ)
-                       (only parse^    parse)]
+  #:within-signatures [(only syntax^    empty-ctx zip unzip add flip in-hole)
+                       (only    env^    init-env)
+                       (only  store^    init-store)
+                       (only   menv^    init-ξ lookup-ξ extend-ξ)
+                       (only mstore^    lookup-Σ alloc-name alloc-scope)
+                       (only   bind^    bind resolve)
+                       (only     id^    id=?)
+                       (only  mcont^    push-κ)
+                       (only  parse^    parse)]
   ;; reference
-  [(ζ (Stxξ (and id (Stx (Sym nam) ctx)) ξ) '◯ κ Σ)
+  [(ζ (Stxξ (? id? id) ξ) κ Σ)
    #:with nam <- (resolve id Σ)
    #:with  at <- (lookup-ξ ξ nam)
-   ;(printf "ref: ~a ~a\n" nam at)
    (match at
-     [(TVar id_new) (ζ id_new '● κ Σ)]
+     [(TVar id′) (ζ id′ κ Σ)]
      [_ (error '==> "unbound identifier: ~a" nam)])
    ex-var])
 
 (define-unit-from-reduction ex:red@ ==>)
 
+(define-expand-unit expand@ ex:red@)
 
-;; Main
+
+;;;; Evaluator
+;;;;   filter out stuck states
+
+(define-unit evaluator@
+  (import
+   (only   env^    init-env)
+   (only store^    init-store)
+   (only  eval^    -->))
+  (export evaluator^)
+
+  ;; evaluator : Ast → (SetM Val)
+  (define (evaluator δ ast)
+    (define -->d (--> δ))
+
+    (do `(,val ,done? ,_store) <- (apply-reduction*
+                                   -->d `(,(AstEnv ast (init-env))
+                                          ● ,(init-store)))
+        (if (and (val? val) (eq? done? '●))
+          (pure val)
+          (lift ∅)))))
+
+
+;;;; Main
 
 (define-compound-unit/infer main-minus@
-  (import domain^ eval^ parser^ expand^)
-  (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ id^ mcont^
+  (import domain^ eval^ expand^ parser^)
+  (export syntax^ env^ store^ cont^ evaluator^ menv^ mstore^ bind^ id^ mcont^
           run^ debug^)
-  (link   syntax@ env@ store@ cont@ menv@ mstore@ bind@ id@ mcont@
+  (link   syntax@ env@ store@ cont@  evaluator@ menv@ mstore@ bind@ id@ mcont@
           expander@ io@ run@ debug@))
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export domain^ run^ debug^)
-   (link domain@ main-minus@
-         (() eval/red@ ev)   (([ev : red^]) ev:red@)
-         parse@ parser@
-         (() expand/red@ ex) (([ex : red^]) ex:red@)))
+   (link main-minus@
+         domain@ eval@ parse@ parser@ expand@))
   (import) (export domain^ run^ debug^))
 
 (define interp (interpreter run δ α ≤ₐ))

@@ -11,23 +11,23 @@
 (define-term-form Null% (Null))
 (define-term-form Pair% (Pair a d))
 
-(define (lst->list l)
+(define (lst→list l)
   (match l
     [(Null) '()]
-    [(Pair a d) (cons a (lst->list d))]))
+    [(Pair a d) (cons a (lst→list d))]))
 
-(define (list->lst l)
+(define (list→lst l)
   (match l
     ['() (Null)]
-    [(cons a d) (Pair a (list->lst d))]))
+    [(cons a d) (Pair a (list→lst d))]))
 
-(make-lst-form Lst List? Null Pair lst->list)
+(make-lst-form Lst List? Null Pair lst→list)
 
 #;
 (define-match-expander Lst
   (λ (stx)
     (syntax-case stx (... ...)
-      [(_ p (... ...)) #'(app lst->list (list p (... ...)))]
+      [(_ p (... ...)) #'(app lst→list (list p (... ...)))]
       [p (syntax-parse #'p
            #:datum-literals [|.|]
            [(_) #'(Null)]
@@ -37,7 +37,7 @@
            [(_ p ps ... . x:id) #'(Pair p (Lst ps ... . x))]
 
            [p (syntax-case #'p (... ...)
-                [(_ p (... ...)) #'(app lst->list (list p (... ...)))])])]))
+                [(_ p (... ...)) #'(app lst→list (list p (... ...)))])])]))
   (λ (stx) (syntax-parse stx
               [(_) #'(Null)]
               [(_ x xs ...) #'(Pair x (Lst xs ...))]

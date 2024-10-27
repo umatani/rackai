@@ -3,10 +3,10 @@
  (only-in racket/function identity)
  (only-in racket/match    match*)
  (only-in racket/pretty   pretty-print)
- (only-in "../set.rkt"    set ⊆)
+ (only-in "../set.rkt"    ⊆)
  "../signatures.rkt"
  "../terms.rkt"
- (only-in "../syntax.rkt" stx->datum))
+ (only-in "../syntax.rkt" stx→datum))
 
 (import)
 (export domain^)
@@ -14,8 +14,8 @@
 ;; ----------------------------------------
 ;; Implementation of Domains:
 
-;; α : Val → (Setof Val)
-(define α  set)
+;; α : (Setof Val) → (Setof Val)
+(define α  identity)
 
 ;; ≤ₐ : (Setof Val) (Setof Val) → Boolean
 (define ≤ₐ ⊆)
@@ -54,7 +54,7 @@
     [((Prim 'fourth _) `(,(Pair _ (Pair _ (Pair _ (Pair v _)))))) v]
 
     [((Prim 'syntax-e      _) `(,(Stx e _))) e]
-    [((Prim 'syntax->datum _) `(,v))         (stx->datum v)]
+    [((Prim 'syntax->datum _) `(,v))         (stx→datum v)]
 
     [((Prim 'datum->syntax _) `(,_           ,(? Stx? stx)))   stx]
     [((Prim 'datum->syntax _) `(,(Stx _ ctx) ,(Null)))         (Stx (Null) ctx)]
@@ -67,7 +67,7 @@
 
     ;; for debug
     [((Prim 'printe _) `(,u ,v))
-     (pretty-print (lst->list/recur u))
+     (pretty-print (lst→list/recur u))
      v]))
 
 ;; val? : Ast → Boolean

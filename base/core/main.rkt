@@ -1,15 +1,17 @@
-#lang racket
+#lang racket/base
 (require
+ racket/unit
  "../../interpreter.rkt"
- (only-in "../../test/suites.rkt" get-suite get-a-test run-suite run-a-test)
  "../../signatures.rkt"
+ (only-in "../../reduction.rkt"   enable-tracing)
+ (only-in "../../test/suites.rkt" get-suite get-a-test run-suite run-a-test)
  "units.rkt")
 (provide interp)
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export domain^ run^ debug^)
-   (link domain@ syntax@ env@ store@ cont@ eval@
+   (link domain@ syntax@ env@ store@ cont@ eval@ evaluator@
          menv@ mstore@ bind@ id@ mcont@ parse@ parser@ expand@ expander@
          io@ run@ debug@))
   (import) (export domain^ run^ debug^))

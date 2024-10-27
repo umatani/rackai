@@ -5,7 +5,7 @@
  "../../reduction.rkt"
  "../../signatures.rkt"
  "terms.rkt"
- (only-in "../../syntax.rkt" stx->datum))
+ (only-in "../../syntax.rkt" stx→datum))
 
 (import (only env^       init-env)
         (only store^     init-store)
@@ -26,16 +26,16 @@
 ;; expand==>* : δ Sexp → (Setof ζ)
 (define (expand==>* δ form #:steps [steps #f] #:compact [compact #t])
   (define ==>δ (==> δ))
-  (let ([results (apply-reduction*
-                  (==>δ)
-                  (ζ (Stxξ 0 (reader form) (init-ξ)) '●
-                     (Σ̂ (init-Σ) ∅ ∅))
-                  #:steps steps)])
+  (let ([rslts (results (apply-reduction*
+                         (==>δ)
+                         (ζ (Stxξ 0 (reader form) (init-ξ)) '●
+                            (Σ̂ (init-Σ) ∅ ∅))
+                         #:steps steps))])
     (if compact
-      (match results
+      (match rslts
         [(set (ζ stx _ _) ...)
-         (list→set (map (compose1 lst->list/recur stx->datum) stx))])
-      results)))
+         (list→set (map (compose1 lst→list/recur stx→datum) stx))])
+      rslts)))
 
 ;; eval--> : δ Sexp → (Setof State)
 (define (eval--> δ form)
@@ -49,7 +49,7 @@
 (define (eval-->* δ form #:steps [steps #f])
   (define -->d (--> δ))
   (results (do ast <- (lift (run δ form 'parse))
-               (lift (apply-reduction*
-                      (-->d) `(,(AstEnv 0 ast (init-env) 'no-scope (init-ξ))
-                               ● ,(init-store) ,(Σ̂ (init-Σ) ∅ ∅))
-                      #:steps steps)))))
+               (apply-reduction*
+                (-->d) `(,(AstEnv 0 ast (init-env) 'no-scope (init-ξ))
+                         ● ,(init-store) ,(Σ̂ (init-Σ) ∅ ∅))
+                #:steps steps))))

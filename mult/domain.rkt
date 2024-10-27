@@ -7,7 +7,7 @@
  (only-in "../nondet.rkt"           pure do <-)
  (only-in "../mix.rkt"              define-mixed-unit inherit)
  (only-in "../set.rkt"              ⊆)
- (only-in "../syntax.rkt"           stx->datum)
+ (only-in "../syntax.rkt"           stx→datum)
  "../signatures.rkt"
  "../terms.rkt"
  (only-in "../base/domain-unit.rkt" [domain@ base:domain@]))
@@ -21,7 +21,10 @@
   (export domain^)
   (inherit [base:domain@ val? stx? stl? proper-stl?])
 
+  ;; α : (Setof Val) → (Setof Val)
   (define α  identity)
+
+  ;; ≤ₐ : (Setof Val) (Setof Val) → Boolean
   (define ≤ₐ ⊆)
 
   (define (plus . ns) (apply + ns))
@@ -32,7 +35,7 @@
   (define (num-eq n1 n2 . ns) (apply = n1 n2 ns))
   (define (sym-eq s1 s2) (eq? s1 s2))
 
-  ; δ : Prim (Listof Val) -> (SetM Val)
+  ; δ : Prim (Listof Val) → (SetM Val)
   (define (δ p vs)
     (match* (p vs)
       [((Prim '+ _) (list (Num ns) ...))
@@ -75,7 +78,7 @@
       [((Prim 'syntax-e _) (list (Stx e _)))
        (pure e)]
       [((Prim 'syntax->datum _) (list v))
-       (pure (stx->datum v))]
+       (pure (stx→datum v))]
       
       [((Prim 'datum->syntax _) (list _ (? Stx? stx)))
        (pure stx)]
@@ -94,6 +97,6 @@
 
       ;; for debug
       [((Prim 'printe _) (list v1 v2))
-       (pretty-print (lst->list/recur v1))
+       (pretty-print (lst→list/recur v1))
        (pure v2)]))
   )

@@ -1,6 +1,7 @@
 #lang racket/unit
 (require
- (only-in racket/match match)
+ (only-in racket/match       match)
+ (only-in "../../nondet.rkt" pure)
  "../../signatures.rkt"
  "terms.rkt")
 
@@ -22,7 +23,7 @@
                (Stx (? proper-stl? stl_ids) _)
                stx_body) _)
      (Fun (map (λ (id) (Var (resolve ph id Σ)))
-               (lst->list stl_ids))
+               (lst→list stl_ids))
           (parse1 ph stx_body Σ))]
 
     ; (let ([id stx_rhs] ...) stx_body)
@@ -32,7 +33,7 @@
      (let-values ([(stl_ids stl_rhs) (unzip stl_binds)])
        (App (gensym 'let)
             (Fun (map (λ (id) (Var (resolve ph id Σ)))
-                      (lst->list stl_ids))
+                      (lst→list stl_ids))
                  (parse1 ph stx_body Σ))
             (parse* ph stl_rhs Σ)))]
 
@@ -76,5 +77,6 @@
     [(? Stx? stx)
      (list (parse1 ph stx Σ))]))
 
-;; parse : Ph Stx Σ → Ast
-(define parse parse1)
+;; parse : Ph Stx Σ → (SetM Ast)
+(define (parse ph stx Σ)
+  (pure (parse1 ph stx Σ)))

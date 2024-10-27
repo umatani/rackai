@@ -31,7 +31,7 @@
 ;; Implementation of Domains:
 (define-signature domain^
   (δ             ; Prim (Listof Val) → Val
-   α             ; Val → (Setof Val)
+   α             ; (Setof Val) → (Setof Val)
    ≤ₐ            ; (Setof Val) (Setof Val) → Boolean
    val?          ; Ast → Boolean
    stx?          ; Val → Boolean
@@ -52,8 +52,12 @@
 (define-signature eval^
   (-->           ; δ →   State → (Setof State)                  (core, phases)
                  ; δ → → State → (Setof State)                  (full)
-   evaluate      ; δ Ast → Val                                  (base)
-                 ; δ Ast → (SetM Val)                           (mult)
+   ))
+
+;; ----------------------------------------
+;; The evaluator:
+(define-signature evaluator^
+  (evaluator     ; δ Ast → (SetM Val)
    ))
 
 ;; ----------------------------------------
@@ -61,19 +65,12 @@
 (define-signature expand^
   (==>           ; δ →   ζ → (Setof ζ)                          (core, phases)
                  ; δ → → ζ → (Setof ζ)                          (full)
-   expand        ; δ    Stx ξ      Σ →       (Cons Stx Σ )      (base/core)
-                 ; δ Ph Stx ξ Scps Σ →       (Cons Stx Σ )      (base/phases)
-                 ; δ Ph Stx ξ      Σ̂ →       (Cons Stx Σ̂)       (base/full)
-                 ; δ    Stx ξ      Σ → (SetM (Cons Stx Σ ))     (mult/core)
-                 ; δ Ph Stx ξ Scps Σ → (SetM (Cons Stx Σ ))     (mult/phases)
-                 ; δ Ph Stx ξ      Σ̂ → (SetM (Cons Stx Σ̂))      (mult/full)
    ))
 
 ;; ----------------------------------------
 ;; The expander:
 (define-signature expander^
-  (expander      ; δ Stx →       (Cons Stx Σ)                   (base)
-                 ; δ Stx → (SetM (Cons Stx Σ))                  (mult)
+  (expander      ; δ Stx → (SetM (Cons Stx Σ))
    ))
 
 (define-signature id^
@@ -126,21 +123,17 @@
                  ; Ph Stx Σ →         Ast               (phases, full)
    parse*        ;    Stl Σ → (Listof Ast)              (core)
                  ; Ph Stl Σ → (Listof Ast)              (phases, full)
-   parse         ;    Stx Σ →       Ast                 (base/core)
-                 ; Ph Stx Σ →       Ast                 (base/phases, base/full)
-                 ;    Stx Σ → (SetM Ast)                (mult/core)
-                 ; Ph Stx Σ → (SetM Ast)                (mult/phases, mult/full)
+   parse         ;    Stx Σ → (SetM   Ast)              (core)
+                 ; Ph Stx Σ → (SetM   Ast)              (phases, full)
    ))
 
 (define-signature parser^
-  (parser        ; Stx Σ →       Ast                    (base)
-                 ; Stx Σ → (SetM Ast)                   (mult)
+  (parser        ; Stx Σ → (SetM Ast)
    ))
 
 ;;;; runner
 (define-signature run^
-  (run           ; δ Sexp Symbol →        Val           (base)
-                 ; δ Sexp Symbol → (Setof Val)          (mult)
+  (run           ; δ Sexp Symbol → (Setof Val)
    ))
 
 ;; ----------------------------------------

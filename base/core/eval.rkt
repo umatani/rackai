@@ -92,19 +92,9 @@
 (define-unit-from-reduction red@ -->)
 
 (define-mixed-unit eval@
-  (import  (only domain^    val?)
-           (only    env^    init-env)
-           (only  store^    init-store))
+  (import)
   (export  eval^)
-  (inherit [red@            reducer])
+  (inherit [red@    reducer])
 
   ; --> : δ → State → (Setof State)
-  (define (--> δ) (reducer δ :=))
-
-  ; evaluate : δ Ast → Val
-  (define (evaluate δ ast)
-    (define -->δ (--> δ))
-    (match-let ([(set `(,(? val? v) ● ,_sto))
-                 (apply-reduction*
-                  -->δ `(,(AstEnv ast (init-env)) ● ,(init-store)))])
-      v)))
+  (define (--> δ) (reducer δ :=)))

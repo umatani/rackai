@@ -2,36 +2,35 @@
 (require
  racket/unit
  "../interpreter.rkt"
- "../test/suites.rkt"
- (only-in "../mix.rkt"             define-mixed-unit)
- (only-in "../syntax.rkt"          snoc)
- "../reduction.rkt"
  "../signatures.rkt"
+ (only-in "../reduction.rkt" enable-tracing)
+ (only-in "../mix.rkt"       define-mixed-unit)
+ "../test/suites.rkt"
  "../base/full/terms.rkt"
-
  (only-in "../mult/full/units.rkt"
           io@ cont@ mcont@ syntax@ debug@ domain@ env@ menv@ run@
-          eval@ id@ parse@ parser@ expand@ expander@)
- (only-in "alloc.rkt"              store@ mstore@)
- (only-in "phases.rkt"             bind@))
-(provide syntax@ main-minus@
-         interp)
+          eval@ evaluator@ id@ parse@ parser@ expand@ expander@)
+ (only-in "alloc.rkt"  store@ mstore@)
+ (only-in "phases.rkt" bind@))
+(provide syntax@ main-minus@ interp)
 
 
-;; full/set's evaluate already filters out stuck states
+;;;; full/mult's evaluator already filters out stuck states
+
+;;;; Main
 
 (define-compound-unit/infer main-minus@
   (import domain^ eval^ parser^ expand^)
-  (export syntax^ env^ store^ cont^ menv^ mstore^ bind^ id^ mcont^
+  (export syntax^ env^ store^ cont^ evaluator^ menv^ mstore^ bind^ id^ mcont^
           run^ debug^)
-  (link   syntax@ env@ store@ cont@ menv@ mstore@ bind@ id@ mcont@
+  (link   syntax@ env@ store@ cont@ evaluator@ menv@ mstore@ bind@ id@ mcont@
           expander@ io@ run@ debug@))
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export domain^ run^ debug^)
-   (link domain@ main-minus@
-         parse@ parser@ eval@ expand@))
+   (link main-minus@
+         domain@ eval@ parse@ parser@ expand@))
   (import) (export domain^ run^ debug^))
 
 (define interp (interpreter run δ α ≤ₐ))

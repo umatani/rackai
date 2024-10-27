@@ -10,7 +10,7 @@
  "terms.rkt")
 (provide --> eval@)
 
-;; --> : State -> (Setof State)
+;; --> : State → (Setof State)
 (define-reduction (--> δ ==> :=<1>)
   #:within-signatures [(only domain^    val? stx?)
                        (only syntax^    add flip prune)
@@ -161,7 +161,7 @@
    #:with (values nam Σ₁) :=    (alloc-name id′ Σ₀)
    #:with              Σ₂ :=    (bind ph Σ₁ id′ nam)
    #:with          ξ_defs :=<1> (def-ξ-lookup Σ₂ 𝓁)
-   #:with              Σ₃ :=    (def-ξ-update Σ₂ 𝓁
+   #:with              Σ₃ :=    (def-ξ-update Σ₂ 𝓁  ;; TODO: check ξ_defs not κ
                                   (extend-ξ ξ_defs nam (TVar id′)))
    #:with             cnt :=<1> (lookup-store sto loc)
    `(,(Lst id′) ,cnt ,sto ,(Σ̂ Σ₃ scpsₚ scpsᵤ))
@@ -186,7 +186,7 @@
              `(,(Prim 'syntax-local-bind-syntaxes2 _stx)
                ,(KApp′ `(,id ,(Defs scp 𝓁)) `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
                ,sto ,(Σ̂ _Σ scpsₚ scpsᵤ)))
-   #:with ast :=<1> (parse (add1 ph) stx_arg′ Σ)
+   #:with ast <- (parse (add1 ph) stx_arg′ Σ)
    `(,(AstEnv ph ast (init-env) 'no-scope ξ)
      ,(KApp `(,(Prim 'syntax-local-bind-syntaxes2
                      (Stx (Bool #f) `((0 . ,scpsₚ) (1 . ,scpsᵤ))))
@@ -217,7 +217,7 @@
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    #:with   ξ′ :=    (make-immutable-hash
                       (hash-map ξ (λ (nam at) (cons nam (unstop at)))))
-   #:with nams :=<1> (resolve* ph (lst->list ids_stop) Σ)
+   #:with nams :=<1> (resolve* ph (lst→list ids_stop) Σ)
    #:with  ats :=<1> (lookup-ξ* ξ′ nams)
    #:with   ξ″ :=    (extend-ξ* ξ′ (map (λ (nam at) (cons nam (TStop at)))
                                         nams ats))
@@ -248,7 +248,7 @@
    #:with ξ_defs :=<1> (def-ξ-lookup Σ 𝓁)
    #:with     ξ′ :=    (make-immutable-hash
                         (hash-map ξ_defs (λ (nam at) (cons nam (unstop at)))))
-   #:with   nams :=<1> (resolve* ph (lst->list ids_stop) Σ)
+   #:with   nams :=<1> (resolve* ph (lst→list ids_stop) Σ)
    #:with    ats :=<1> (lookup-ξ* ξ′ nams)
    #:with     ξ″ :=    (extend-ξ* ξ′ (map (λ (nam at) (cons nam (TStop at)))
                                           nams ats))
@@ -297,7 +297,8 @@
 
   ;; β
   [`(,(VFun vars ast env)
-     ,(KApp′ args `(,ph ,_env ,maybe-scpᵢ ,ξ) loc) ,sto ,Σ̂)
+     ,(KApp′ args `(,ph ,_env ,maybe-scpᵢ ,ξ) loc)
+     ,sto ,Σ̂)
    #:with `(,(Var nams) ...) :=    vars
    #:with (values locs sto′) :=    (alloc-loc* nams sto)
    #:with               env′ :=    (extend-env* env vars locs)
@@ -308,7 +309,8 @@
 
   ;; primitive application (except StxPrim)
   [`(,(and (Prim nam _stx) prim)
-     ,(KApp′ args `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc) ,sto ,Σ̂)
+     ,(KApp′ args `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
+     ,sto ,Σ̂)
    #:when (not (stx-prim? nam))
    #:with val :=<1> (δ prim args)
    #:with cnt :=<1> (lookup-store sto loc)
@@ -317,7 +319,8 @@
 
   ;; if
   [`(,(AstEnv ph (If lbl ast₀ ast₁ ast₂) env maybe-scpᵢ ξ)
-     ,cnt ,sto ,Σ̂)
+     ,cnt
+     ,sto ,Σ̂)
    #:with (values loc sto′) := (push-cont sto lbl cnt)
    `(,(AstEnv ph ast₀ env maybe-scpᵢ ξ)
      ,(KIf ast₁ ast₂ `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
@@ -338,7 +341,8 @@
    #:when (not (equal? val (Bool #f)))
    #:with cnt :=<1> (lookup-store sto loc)
    `(,(AstEnv ph ast₁ env maybe-scpᵢ ξ)
-     ,cnt ,sto ,Σ̂)
+     ,cnt
+     ,sto ,Σ̂)
    ev-if-#t]
 
   ;; in-expand
@@ -351,29 +355,10 @@
 (define-unit-from-reduction red@ -->)
 
 (define-mixed-unit eval@
-  (import (only domain^    val?)
-          (only    env^    init-env)
-          (only  store^    init-store)
-          (only   menv^    init-ξ)
-          (only mstore^    init-Σ)
-          (only expand^    ==>))
+  (import
+   (only  expand^    ==>))
   (export eval^)
-  (inherit [red@ reducer])
+  (inherit [red@    reducer])
 
-  ;; δ → → State → (Setof State)
-  (define (--> δ) (λ () (reducer δ (==> δ) :=)))
-
-  ;; eval : Ph Ast MaybeScp ξ Σ̂ → (Values Val Σ̂)
-  (define (eval δ ph ast maybe-scpᵢ ξ Σ̂)
-    (define -->δ (--> δ))
-    (match-let ([(set `(,(? val? val) ● ,_sto ,Σ̂′))
-                 (apply-reduction*
-                  (-->δ) `(,(AstEnv ph ast (init-env) maybe-scpᵢ ξ)
-                           ● ,(init-store) ,Σ̂))])
-      (values val Σ̂′)))
-
-  ;; evaluate : Ast → Val
-  (define (evaluate δ ast)
-    (call-with-values
-     (λ () (eval δ 0 ast 'no-scope (init-ξ) (Σ̂ (init-Σ) ∅ ∅)))
-     (λ (val Σ̂) val))))
+  ;; --> : δ → → State → (Setof State)
+  (define (--> δ) (λ () (reducer δ (==> δ) :=))))

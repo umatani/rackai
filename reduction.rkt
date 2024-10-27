@@ -14,6 +14,8 @@
 
 ;;;; non-deterministic reduction engine
 
+(define enable-tracing (make-parameter #f))
+
 (define-signature red^
   (reducer ;; Param ... → State → (Setof State)
    ))
@@ -98,10 +100,12 @@
                                     (λ (k) (not (member k sub-clause-names)))
                                     clause-map)))])
                 (syntax-case (stx-rescope clause) ()
-                  [(p b ... _rule-name)
+                  [(p b ... rule-name)
                    #`(let ([nexts #,body])
                        (match #,s
-                         [p (∪ nexts
+                         [p (when (enable-tracing)
+                              (printf "→[~a]\n" 'rule-name)) 
+                            (∪ nexts
                                (results (do #,@(make-match-body #'(b ...)))))]
                          [_ nexts]))]))))))
 
@@ -332,7 +336,7 @@
                     (import i-id ... ...))]))
 
 
-;; apply-reduction* : (∀ [A] (A → (Setof A)) A → (Setof A))
+;; apply-reduction* : (∀ [A] (A → (Setof A)) A → (SetM A))
 (define (apply-reduction* --> s #:steps [steps #f])
   (let ([all-states   (r:mutable-set)]
         [irreducibles (r:mutable-set)]
@@ -352,4 +356,4 @@
     (r:set-add! all-states s)
     (enqueue! worklist s)
     (loop steps)
-    (list→set (r:set->list (if steps all-states irreducibles)))))
+    (lift (list→set (r:set->list (if steps all-states irreducibles))))))
