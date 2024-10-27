@@ -14,16 +14,14 @@
   (export  mstore^)
   (inherit [base:mstore@ init-Σ alloc-name alloc-scope alloc-𝓁])
 
-  ;; Set-based Σ
+  ;;;; Set-based Σ
 
-  ; lookup-Σ : Σ Nam -> (SetM (Setof StoBind))
-  ;          : Σ 𝓁   -> (SetM (U Val ξ κ))
-  (define (lookup-Σ Σ0 k)
-    (lift (hash-ref (Σ-tbl Σ0) k ∅)))
+  ;; lookup-Σ : Σ Nam → (SetM (Setof StoBind))
+  ;;          : Σ 𝓁   → (SetM (U Val ξ κ))
+  (define (lookup-Σ Σ₀ k)
+    (lift (hash-ref (Σ-tbl Σ₀) k ∅)))
 
-  ; update-Σ : Σ Nam (Setof StoBind) -> Σ
-  ;          : Σ 𝓁   (U Val ξ κ)     -> Σ
-  (define (update-Σ Σ0 k v)
-    (Σ (Σ-size Σ0)
-      (hash-update (Σ-tbl Σ0) k
-                   (λ (old) (set-add old v)) ∅))))
+  ;; update-Σ : Σ Nam (Setof StoBind) → Σ
+  ;;          : Σ 𝓁   (U Val ξ κ)     → Σ
+  (define (update-Σ Σ₀ k v)
+    (Σ (Σ-size Σ₀) (hash-update (Σ-tbl Σ₀) k (λ (vs) (set-add vs v)) ∅))))

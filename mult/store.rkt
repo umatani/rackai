@@ -14,21 +14,21 @@
   (export  store^)
   (inherit [base:store@ init-store alloc-loc alloc-loc*])
 
-  ;; Set-based heap
+  ;;;; Set-based heap
 
-  ; lookup-store : Store Loc -> (SetM (U Val Cont))
-  (define (lookup-store store loc)
-    (lift (hash-ref (Store-tbl store) loc)))
+  ;; lookup-store : Store Loc → (SetM (U Val Cont))
+  (define (lookup-store sto loc)
+    (lift (hash-ref (Store-tbl sto) loc)))
 
-  ; update-store : Store Loc (U Val Cont) -> Store
-  (define (update-store store0 loc u)
-    (Store (Store-size store0)
-           (hash-update (Store-tbl store0) loc
-                        (λ (old) (set-add old u)) ∅)))
+  ;; update-store : Store Loc (U Val Cont) → Store
+  (define (update-store sto loc u)
+    (Store (Store-size sto)
+           (hash-update (Store-tbl sto) loc
+                        (λ (us) (set-add us u)) ∅)))
 
-  ; update-store* : Store (Listof Loc) (Listof (U Val Cont)) -> Store
-  (define (update-store* store0 locs us)
-    (Store (Store-size store0)
+  ;; update-store* : Store (Listof Loc) (Listof (U Val Cont)) → Store
+  (define (update-store* sto locs us)
+    (Store (Store-size sto)
            (foldl (λ (loc u tbl)
-                    (hash-update tbl loc (λ (old) (set-add old u)) ∅))
-                  (Store-tbl store0) locs us))))
+                    (hash-update tbl loc (λ (us) (set-add us u)) ∅))
+                  (Store-tbl sto) locs us))))

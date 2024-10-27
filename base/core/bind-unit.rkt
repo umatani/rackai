@@ -1,7 +1,7 @@
 #lang racket/unit
 (require
  (only-in racket/match     match-let)
- (only-in "../../set.rkt"  set ∅ set-add set→list)
+ (only-in "../../set.rkt"  set ∅ set-add set-map)
  "../../signatures.rkt"
  "../../terms.rkt"
  (only-in "../../misc.rkt" biggest-subset binding-lookup))
@@ -21,8 +21,8 @@
 ;; resolve : Id Σ → Nam
 (define (resolve id Σ₀)
   (match-let ([(Stx (Sym nam) ctx) id])
-    (let* ([sbs (lookup-Σ Σ₀ nam)]
-           [scpss (map (λ (sb) (StoBind-scps sb)) (set→list sbs))]
+    (let* ([sbs          (lookup-Σ Σ₀ nam)]
+           [scpss        (set-map (λ (sb) (StoBind-scps sb)) sbs)]
            [scps_biggest (biggest-subset ctx scpss)]
-           [nam_biggest (binding-lookup sbs scps_biggest)])
+           [nam_biggest  (binding-lookup sbs scps_biggest)])
       (or nam_biggest nam))))

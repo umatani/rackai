@@ -26,15 +26,15 @@
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (abs:==> -->)
-  #:within-signatures [(only syntax^    empty-ctx zip unzip add flip in-hole)
-                       (only    env^    init-env)
-                       (only  store^    init-store)
-                       (only   menv^    init-ξ lookup-ξ extend-ξ)
-                       (only mstore^    lookup-Σ alloc-name alloc-scope)
-                       (only   bind^    bind resolve)
-                       (only     id^    id=?)
-                       (only  mcont^    push-κ)
-                       (only  parse^    parse)]
+  #:import [(only syntax^    empty-ctx zip unzip add flip in-hole)
+            (only    env^    init-env)
+            (only  store^    init-store)
+            (only   menv^    init-ξ lookup-ξ extend-ξ)
+            (only mstore^    lookup-Σ alloc-name alloc-scope)
+            (only   bind^    bind resolve)
+            (only     id^    id=?)
+            (only  mcont^    push-κ)
+            (only  parse^    parse)]
 
   [(InEval (list stx '● _sto)
            (ζ (Stxξ (Stx (Bool #f) (set _scpᵢ)) ξ)
@@ -86,29 +86,29 @@
 ;; Revise --> to interpret abstract values (val-⊤, stx-⊤, etc.)
 ;; --> : State -> (Setof State)
 (define-reduction (--> δ) #:super (mult:--> δ)
-  #:within-signatures [(only   env^    extend-env* lookup-env)
-                       (only store^    update-store* lookup-store alloc-loc*)
-                       (only  cont^    push-cont)]
+  #:import [(only   env^    extend-env* lookup-env)
+            (only store^    update-store* lookup-store alloc-loc*)
+            (only  cont^    push-cont)]
   ;; β (val-⊤ ...)
   [`(,f ,(KApp′ _args _env loc) ,sto)
    #:when (equal? f val-⊤)
-   #:with cnt <- (lookup-store sto loc)
+   (<- cnt (lookup-store sto loc))
    `(,f ,cnt ,sto)
    ev-β-abs]
 
   [`(,(VFun vars ast env) ,(KApp′ args _env loc) ,sto)
-   #:with `(,(Var nams) ...) := vars
-   #:with (values locs sto′) := (alloc-loc* nams sto)
-   #:with env′ := (extend-env* env vars locs)
-   #:with sto″ := (update-store* sto′ locs args)
-   #:with cnt  <- (lookup-store sto″ loc)
+   (:= `(,(Var nams) ...) vars)
+   (:= (values locs sto′) (alloc-loc* nams sto))
+   (:= env′               (extend-env* env vars locs))
+   (:= sto″               (update-store* sto′ locs args))
+   (<- cnt                (lookup-store sto″ loc))
    `(,(AstEnv ast env′) ,cnt ,sto″)
    ev-β]
 
   ;; (if ⊤ ...)
   [`(,(? val? val) ,(KIf _ast₁ ast₂ env loc) ,sto)
    #:when (or (equal? val val-⊤) (equal? val atom-⊤))
-   #:with cnt <- (lookup-store sto loc)
+   (<- cnt (lookup-store sto loc))
    `(,(AstEnv ast₂ env) ,cnt ,sto)
    ev-if-abs-#f])
 

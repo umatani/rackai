@@ -18,14 +18,13 @@
   (hash-ref (Store-tbl sto) loc))
 
 ;; update-store : Store Loc (U Val Cont) → Store
-(define (update-store sto loc v)
-  (Store (Store-size sto)
-         (hash-set (Store-tbl sto) loc v)))
+(define (update-store sto loc u)
+  (Store (Store-size sto) (hash-set (Store-tbl sto) loc u)))
 
 ;; update-store* : Store (Listof Loc) (Listof (U Val Cont)) → Store
-(define (update-store* sto locs vs)
-  (foldl (λ (l v s) (update-store s l v))
-         sto locs vs))
+(define (update-store* sto locs us)
+  (foldl (λ (loc u sto) (update-store sto loc u))
+         sto locs us))
 
 ;; alloc-loc : Symbol Store → (Values Loc Store)
 ;;   - called from push-cont

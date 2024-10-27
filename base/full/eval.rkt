@@ -12,16 +12,15 @@
 
 ;; --> : State → (Setof State)
 (define-reduction (--> δ ==> :=<1>)
-  #:within-signatures [(only domain^    val? stx?)
-                       (only syntax^    add flip prune)
-                       (only    env^    init-env lookup-env extend-env*)
-                       (only  store^    lookup-store update-store* alloc-loc*)
-                       (only   cont^    push-cont)
-                       (only   menv^    init-ξ lookup-ξ extend-ξ)
-                       (only mstore^    alloc-name alloc-scope alloc-𝓁
-                                        lookup-Σ update-Σ)
-                       (only   bind^    bind resolve)
-                       (only  parse^    parse)]
+  #:import [(only domain^    val? stx?)
+            (only syntax^    add flip prune)
+            (only    env^    init-env lookup-env extend-env*)
+            (only  store^    lookup-store update-store* alloc-loc*)
+            (only   cont^    push-cont)
+            (only   menv^    init-ξ lookup-ξ extend-ξ)
+            (only mstore^    alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
+            (only   bind^    bind resolve)
+            (only  parse^    parse)]
   #:do [;; resolve* : Ph (Listof Id) Σ → (Listof Nam))
         (define (resolve* ph ids Σ)
           (map (λ (id) (resolve ph id Σ)) ids))
@@ -66,8 +65,8 @@
 
   ;; reference
   [`(,(AstEnv _ph (? Var? var) env _maybe-scpᵢ _ξ) ,cnt ,sto ,Σ̂)
-   #:with loc :=<1> (lookup-env env var)
-   #:with val :=<1> (lookup-store sto loc)
+   (:=<1> loc (lookup-env env var))
+   (:=<1> val (lookup-store sto loc))
    `(,val ,cnt ,sto ,Σ̂)
    ev-x]
 
@@ -78,7 +77,7 @@
 
   ;; application
   [`(,(AstEnv ph (App lbl ast asts) env maybe-scpᵢ ξ) ,cnt ,sto ,Σ̂)
-   #:with (values loc sto′) := (push-cont sto lbl cnt)
+   (:= (values loc sto′) (push-cont sto lbl cnt))
    `(,(AstEnv ph ast env maybe-scpᵢ ξ)
      ,(KApp '() asts `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto′ ,Σ̂)
@@ -109,9 +108,9 @@
   [`(,(Prim 'syntax-local-value _stx)
      ,(KApp′ `(,(? id? id)) `(,ph ,_env ,_maybe-scpᵢ ,ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
-   #:with nam :=<1> (resolve ph id Σ)
-   #:with val :=<1> (lookup-ξ ξ nam)
-   #:with cnt :=<1> (lookup-store sto loc)
+   (:=<1> nam (resolve ph id Σ))
+   (:=<1> val (lookup-ξ ξ nam))
+   (:=<1> cnt (lookup-store sto loc))
    `(,val ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    ev-lval]
 
@@ -125,10 +124,10 @@
      ,(KApp′ `(,(? id? id) ,(Bool #f) ,(Defs _scp 𝓁))
              `(,ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
-   #:with ξ_defs :=<1> (def-ξ-lookup Σ 𝓁)
-   #:with    nam :=<1> (resolve ph id Σ)
-   #:with    val :=<1> (lookup-ξ ξ_defs nam)
-   #:with    cnt :=<1> (lookup-store sto loc)
+   (:=<1> ξ_defs (def-ξ-lookup Σ 𝓁))
+   (:=<1> nam    (resolve ph id Σ))
+   (:=<1> val    (lookup-ξ ξ_defs nam))
+   (:=<1> cnt    (lookup-store sto loc))
    `(,val ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    ev-lval-defs]
 
@@ -136,7 +135,7 @@
   [`(,(Prim 'syntax-local-identifier-as-binding _stx)
      ,(KApp′ `(,(? id? id)) `(,ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
-   #:with    cnt :=<1> (lookup-store sto loc)
+   (:=<1> cnt (lookup-store sto loc))
    `(,(prune ph id scpsᵤ) ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    ev-lbinder]
 
@@ -144,9 +143,9 @@
   [`(,(Prim 'syntax-local-make-definition-context stx)
      ,(KApp′ `() `(,_ph ,_env ,_maybe-scpᵢ ,ξ) loc)
      ,sto ,(Σ̂ Σ₀ scpsₚ scpsᵤ))
-   #:with (values scp Σ₁) :=    (alloc-scope 'defs Σ₀)
-   #:with   (values 𝓁 Σ₂) :=    (alloc-def-ξ stx Σ₁)
-   #:with             cnt :=<1> (lookup-store sto loc)
+   (:=    (values scp Σ₁) (alloc-scope 'defs Σ₀))
+   (:=    (values 𝓁 Σ₂)   (alloc-def-ξ stx Σ₁))
+   (:=<1> cnt             (lookup-store sto loc))
    `(,(Defs scp 𝓁) ,cnt ,sto
                    ,(Σ̂ (def-ξ-update Σ₂ 𝓁 ξ) (set-add scpsₚ scp) scpsᵤ))
    ev-slmdc]
@@ -156,14 +155,13 @@
      ,(KApp′ `(,(Lst (? id? id)) ,(Bool #f) ,(Defs scp 𝓁))
              `(,ph ,_env ,maybe-scpᵢ ,_ξ) loc)
      ,sto ,(Σ̂ Σ₀ scpsₚ scpsᵤ))
-   #:with              id′ := (add ph (prune ph (flip ph id maybe-scpᵢ) scpsᵤ)
-                                   scp)
-   #:with (values nam Σ₁) :=    (alloc-name id′ Σ₀)
-   #:with              Σ₂ :=    (bind ph Σ₁ id′ nam)
-   #:with          ξ_defs :=<1> (def-ξ-lookup Σ₂ 𝓁)
-   #:with              Σ₃ :=    (def-ξ-update Σ₂ 𝓁  ;; TODO: check ξ_defs not κ
-                                  (extend-ξ ξ_defs nam (TVar id′)))
-   #:with             cnt :=<1> (lookup-store sto loc)
+   (:=    id′             (add ph (prune ph (flip ph id maybe-scpᵢ) scpsᵤ) scp))
+   (:=    (values nam Σ₁) (alloc-name id′ Σ₀))
+   (:=    Σ₂              (bind ph Σ₁ id′ nam))
+   (:=<1> ξ_defs          (def-ξ-lookup Σ₂ 𝓁))
+   (:=    Σ₃              (def-ξ-update Σ₂ 𝓁  ;; TODO: check ξ_defs not κ
+                            (extend-ξ ξ_defs nam (TVar id′))))
+   (:=<1> cnt             (lookup-store sto loc))
    `(,(Lst id′) ,cnt ,sto ,(Σ̂ Σ₃ scpsₚ scpsᵤ))
    ev-slbsv]
 
@@ -186,7 +184,7 @@
              `(,(Prim 'syntax-local-bind-syntaxes2 _stx)
                ,(KApp′ `(,id ,(Defs scp 𝓁)) `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
                ,sto ,(Σ̂ _Σ scpsₚ scpsᵤ)))
-   #:with ast <- (parse (add1 ph) stx_arg′ Σ)
+   (<- ast (parse (add1 ph) stx_arg′ Σ))
    `(,(AstEnv ph ast (init-env) 'no-scope ξ)
      ,(KApp `(,(Prim 'syntax-local-bind-syntaxes2
                      (Stx (Bool #f) `((0 . ,scpsₚ) (1 . ,scpsᵤ))))
@@ -200,12 +198,11 @@
      ,(KApp′ `(,(? id? id) ,(Defs scp 𝓁) ,val)
              `(,ph ,_env ,maybe-scpᵢ ,_ξ) loc)
      ,sto ,(Σ̂ Σ₀ _scpsₚ _scpsᵤ))
-   #:with          ξ_defs :=<1> (def-ξ-lookup Σ₀ 𝓁)
-   #:with             id′ :=    (add ph (prune ph (flip ph id maybe-scpᵢ) scpsᵤ)
-                                     scp)
-   #:with (values nam Σ₁) :=    (alloc-name id′ Σ₀)
-   #:with              Σ₂ :=    (bind ph Σ₁ id′ nam)
-   #:with             cnt :=<1> (lookup-store sto loc)
+   (:=<1> ξ_defs          (def-ξ-lookup Σ₀ 𝓁))
+   (:=    id′             (add ph (prune ph (flip ph id maybe-scpᵢ) scpsᵤ) scp))
+   (:=    (values nam Σ₁) (alloc-name id′ Σ₀))
+   (:=    Σ₂              (bind ph Σ₁ id′ nam))
+   (:=<1> cnt             (lookup-store sto loc))
    `(,(Lst id′) ,cnt ,sto ,(Σ̂ (def-ξ-update Σ₂ 𝓁 (extend-ξ ξ_defs nam val))
                               scpsₚ scpsᵤ))
    ev-slbsm″]
@@ -215,12 +212,12 @@
      ,(KApp′ `(,(? stx? stx_arg) ,_val_context ,ids_stop)
              `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
-   #:with   ξ′ :=    (make-immutable-hash
-                      (hash-map ξ (λ (nam at) (cons nam (unstop at)))))
-   #:with nams :=<1> (resolve* ph (lst→list ids_stop) Σ)
-   #:with  ats :=<1> (lookup-ξ* ξ′ nams)
-   #:with   ξ″ :=    (extend-ξ* ξ′ (map (λ (nam at) (cons nam (TStop at)))
-                                        nams ats))
+   (:=    ξ′   (make-immutable-hash
+                (hash-map ξ (λ (nam at) (cons nam (unstop at))))))
+   (:=<1> nams (resolve* ph (lst→list ids_stop) Σ))
+   (:=<1> ats  (lookup-ξ* ξ′ nams))
+   (:=    ξ″   (extend-ξ* ξ′ (map (λ (nam at) (cons nam (TStop at)))
+                                  nams ats)))
    (InExpand
     (ζ (Stxξ ph (flip ph stx_arg maybe-scpᵢ) ξ″) '● (Σ̂ Σ scpsₚ scpsᵤ))
     `(,(Prim 'local-expand stx)
@@ -233,7 +230,7 @@
              `(,(Prim 'local-expand _stx)
                ,(KApp′ '() `(,ph ,_env ,maybe-scpᵢ ,_ξ) loc)
                ,sto ,_Σ̂))
-   #:with cnt :=<1> (lookup-store sto loc)
+   (:=<1> cnt (lookup-store sto loc))
    `(,(flip ph stx_arg′ maybe-scpᵢ) ,cnt ,sto ,Σ̂)
    ev-lexpand′]
 
@@ -244,14 +241,13 @@
      ,(KApp′ `(,(? stx? stx_arg) ,_val_context ,ids_stop ,(Defs scp 𝓁))
              `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
-
-   #:with ξ_defs :=<1> (def-ξ-lookup Σ 𝓁)
-   #:with     ξ′ :=    (make-immutable-hash
-                        (hash-map ξ_defs (λ (nam at) (cons nam (unstop at)))))
-   #:with   nams :=<1> (resolve* ph (lst→list ids_stop) Σ)
-   #:with    ats :=<1> (lookup-ξ* ξ′ nams)
-   #:with     ξ″ :=    (extend-ξ* ξ′ (map (λ (nam at) (cons nam (TStop at)))
-                                          nams ats))
+   (:=<1> ξ_defs (def-ξ-lookup Σ 𝓁))
+   (:=    ξ′     (make-immutable-hash
+                  (hash-map ξ_defs (λ (nam at) (cons nam (unstop at))))))
+   (:=<1> nams   (resolve* ph (lst→list ids_stop) Σ))
+   (:=<1> ats    (lookup-ξ* ξ′ nams))
+   (:=    ξ″     (extend-ξ* ξ′ (map (λ (nam at) (cons nam (TStop at)))
+                                    nams ats)))
    ; TODO?: (flip ph stx_arg maybe-scpᵢ)は間違い？？しかしdefsを使わない場合にも
    ; これはある．．．これがあると，少なくともunit-4が通らない．
    ; しかし，flipないとdefs-begin-with-defnの挙動が実際の処理系と異なってしまう．
@@ -273,8 +269,8 @@
   [`(,(Prim 'box stx)
      ,(KApp′ `(,val) `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
-   #:with (values 𝓁 Σ′) :=    (alloc-box stx Σ)
-   #:with           cnt :=<1> (lookup-store sto loc)
+   (:=    (values 𝓁 Σ′) (alloc-box stx Σ))
+   (:=<1> cnt           (lookup-store sto loc))
    `(,𝓁 ,cnt ,sto ,(Σ̂ (box-update Σ′ 𝓁 val) scpsₚ scpsᵤ))
    ev-box]
 
@@ -282,8 +278,8 @@
   [`(,(Prim 'unbox _stx)
      ,(KApp′ `(,(? 𝓁? 𝓁)) `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
-   #:with val :=<1> (box-lookup Σ 𝓁)
-   #:with cnt :=<1> (lookup-store sto loc)
+   (:=<1> val (box-lookup Σ 𝓁))
+   (:=<1> cnt (lookup-store sto loc))
    `(,val ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    ev-unbox]
 
@@ -291,7 +287,7 @@
   [`(,(Prim 'set-box! _stx)
      ,(KApp′ `(,(? 𝓁? 𝓁) ,val) `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
-   #:with cnt :=<1> (lookup-store sto loc)
+   (:=<1> cnt (lookup-store sto loc))
    `(,val ,cnt ,sto ,(Σ̂ (box-update Σ 𝓁 val) scpsₚ scpsᵤ))
    ev-set-box!]
 
@@ -299,11 +295,11 @@
   [`(,(VFun vars ast env)
      ,(KApp′ args `(,ph ,_env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,Σ̂)
-   #:with `(,(Var nams) ...) :=    vars
-   #:with (values locs sto′) :=    (alloc-loc* nams sto)
-   #:with               env′ :=    (extend-env* env vars locs)
-   #:with               sto″ :=    (update-store* sto′ locs args)
-   #:with                cnt :=<1> (lookup-store sto″ loc)
+   (:=    `(,(Var nams) ...) vars)
+   (:=    (values locs sto′) (alloc-loc* nams sto))
+   (:=    env′               (extend-env* env vars locs))
+   (:=    sto″               (update-store* sto′ locs args))
+   (:=<1> cnt                (lookup-store sto″ loc))
    `(,(AstEnv ph ast env′ maybe-scpᵢ ξ) ,cnt ,sto″ ,Σ̂)
    ev-β]
 
@@ -312,8 +308,8 @@
      ,(KApp′ args `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,Σ̂)
    #:when (not (stx-prim? nam))
-   #:with val :=<1> (δ prim args)
-   #:with cnt :=<1> (lookup-store sto loc)
+   (:=<1> val (δ prim args))
+   (:=<1> cnt (lookup-store sto loc))
    `(,val ,cnt ,sto ,Σ̂)
    ev-δ]
 
@@ -321,7 +317,7 @@
   [`(,(AstEnv ph (If lbl ast₀ ast₁ ast₂) env maybe-scpᵢ ξ)
      ,cnt
      ,sto ,Σ̂)
-   #:with (values loc sto′) := (push-cont sto lbl cnt)
+   (:= (values loc sto′) (push-cont sto lbl cnt))
    `(,(AstEnv ph ast₀ env maybe-scpᵢ ξ)
      ,(KIf ast₁ ast₂ `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto′ ,Σ̂)
@@ -330,7 +326,7 @@
   [`(,(Bool #f)
      ,(KIf _ast₁ ast₂ `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,Σ̂)   
-   #:with cnt :=<1> (lookup-store sto loc)
+   (:=<1> cnt (lookup-store sto loc))
    `(,(AstEnv ph ast₂ env maybe-scpᵢ ξ)
      ,cnt ,sto ,Σ̂)
    ev-if-#f]
@@ -339,7 +335,7 @@
      ,(KIf ast₁ _ast₂ (list ph env maybe-scpᵢ ξ) loc)
      ,sto ,Σ̂)   
    #:when (not (equal? val (Bool #f)))
-   #:with cnt :=<1> (lookup-store sto loc)
+   (:=<1> cnt (lookup-store sto loc))
    `(,(AstEnv ph ast₁ env maybe-scpᵢ ξ)
      ,cnt
      ,sto ,Σ̂)
@@ -347,7 +343,7 @@
 
   ;; in-expand
   [(InExpand ζ s)
-   #:with ζ′ <- (lift ((==>) ζ))
+   (<- ζ′ (lift ((==>) ζ)))
    (InExpand ζ′ s)
    ev-in-expand])
 

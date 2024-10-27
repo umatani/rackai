@@ -3,7 +3,7 @@
  racket/unit
  (only-in "../nondet.rkt"     lift)
  (only-in "../mix.rkt"        define-mixed-unit inherit)
- (only-in "../set.rkt"        ∅ set-add)
+ (only-in "../set.rkt"        set ∅ set-add)
  "../signatures.rkt"
  (only-in "../base/units.rkt" [menv@ base:menv@]))
 (provide menv@)
@@ -13,13 +13,12 @@
   (export  menv^)
   (inherit [base:menv@ init-ξ])
 
-  ;; Set-based ξ
+  ;;;; Set-based ξ
 
-  ; lookup-ξ : ξ Nam -> (SetM AllTransform)
+  ;; lookup-ξ : ξ Nam → (SetM AllTransform)
   (define (lookup-ξ ξ nam)
-    (lift (hash-ref ξ nam ∅)))
+    (lift (hash-ref ξ nam (set 'not-found))))
 
-  ; extend-ξ : ξ Nam AllTransform -> ξ
-  (define (extend-ξ ξ nam all-transform)
-    (hash-update ξ nam
-                 (λ (old) (set-add old all-transform)) ∅)))
+  ;; extend-ξ : ξ Nam AllTransform → ξ
+  (define (extend-ξ ξ nam at)
+    (hash-update ξ nam (λ (ats) (set-add ats at)) ∅)))

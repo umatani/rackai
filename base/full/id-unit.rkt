@@ -9,8 +9,8 @@
 
 ;; id=? : Ph Id Nam ξ Σ → Boolean
 (define (id=? ph id nam ξ Σ)
-  (let ([nam0 (resolve ph id Σ)])
-    (and (eq? nam nam0) (not (TStop? (lookup-ξ ξ nam))))))
+  (let ([nam′ (resolve ph id Σ)])
+    (and (eq? nam nam′) (not (TStop? (lookup-ξ ξ nam))))))
 
 ;; core-form? : Ph Nam Σ → Id → Boolean
 (define (core-form? ph nam Σ)

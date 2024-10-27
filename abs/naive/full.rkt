@@ -26,16 +26,15 @@
 ;;;; Expander
 
 (define-reduction (==> -->) #:super (mult:==> -->)
-  #:within-signatures [(only syntax^    empty-ctx zip unzip add flip in-hole
-                                        prune at-phase)
-                       (only    env^    init-env)
-                       (only  store^    init-store)
-                       (only   menv^    init-ξ lookup-ξ extend-ξ)
-                       (only mstore^    lookup-Σ alloc-name alloc-scope)
-                       (only   bind^    bind resolve)
-                       (only     id^    id=?)
-                       (only  mcont^    push-κ)
-                       (only  parse^    parse)]
+  #:import [(only syntax^    empty-ctx zip unzip add flip in-hole prune at-phase)
+            (only    env^    init-env)
+            (only  store^    init-store)
+            (only   menv^    init-ξ lookup-ξ extend-ξ)
+            (only mstore^    lookup-Σ alloc-name alloc-scope)
+            (only   bind^    bind resolve)
+            (only     id^    id=?)
+            (only  mcont^    push-κ)
+            (only  parse^    parse)]
   
   [(InEval (list stx '● _sto Σ̂)
            (ζ (Stxξ ph (Stx (Bool #f) _ctxᵢ) ξ)
@@ -91,22 +90,21 @@
 ;;;; Evaluator
 
 (define-reduction (--> δ ==>) #:super (mult:--> δ ==>)
-  #:within-signatures [(only syntax^    add flip prune)
-                       (only    env^    init-env lookup-env extend-env*)
-                       (only  store^    lookup-store update-store* alloc-loc*)
-                       (only   cont^    push-cont)
-                       (only   menv^    init-ξ lookup-ξ extend-ξ)
-                       (only mstore^    alloc-name alloc-scope alloc-𝓁
-                                        lookup-Σ update-Σ)
-                       (only   bind^    bind resolve)
-                       (only  parse^    parse)]
+  #:import [(only syntax^    add flip prune)
+            (only    env^    init-env lookup-env extend-env*)
+            (only  store^    lookup-store update-store* alloc-loc*)
+            (only   cont^    push-cont)
+            (only   menv^    init-ξ lookup-ξ extend-ξ)
+            (only mstore^    alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
+            (only   bind^    bind resolve)
+            (only  parse^    parse)]
   ;; (syntax-local-value <abs> _ ...)
   [`(,(Prim 'syntax-local-value _stx)
      ,(KApp′ `(,(? id? id) ,_val ...) `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,Σ̂)
    #:when (or (equal? id val-⊤) (equal? id atom-⊤)
               (equal? id stx-⊤))
-   #:with cnt <- (lookup-store sto loc)
+   (<- cnt (lookup-store sto loc))
    `(,val-⊤ ,cnt ,sto ,Σ̂)
    ev-lval-abs]
 
@@ -118,7 +116,7 @@
               (equal? id atom-⊤)
               (equal? id stx-⊤)
               (and (Stx? id) (equal? (Stx-e id) sym-⊤)))
-   #:with cnt <- (lookup-store sto loc)
+   (<- cnt (lookup-store sto loc))
    `(,stx-⊤ ,cnt ,sto ,Σ̂)
    ev-lbinder-abs]
 
@@ -140,7 +138,7 @@
                   (equal? rhs stx-⊤))
               (or (equal? defs val-⊤)
                   (equal? defs atom-⊤)))
-   #:with cnt <- (lookup-store sto loc)
+   (<- cnt (lookup-store sto loc))
    `(,list-⊤ ,cnt ,sto ,Σ̂)
    ev-slbs-abs]
 
@@ -152,7 +150,7 @@
    #:when (or (equal? stx_arg val-⊤)
               (equal? stx_arg atom-⊤)
               (equal? stx_arg stx-⊤))
-   #:with cnt <- (lookup-store sto loc)
+   (<- cnt (lookup-store sto loc))
    `(,stx-⊤ ,cnt ,sto ,Σ̂)
    ev-lexpand-abs]
 
@@ -161,7 +159,7 @@
      ,(KApp′ _args `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,Σ̂)
    #:when (equal? f val-⊤)
-   #:with cnt <- (lookup-store sto loc)
+   (<- cnt (lookup-store sto loc))
    `(,f ,cnt ,sto ,Σ̂)
    ev-β-abs]
 
@@ -171,7 +169,7 @@
      ,sto ,Σ̂)   
    #:when (or (equal? val val-⊤)
               (equal? val atom-⊤))
-   #:with cnt <- (lookup-store sto loc)
+   (<- cnt (lookup-store sto loc))
    `(,(AstEnv ph ast₂ env maybe-scpᵢ ξ)
      ,cnt
      ,sto ,Σ̂)

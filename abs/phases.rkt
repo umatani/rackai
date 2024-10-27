@@ -68,20 +68,19 @@
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (mult:==> -->)
-  #:within-signatures [(only syntax^    empty-ctx zip unzip add flip in-hole
-                                        prune at-phase)
-                       (only    env^    init-env)
-                       (only  store^    init-store)
-                       (only   menv^    init-ξ lookup-ξ extend-ξ)
-                       (only mstore^    lookup-Σ alloc-name alloc-scope)
-                       (only   bind^    bind resolve)
-                       (only     id^    id=?)
-                       (only  mcont^    push-κ)
-                       (only  parse^    parse)]
+  #:import [(only syntax^    empty-ctx zip unzip add flip in-hole prune at-phase)
+            (only    env^    init-env)
+            (only  store^    init-store)
+            (only   menv^    init-ξ lookup-ξ extend-ξ)
+            (only mstore^    lookup-Σ alloc-name alloc-scope)
+            (only   bind^    bind resolve)
+            (only     id^    id=?)
+            (only  mcont^    push-κ)
+            (only  parse^    parse)]
   ;; reference
   [(ζ (Stxξ ph (? id? id) ξ _scpsₚ) κ Σ)
-   #:with nam <- (resolve ph id Σ)
-   #:with  at <- (lookup-ξ ξ nam)
+   (<- nam (resolve ph id Σ))
+   (<- at  (lookup-ξ ξ nam))
    (match at
      [(TVar id′) (ζ id′ κ Σ)]
      [_ (error '==>p "unbound identifier: ~a" nam)])

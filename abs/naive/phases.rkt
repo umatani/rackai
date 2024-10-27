@@ -28,16 +28,15 @@
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (abs:==> -->)
-  #:within-signatures [(only syntax^    empty-ctx zip unzip add flip in-hole
-                                        prune at-phase)
-                       (only    env^    init-env)
-                       (only  store^    init-store)
-                       (only   menv^    init-ξ lookup-ξ extend-ξ)
-                       (only mstore^    lookup-Σ alloc-name alloc-scope)
-                       (only   bind^    bind resolve)
-                       (only     id^    id=?)
-                       (only  mcont^    push-κ)
-                       (only  parse^    parse)]
+  #:import [(only syntax^    empty-ctx zip unzip add flip in-hole prune at-phase)
+            (only    env^    init-env)
+            (only  store^    init-store)
+            (only   menv^    init-ξ lookup-ξ extend-ξ)
+            (only mstore^    lookup-Σ alloc-name alloc-scope)
+            (only   bind^    bind resolve)
+            (only     id^    id=?)
+            (only  mcont^    push-κ)
+            (only  parse^    parse)]
 
   [(InEval (list stx '● _sto)
            (ζ (Stxξ ph (Stx (Bool #f) _ctxᵢ) ξ scpsₚ)

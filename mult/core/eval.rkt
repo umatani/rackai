@@ -12,10 +12,10 @@
 
 ;; --> : State → (Setof State)
 (define-reduction (--> δ) #:super (base:--> δ <-)
-  #:within-signatures [(only domain^    val?)
-                       (only    env^    lookup-env extend-env*)
-                       (only  store^    lookup-store update-store* alloc-loc*)
-                       (only   cont^    push-cont)])
+  #:import [(only domain^    val?)
+            (only    env^    lookup-env extend-env*)
+            (only  store^    lookup-store update-store* alloc-loc*)
+            (only   cont^    push-cont)])
 
 (define-unit-from-reduction red@ -->)
 

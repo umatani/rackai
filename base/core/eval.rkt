@@ -15,10 +15,10 @@
 
 ;; (--> δ :=<1>) : State → (Setof State)
 (define-reduction (--> δ :=<1>)
-  #:within-signatures [(only domain^    val?)
-                       (only    env^    lookup-env extend-env*)
-                       (only  store^    lookup-store alloc-loc* update-store*)
-                       (only   cont^    push-cont)]
+  #:import [(only domain^    val?)
+            (only    env^    lookup-env extend-env*)
+            (only  store^    lookup-store alloc-loc* update-store*)
+            (only   cont^    push-cont)]
   ;; value
   [`(,(AstEnv (? val? val) _env) ,cnt ,sto)
    `(,val ,cnt ,sto)
@@ -26,8 +26,8 @@
 
   ;; reference
   [`(,(AstEnv (? Var? var) env) ,cnt ,sto)
-   #:with loc :=<1> (lookup-env   env var)
-   #:with val :=<1> (lookup-store sto loc)
+   (:=<1> loc (lookup-env   env var))
+   (:=<1> val (lookup-store sto loc))
    `(,val ,cnt ,sto)
    ev-x]
 
@@ -38,7 +38,7 @@
 
   ;; application
   [`(,(AstEnv (App lbl ast asts) env) ,cnt ,sto)
-   #:with (values loc sto′) := (push-cont sto lbl cnt)
+   (:= (values loc sto′) (push-cont sto lbl cnt))
    `(,(AstEnv ast env) ,(KApp '() asts env loc) ,sto′)
    ev-push-app]
 
@@ -56,35 +56,35 @@
 
   ;; β
   [`(,(VFun vars ast env) ,(KApp′ args _env loc) ,sto)
-   #:with `(,(Var nams) ...) := vars
-   #:with (values locs sto′) := (alloc-loc* nams sto)
-   #:with env′ :=    (extend-env* env vars locs)
-   #:with sto″ :=    (update-store* sto′ locs args)
-   #:with cnt  :=<1> (lookup-store sto″ loc)
+   (:=    `(,(Var nams) ...) vars)
+   (:=    (values locs sto′) (alloc-loc* nams sto))
+   (:=    env′               (extend-env* env vars locs))
+   (:=    sto″               (update-store* sto′ locs args))
+   (:=<1> cnt                (lookup-store sto″ loc))
    `(,(AstEnv ast env′) ,cnt ,sto″)
    ev-β]
 
   ;; primitive application
   [`(,(? Prim? prim) ,(KApp′ args _env loc) ,sto)
-   #:with val :=<1> (δ prim args)
-   #:with cnt :=<1> (lookup-store sto loc)
+   (:=<1> val (δ prim args))
+   (:=<1> cnt (lookup-store sto loc))
    `(,val ,cnt ,sto)
    ev-δ]
 
   ;; if
   [`(,(AstEnv (If lbl ast₀ ast₁ ast₂) env) ,cnt ,sto)
-   #:with (values loc sto′) := (push-cont sto lbl cnt)
+   (:= (values loc sto′) (push-cont sto lbl cnt))
    `(,(AstEnv ast₀ env) ,(KIf ast₁ ast₂ env loc) ,sto′)
    ev-push-if]
 
   [`(,(Bool #f) ,(KIf _ast₁ ast₂ env loc) ,sto)
-   #:with cnt :=<1> (lookup-store sto loc)
+   (:=<1> cnt (lookup-store sto loc))
    `(,(AstEnv ast₂ env) ,cnt ,sto)
    ev-if-#f]
 
   [`(,(? val? val) ,(KIf ast₁ _ast₂ env loc) ,sto)
    #:when (not (equal? val (Bool #f)))
-   #:with cnt :=<1> (lookup-store sto loc)
+   (:=<1> cnt (lookup-store sto loc))
    `(,(AstEnv ast₁ env) ,cnt ,sto)
    ev-if-#t])
 

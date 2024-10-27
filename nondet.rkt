@@ -4,7 +4,7 @@
  (only-in racket/match match-lambda match-lambda**)
  (only-in "set.rkt" set ∅ ∪ set-map for/set))
 (provide := <-
-         pure bind lift break results aborts for/m+ do
+         pure bind lift results aborts for/m+ do
          (for-syntax assign elem))
 
 (define := (gensym ':=))
@@ -27,7 +27,8 @@
 (define (mconcat . ms) (for/m+ ([m ms]) m))
 
 (define (pure  x) (cons (set x) ∅))
-(define (break x) (cons ∅ (set x)))
+(define (abort x) (cons ∅ (set x)))
+(define (never)   (cons ∅ ∅))
 
 (define (bind m k)
   (let ([m′ (set-map k (results m))])
@@ -69,9 +70,13 @@
     [(do pat elem-id:elem e s₀ s ...)
      #'(generic-bind elem-id e
                      (match-lambda [pat (do s₀ s ...)]))]
+    [(do #:when t s ...)
+     #'(if t
+         (do s ...)
+         (never))]
     [(do #:abort-if t e s ...)
      #'(if t
-         (break e)
+         (abort e)
          (do s ...))]
     [(do s₀ s ...)
      #'(begin s₀ (do s ...))]))

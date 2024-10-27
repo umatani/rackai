@@ -13,14 +13,14 @@
   (export  env^)
   (inherit [base:env@ init-env])
 
-  ;; Set-based Environment
+  ;;;; Set-based Environment
 
-  ; lookup-env : Env Var -> (SetM Loc)
+  ;; lookup-env : Env Var → (SetM Loc)
   (define (lookup-env env var)
     (lift (hash-ref env var ∅)))
 
-  ; extend-env* : Env (Listof Var) (Listof Loc) -> Env
+  ;; extend-env* : Env (Listof Var) (Listof Loc) → Env
   (define (extend-env* env vars locs)
-    (foldl (λ (v l e)
-             (hash-update e v (λ (old) (set-add old l)) ∅))
+    (foldl (λ (var loc env)
+             (hash-update env var (λ (locs) (set-add locs loc)) ∅))
            env vars locs)))

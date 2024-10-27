@@ -64,9 +64,9 @@
       [((Prim 'list _) (list))
        (pure (Null))]
 
-      [((Prim 'list _) (list v1 vs ...))
+      [((Prim 'list _) (list v₀ vs ...))
        (do l <- (δ (Prim 'list #f) vs)
-           (δ (Prim 'cons #f) (list v1 l)))]
+           (δ (Prim 'cons #f) (list v₀ l)))]
 
       [((Prim 'second _) (list (Pair _ (Pair v2 _))))
        (pure v2)]

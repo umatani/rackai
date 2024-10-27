@@ -1,6 +1,6 @@
 #lang racket/unit
 (require
- (only-in "../../set.rkt"    set ⊆ set→list)
+ (only-in "../../set.rkt"    ∈ set→list)
  (only-in "../../nondet.rkt" results)
  "../../signatures.rkt"
  "../../base/full/terms.rkt")
@@ -12,9 +12,9 @@
 
 ;; id=? : Ph Id Nam ξ Σ → Boolean
 (define (id=? ph id nam ξ Σ)
-  (let ([nam0 (results (resolve ph id Σ))])
-    (and (⊆ (set nam) nam0)
-         (andmap (λ (at) (not (TStop? at)))
+  (let ([nams (results (resolve ph id Σ))])
+    (and (∈ nam nams)
+         (andmap (compose1 not TStop?)
                  (set→list (results (lookup-ξ ξ nam)))))))
 
 ;; core-form? : Ph Nam Σ → Id → Boolean

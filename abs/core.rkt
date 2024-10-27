@@ -65,19 +65,19 @@
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (mult:==> -->)
-  #:within-signatures [(only syntax^    empty-ctx zip unzip add flip in-hole)
-                       (only    env^    init-env)
-                       (only  store^    init-store)
-                       (only   menv^    init-ξ lookup-ξ extend-ξ)
-                       (only mstore^    lookup-Σ alloc-name alloc-scope)
-                       (only   bind^    bind resolve)
-                       (only     id^    id=?)
-                       (only  mcont^    push-κ)
-                       (only  parse^    parse)]
+  #:import [(only syntax^    empty-ctx zip unzip add flip in-hole)
+            (only    env^    init-env)
+            (only  store^    init-store)
+            (only   menv^    init-ξ lookup-ξ extend-ξ)
+            (only mstore^    lookup-Σ alloc-name alloc-scope)
+            (only   bind^    bind resolve)
+            (only     id^    id=?)
+            (only  mcont^    push-κ)
+            (only  parse^    parse)]
   ;; reference
   [(ζ (Stxξ (? id? id) ξ) κ Σ)
-   #:with nam <- (resolve id Σ)
-   #:with  at <- (lookup-ξ ξ nam)
+   (<- nam (resolve id Σ))
+   (<- at  (lookup-ξ ξ nam))
    (match at
      [(TVar id′) (ζ id′ κ Σ)]
      [_ (error '==> "unbound identifier: ~a" nam)])

@@ -1,10 +1,8 @@
 #lang racket/unit
 (require
- (only-in racket             identity)
- (only-in racket/match       match-let)
- (only-in "../../set.rkt"    set set? ∅ ⊆ set-add set→list list→set
-                             for/set in-set set-map)
- (only-in "../../nondet.rkt" results lift)
+ (only-in racket/match       match-let match-define)
+ (only-in "../../set.rkt"    set set? ∅ ∅? set-add set-map)
+ (only-in "../../nondet.rkt" do := <- pure lift results)
  "../../signatures.rkt"
  "../../base/phases/terms.rkt"
  (only-in "../../misc.rkt"   biggest-subset binding-lookup))
@@ -14,32 +12,28 @@
 (export bind^)
 
 ;; bind : Ph Σ Id Nam → Σ
-(define (bind ph Σ0 id nam)
-  (match-let ([(Σ size tbl) Σ0]
-              [(Stx (Sym nam_1) ctx_1) id])
-    (Σ size
-      (hash-update tbl nam_1
-                   (λ (sbss)
-                     (for/set ([sbs (in-set sbss)]
-                               #:when (set? sbs))
-                       (set-add sbs (StoBind (at-phase ctx_1 ph) nam))))
-                   (λ () (set ∅))))))
+(define (bind ph Σ₀ id nam₀)
+  (match-let ([(Σ size tbl) Σ₀]
+              [(Stx (Sym nam) ctx) id])
+    (Σ size (hash-update tbl nam
+                         (λ (sbss)
+                           (results
+                            (do sbs <- (lift sbss)
+                                #:when (set? sbs)
+                                (pure (set-add sbs (StoBind (at-phase ctx ph)
+                                                            nam₀))))))
+                         (set ∅)))))
 
 ;; resolve : Ph Id Σ → (SetM Nam)
-(define (resolve ph id Σ0)
-  (match-let ([(Stx (Sym nam) ctx) id])
-    (let* ([sbss (filter set? (set→list (results (lookup-Σ Σ0 nam))))]
-           [scpsss
-            (map (λ (sbs) (set-map (λ (sb) (StoBind-scps sb)) sbs))
-                 sbss)]
-           [scps_biggests (map (λ (scpss)
-                                 (biggest-subset (at-phase ctx ph) scpss))
-                               scpsss)]
-           [nam_biggests
-            (filter identity
-                    (for*/list ([sbs (in-list sbss)]
-                                [scps_biggest (in-list scps_biggests)])
-                      (binding-lookup sbs scps_biggest)))])
-      (lift (if (null? nam_biggests)
-              (set nam)
-              (list→set nam_biggests))))))
+(define (resolve ph id Σ₀)
+  (match-define (Stx (Sym nam) ctx) id)
+  (define nams (do sbs          <- (lookup-Σ Σ₀ nam)
+                   #:when (set? sbs)
+                   scpss        := (set-map (λ (sb) (StoBind-scps sb)) sbs)
+                   scps_biggest := (biggest-subset (at-phase ctx ph) scpss)
+                   nam_biggest  := (binding-lookup sbs scps_biggest)
+                   #:when nam_biggest
+                   (pure nam_biggest)))
+  (if (∅? (results nams))
+    (pure nam)
+    nams))
