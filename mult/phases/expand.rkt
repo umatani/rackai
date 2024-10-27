@@ -23,12 +23,19 @@
             (only     id^    id=?)
             (only  mcont^    push-κ)
             (only  parse^    parse)]
+
+  #:do [;; lookup-κ : Σ 𝓁 → (SetM κ)
+        (define (lookup-κ Σ 𝓁)
+          (do κ <- (lookup-Σ Σ 𝓁)
+              #:when (or (κ? κ) (eq? κ '●))
+              (pure κ)))]
+
   ;; application (free var-ref)
   [(ζ (Stxξ ph (and (Stx (Lst stx_f . stl) ctx) stx) ξ scpsₚ) κ₀ Σ₀)
    #:when (id? stx_f)
    (<- nam (resolve ph stx_f Σ₀))
-   (:= at  (results (lookup-ξ ξ nam)))
-   #:when (and (∅? at)
+   (<- at  (lookup-ξ ξ nam))
+   #:when (and (eq? at 'not-found)
                (not (member nam
                             '(lambda let quote syntax let-syntax if
                                #%app #%kont #%seq #%snoc))))
@@ -39,16 +46,13 @@
    ex-app-free]
 
   ;; reference
-  [(ζ (Stxξ ph (? id? id) ξ _scpsₚ) κ Σ)
+  [(ζ (Stxξ ph (? id? id) ξ _scpsₚ)
+      κ Σ)
    (<- nam (resolve ph id Σ))
-   (:= at  (results (lookup-ξ ξ nam)))
-   (<- id′ (if (∅? at)
-             (error '==>p "unbound identifier: ~a" nam)
-             (do v <- (lift at)
-                 (match v
-                   [(TVar id′) (pure id′)]
-                   [_ (error '==>p "unbound identifier: ~a" nam)]))))
-   (ζ id′ κ Σ)
+   (<- at  (lookup-ξ ξ nam))
+   #:when (TVar? at)
+   (ζ (TVar-id at)
+      κ Σ)
    ex-var])
 
 (define-unit-from-reduction red@ ==>)

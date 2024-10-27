@@ -104,7 +104,7 @@
      ,sto ,Σ̂)
    #:when (or (equal? id val-⊤) (equal? id atom-⊤)
               (equal? id stx-⊤))
-   (<- cnt (lookup-store sto loc))
+   (<- cnt (lookup-cont sto loc))
    `(,val-⊤ ,cnt ,sto ,Σ̂)
    ev-lval-abs]
 
@@ -116,7 +116,7 @@
               (equal? id atom-⊤)
               (equal? id stx-⊤)
               (and (Stx? id) (equal? (Stx-e id) sym-⊤)))
-   (<- cnt (lookup-store sto loc))
+   (<- cnt (lookup-cont sto loc))
    `(,stx-⊤ ,cnt ,sto ,Σ̂)
    ev-lbinder-abs]
 
@@ -138,7 +138,7 @@
                   (equal? rhs stx-⊤))
               (or (equal? defs val-⊤)
                   (equal? defs atom-⊤)))
-   (<- cnt (lookup-store sto loc))
+   (<- cnt (lookup-cont sto loc))
    `(,list-⊤ ,cnt ,sto ,Σ̂)
    ev-slbs-abs]
 
@@ -150,7 +150,7 @@
    #:when (or (equal? stx_arg val-⊤)
               (equal? stx_arg atom-⊤)
               (equal? stx_arg stx-⊤))
-   (<- cnt (lookup-store sto loc))
+   (<- cnt (lookup-cont sto loc))
    `(,stx-⊤ ,cnt ,sto ,Σ̂)
    ev-lexpand-abs]
 
@@ -159,7 +159,7 @@
      ,(KApp′ _args `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,Σ̂)
    #:when (equal? f val-⊤)
-   (<- cnt (lookup-store sto loc))
+   (<- cnt (lookup-cont sto loc))
    `(,f ,cnt ,sto ,Σ̂)
    ev-β-abs]
 
@@ -169,7 +169,7 @@
      ,sto ,Σ̂)   
    #:when (or (equal? val val-⊤)
               (equal? val atom-⊤))
-   (<- cnt (lookup-store sto loc))
+   (<- cnt (lookup-cont sto loc))
    `(,(AstEnv ph ast₂ env maybe-scpᵢ ξ)
      ,cnt
      ,sto ,Σ̂)

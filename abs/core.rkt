@@ -14,12 +14,12 @@
  "../test/suites.rkt"
  "../base/core/terms.rkt"
  (only-in "../mult/core/units.rkt"
-          io@ cont@ mcont@ debug@ expander@ syntax@ domain@ env@ menv@ run@
-          eval@ parse@ parser@ [bind@ mult:bind@] id@)
+          io@ cont@ mcont@ debug@ expand@ expander@ syntax@ domain@
+          env@ menv@ run@ eval@ parse@ parser@ [bind@ mult:bind@] id@)
  (only-in "../mult/core/expand.rkt" [==> mult:==>] define-expand-unit)
  (only-in "alloc.rkt"               store@ mstore@
                                     biggest-subset binding-lookup))
-(provide syntax@ evaluator@ ==> main-minus@
+(provide syntax@ evaluator@ main-minus@
          interp eval-->* expand==>*)
 
 
@@ -59,33 +59,6 @@
                    (list→set nam_biggests))])
           ;(printf "resolve done: ~a\n" r)
           (lift r))))))
-
-
-;;;; Expander
-
-;; ==> : ζ -> (Setof ζ)
-(define-reduction (==> -->) #:super (mult:==> -->)
-  #:import [(only syntax^    empty-ctx zip unzip add flip in-hole)
-            (only    env^    init-env)
-            (only  store^    init-store)
-            (only   menv^    init-ξ lookup-ξ extend-ξ)
-            (only mstore^    lookup-Σ alloc-name alloc-scope)
-            (only   bind^    bind resolve)
-            (only     id^    id=?)
-            (only  mcont^    push-κ)
-            (only  parse^    parse)]
-  ;; reference
-  [(ζ (Stxξ (? id? id) ξ) κ Σ)
-   (<- nam (resolve id Σ))
-   (<- at  (lookup-ξ ξ nam))
-   (match at
-     [(TVar id′) (ζ id′ κ Σ)]
-     [_ (error '==> "unbound identifier: ~a" nam)])
-   ex-var])
-
-(define-unit-from-reduction ex:red@ ==>)
-
-(define-expand-unit expand@ ex:red@)
 
 
 ;;;; Evaluator

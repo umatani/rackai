@@ -19,6 +19,15 @@
             (only    env^    lookup-env extend-env*)
             (only  store^    lookup-store alloc-loc* update-store*)
             (only   cont^    push-cont)]
+
+  #:do [;; lookup-val : Store Loc → Val
+        (define (lookup-val sto loc)
+          (lookup-store sto loc))
+
+        ;; lookup-cont : Store Loc → Cont
+        (define (lookup-cont sto loc)
+          (lookup-store sto loc))]
+
   ;; value
   [`(,(AstEnv (? val? val) _env) ,cnt ,sto)
    `(,val ,cnt ,sto)
@@ -27,7 +36,7 @@
   ;; reference
   [`(,(AstEnv (? Var? var) env) ,cnt ,sto)
    (:=<1> loc (lookup-env   env var))
-   (:=<1> val (lookup-store sto loc))
+   (:=<1> val (lookup-val sto loc))
    `(,val ,cnt ,sto)
    ev-x]
 
@@ -60,14 +69,14 @@
    (:=    (values locs sto′) (alloc-loc* nams sto))
    (:=    env′               (extend-env* env vars locs))
    (:=    sto″               (update-store* sto′ locs args))
-   (:=<1> cnt                (lookup-store sto″ loc))
+   (:=<1> cnt                (lookup-cont sto″ loc))
    `(,(AstEnv ast env′) ,cnt ,sto″)
    ev-β]
 
   ;; primitive application
   [`(,(? Prim? prim) ,(KApp′ args _env loc) ,sto)
    (:=<1> val (δ prim args))
-   (:=<1> cnt (lookup-store sto loc))
+   (:=<1> cnt (lookup-cont sto loc))
    `(,val ,cnt ,sto)
    ev-δ]
 
@@ -78,13 +87,13 @@
    ev-push-if]
 
   [`(,(Bool #f) ,(KIf _ast₁ ast₂ env loc) ,sto)
-   (:=<1> cnt (lookup-store sto loc))
+   (:=<1> cnt (lookup-cont sto loc))
    `(,(AstEnv ast₂ env) ,cnt ,sto)
    ev-if-#f]
 
   [`(,(? val? val) ,(KIf ast₁ _ast₂ env loc) ,sto)
    #:when (not (equal? val (Bool #f)))
-   (:=<1> cnt (lookup-store sto loc))
+   (:=<1> cnt (lookup-cont sto loc))
    `(,(AstEnv ast₁ env) ,cnt ,sto)
    ev-if-#t])
 

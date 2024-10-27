@@ -27,13 +27,18 @@
             (only     id^    id=?)
             (only  mcont^    push-κ)
             (only  parse^    parse)]
-  #:do [;; Constants:
+
+  #:do [;; Constants
         (define id-kont (Stx (Sym '#%kont) (empty-ctx)))
         (define id-seq  (Stx (Sym '#%seq)  (empty-ctx)))
         (define id-snoc (Stx (Sym '#%snoc) (empty-ctx)))
         (define stx-nil (Stx (Null)        (empty-ctx)))
+
+        ;; lookup-κ : Σ 𝓁 → κ
+        (define (lookup-κ Σ 𝓁)
+          (lookup-Σ Σ 𝓁))
         
-        ; regist-vars : Scp ProperStl ξ Σ → (Values ProperStl ξ Σ)
+        ;; regist-vars : Scp ProperStl ξ Σ → (Values ProperStl ξ Σ)
         (define (regist-vars scp ids₀ ξ₀ Σ₀)
           (match ids₀
             [(Null)
@@ -295,7 +300,7 @@
   ;; pop κ
   [(ζ (? Stx? stx)
       (κ (Stxξ stxₖ ξ) 𝓁) Σ)
-   (:=<1> κ₀ (lookup-Σ Σ 𝓁))
+   (:=<1> κ₀ (lookup-κ Σ 𝓁))
    (ζ (Stxξ (in-hole stxₖ stx) ξ)
       κ₀ Σ)
    ex-pop-κ]
@@ -303,7 +308,7 @@
   ;; pop κ′
   [(ζ (? Stx? stx)
       (κ (? (compose1 not Stxξ?) stxₖ) 𝓁) Σ)
-   (:=<1> κ₀ (lookup-Σ Σ 𝓁))
+   (:=<1> κ₀ (lookup-κ Σ 𝓁))
    (ζ (in-hole stxₖ stx)
       κ₀ Σ)
    ex-pop-κ′]

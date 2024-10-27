@@ -23,13 +23,20 @@
             (only     id^    id=?)
             (only  mcont^    push-κ)
             (only  parse^    parse)]
-  ;; application (free var-ref)
+
+  #:do [;; lookup-κ : Σ 𝓁 → (SetM κ)
+        (define (lookup-κ Σ 𝓁)
+          (do κ <- (lookup-Σ Σ 𝓁)
+              #:when (or (κ? κ) (eq? κ '●))
+              (pure κ)))]
+
+  ;; application (free var ref)
   [(ζ (Stxξ ph (and (Stx (Lst stx_f . stl) ctx) stx) ξ)
       κ₀ (Σ̂ Σ₀ scpsₚ scpsᵤ))
    #:when (id? stx_f)
    (<- nam (resolve ph stx_f Σ₀))
-   (:= at  (results (lookup-ξ ξ nam)))
-   #:when (and (∅? at)
+   (<- at  (lookup-ξ ξ nam))
+   #:when (and (eq? at 'not-found)
                (not (member nam
                             '(lambda let quote syntax let-syntax if
                                #%app #%kont #%seq #%snoc))))
@@ -41,9 +48,6 @@
    ex-app-free]
 
   ;; reference
-  ;; set-basedにすることにより，bind-syntaxesがbinding storeに多重化をもたらし，
-  ;; 名前の解決が不正確になる．atが empty なら unbound error で停止するのではなく，
-  ;; 探索候補から除去する．
   [(ζ (Stxξ ph (? id? id) ξ)
       κ₀ (Σ̂ Σ₀ scpsₚ scpsᵤ))
    (<- nam (resolve ph id Σ₀))

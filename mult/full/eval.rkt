@@ -21,7 +21,32 @@
             (only mstore^    alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
             (only   bind^    bind resolve)
             (only  parse^    parse)]
-  #:do [; resolve* : Ph (Listof Id) Σ → (SetM (Listof Nam))
+
+  #:do [;; lookup-val : Store Loc → (SetM Val)
+        (define (lookup-val sto loc)
+          (do val <- (lookup-store sto loc)
+              #:when (val? val)
+              (pure val)))
+        
+        ;; lookup-cont : Store Loc → (SetM Cont)
+        (define (lookup-cont sto loc)
+          (do cnt <- (lookup-store sto loc)
+              #:when (cont? cnt)
+              (pure cnt)))
+
+        ;; lookup-def-ξ : Σ 𝓁 → (SetM ξ)
+        (define (lookup-def-ξ Σ 𝓁)
+          (do ξ <- (lookup-Σ Σ 𝓁)
+              #:when (hash? ξ)
+              (pure ξ)))
+
+        ;; lookup-box : Σ 𝓁 → (SetM Val)
+        (define (lookup-box Σ 𝓁)
+          (do val <- (lookup-Σ Σ 𝓁)
+              #:when (val? val)
+              (pure val)))
+
+        ;; resolve* : Ph (Listof Id) Σ → (SetM (Listof Nam))
         (define (resolve* ph ids Σ)
           (match ids
             ['() (pure '())]
@@ -35,10 +60,7 @@
           (match ns
             ['() (pure '())]
             [(cons n ns)
-             (do  a <- (let ([as (lookup-ξ ξ n)])
-                         (if (∅? (results as))
-                           (pure 'not-found)
-                           as))
+             (do  a  <- (lookup-ξ  ξ n)
                   as <- (lookup-ξ* ξ ns)
                   (pure (cons a as)))]))])
 

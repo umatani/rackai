@@ -19,7 +19,7 @@
                          (λ (sbss)
                            (results
                             (do sbs <- (lift sbss)
-                                #:when (set? sbs)
+                                #:when (set? sbs)     ;; (Setof StoBind)
                                 (pure (set-add sbs (StoBind (at-phase ctx ph)
                                                             nam₀))))))
                          (set ∅)))))
@@ -28,7 +28,7 @@
 (define (resolve ph id Σ₀)
   (match-define (Stx (Sym nam) ctx) id)
   (define nams (do sbs          <- (lookup-Σ Σ₀ nam)
-                   #:when (set? sbs)
+                   #:when (set? sbs)                  ;; (Setof StoBind)
                    scpss        := (set-map (λ (sb) (StoBind-scps sb)) sbs)
                    scps_biggest := (biggest-subset (at-phase ctx ph) scpss)
                    nam_biggest  := (binding-lookup sbs scps_biggest)

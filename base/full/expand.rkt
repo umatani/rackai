@@ -28,11 +28,15 @@
             (only  mcont^    push-κ)
             (only  parse^    parse)]
 
-  #:do [;; Constants:
+  #:do [;; Constants
         (define id-kont (Stx (Sym '#%kont) (empty-ctx)))
         (define id-seq  (Stx (Sym '#%seq)  (empty-ctx)))
         (define id-snoc (Stx (Sym '#%snoc) (empty-ctx)))
         (define stx-nil (Stx (Null)        (empty-ctx)))
+
+        ;; lookup-κ : Σ 𝓁 → κ
+        (define (lookup-κ Σ 𝓁)
+          (lookup-Σ Σ 𝓁))
 
         ;; regist-vars : Ph Scp ProperStl ξ Σ → (Values ProperStl ξ Σ)
         ;;   (same as phases)
@@ -368,7 +372,7 @@
   [(ζ (? Stx? stx)
       (κ (Stxξ ph stxₖ ξ) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ _scpsₚ _scpsᵤ))
-   (:=<1> κ₀ (lookup-Σ Σ 𝓁))
+   (:=<1> κ₀ (lookup-κ Σ 𝓁))
    (ζ (Stxξ ph (in-hole stxₖ stx) ξ)
       κ₀
       (Σ̂ Σ scpsₚ scpsᵤ))
@@ -378,7 +382,7 @@
   [(ζ (? Stx? stx)
       (κ (? (compose1 not Stxξ?) stxₖ) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ _scpsₚ _scpsᵤ))
-   (:=<1> κ₀ (lookup-Σ Σ 𝓁))
+   (:=<1> κ₀ (lookup-κ Σ 𝓁))
    (ζ (in-hole stxₖ stx)
       κ₀
       (Σ̂ Σ scpsₚ scpsᵤ))

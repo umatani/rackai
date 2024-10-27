@@ -41,9 +41,10 @@
 ;; Eval-time continuation, environment, and store
 (define-term AstEnv     (ast env))
 (define-term Store      (size tbl))
-(define-term KApp       (vals tms env loc))  ;; (v ... □ t ...)
-(define-term KApp′      (vals     env loc))  ;; (v ...)
-(define-term KIf        (thn els env loc))   ;; (if □ t t)
+(define-term Cont       ())
+(define-term KApp  Cont (vals tms env loc))  ;; (v ... □ t ...)
+(define-term KApp′ Cont (vals     env loc))  ;; (v ...)
+(define-term KIf   Cont (thn els env loc))   ;; (if □ t t)
 
 ;; Expand-time environment
 (define-term TVar       (id))
@@ -92,6 +93,7 @@
             (Stx     e ctx))
           '((AstEnv  ast env)
             (Store   size tbl)
+            (Cont)
             (KApp    vals tms env loc)
             (KApp′   vals     env loc)
             (KIf     thn els env loc)
@@ -108,7 +110,7 @@
             )))
 
 (use-terms Var Fun App If VFun Val Atom List Bool Num Sym Prim Null
-           Pair 𝓁 Stx Hole AstEnv Store KApp KApp′ KIf
+           Pair 𝓁 Stx Hole AstEnv Store Cont KApp KApp′ KIf
            TVar TStop Σ StoBind κ InEval ζ Stxξ)
 
 
@@ -161,6 +163,9 @@
   (match x
     [(Stx (Sym _) _) #t]
     [_ #f]))
+
+(define (cont? x)
+  (or (Cont? x) (eq? x '●)))
 
 (define (prim? x)
   (or (member x '(syntax-e

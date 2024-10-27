@@ -7,7 +7,7 @@
  (only-in "../../reduction.rkt"        define-reduction
                                        define-unit-from-reduction
                                        enable-tracing)
- (only-in "../../nondet.rkt"           := <- pure lift results)
+ (only-in "../../nondet.rkt"           do := <- pure lift results)
  (only-in "../../set.rkt"              set ∅? set→list)
  (only-in "../../mix.rkt"              define-mixed-unit inherit)
  (only-in "../../syntax.rkt"           snoc)
@@ -15,8 +15,8 @@
  "../../base/core/terms.rkt"
  (only-in "../../mult/core/units.rkt"  [parse@ mult:parse@] parser@)
  (only-in "../../mult/core/eval.rkt"   [--> mult:-->] define-eval-unit)
- (only-in "../../mult/core/expand.rkt" define-expand-unit)
- (only-in "../core.rkt"                [==> abs:==>] main-minus@)
+ (only-in "../../mult/core/expand.rkt" [==> mult:==>] define-expand-unit)
+ (only-in "../core.rkt"                main-minus@)
  (only-in "domain.rkt"                 domain@ val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤
                                        list-⊤))
 (provide eval@ interp)
@@ -25,7 +25,7 @@
 ;;;; Expander
 
 ;; ==> : ζ -> (Setof ζ)
-(define-reduction (==> -->) #:super (abs:==> -->)
+(define-reduction (==> -->) #:super (mult:==> -->)
   #:import [(only syntax^    empty-ctx zip unzip add flip in-hole)
             (only    env^    init-env)
             (only  store^    init-store)
@@ -92,7 +92,7 @@
   ;; β (val-⊤ ...)
   [`(,f ,(KApp′ _args _env loc) ,sto)
    #:when (equal? f val-⊤)
-   (<- cnt (lookup-store sto loc))
+   (<- cnt (lookup-cont sto loc))
    `(,f ,cnt ,sto)
    ev-β-abs]
 
@@ -101,14 +101,14 @@
    (:= (values locs sto′) (alloc-loc* nams sto))
    (:= env′               (extend-env* env vars locs))
    (:= sto″               (update-store* sto′ locs args))
-   (<- cnt                (lookup-store sto″ loc))
+   (<- cnt                (lookup-cont sto″ loc))
    `(,(AstEnv ast env′) ,cnt ,sto″)
    ev-β]
 
   ;; (if ⊤ ...)
   [`(,(? val? val) ,(KIf _ast₁ ast₂ env loc) ,sto)
    #:when (or (equal? val val-⊤) (equal? val atom-⊤))
-   (<- cnt (lookup-store sto loc))
+   (<- cnt (lookup-cont sto loc))
    `(,(AstEnv ast₂ env) ,cnt ,sto)
    ev-if-abs-#f])
 

@@ -11,7 +11,7 @@
  (prefix-in m:f: "../mult/full/main.rkt")
  (prefix-in a:c: "../abs/core.rkt")
  (prefix-in a:p: "../abs/phases.rkt")
- ;; (prefix-in a:f: "../abs/full.rkt")
+ (prefix-in a:f: "../abs/full.rkt")
  ;; (prefix-in n:c: "../abs/naive/core.rkt")
  ;; (prefix-in n:p: "../abs/naive/phases.rkt")
  ;; (prefix-in n:f: "../abs/naive/full.rkt")
@@ -29,7 +29,7 @@
 
    (cons 'abs:core     a:c:interp)
    (cons 'abs:phases   a:p:interp)
-   ;; (cons 'abs:full     a:f:interp)
+   (cons 'abs:full     a:f:interp)
 
    ;; (cons 'naive:core   n:c:interp)
    ;; (cons 'naive:phases n:p:interp)
@@ -48,7 +48,7 @@
 
    'abs:core     '[core                   ]
    'abs:phases   '[core phases            ]
-   ;; 'abs:full     '[core phases full       ]
+   'abs:full     '[core phases full       ]
 
    ;; 'naive:core   '[core             finite]
    ;; 'naive:phases '[core phases      finite]
@@ -94,9 +94,10 @@
 ;;   base-eval: Sexp → (Setof Val)
 (define (base-eval form)
   (set (b:f:interp form #:mode 'eval #:check #f)))
-(define (main #:mode     [mode      'eval]
+
+(define (test #:mode     [mode      'eval]
               #:ref      [reference raw-eval #;base-eval]
               #:verbose? [verbose?  #f])
   (run-all interpreters suites mode reference verbose?))
 
-;(main)
+;(test)

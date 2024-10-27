@@ -25,12 +25,19 @@
             (only     id^    id=?)
             (only  mcont^    push-κ)
             (only  parse^    parse)]
+
+  #:do [;; lookup-κ : Σ 𝓁 → (SetM κ)
+        (define (lookup-κ Σ 𝓁)
+          (do κ <- (lookup-Σ Σ 𝓁)
+              #:when (or (κ? κ) (eq? κ '●))
+              (pure κ)))]
+
   ;; application (free var ref)
   [(ζ (Stxξ (and (Stx (Lst stx_f . stl) ctx) stx) ξ) κ₀ Σ₀)
    #:when (id? stx_f)
    (<- nam (resolve stx_f Σ₀))
-   (:= at  (results (lookup-ξ ξ nam)))
-   #:when (and (∅? at)
+   (<- at  (lookup-ξ ξ nam))
+   #:when (and (eq? at 'not-found)
                (not (member nam '(lambda let quote syntax let-syntax if
                                    #%app #%kont #%seq #%snoc))))
    (:= id_app        (Stx (Sym '#%app) ctx))
@@ -41,16 +48,16 @@
    ex-app-free]
 
   ;; reference
-  [(ζ (Stxξ (? id? id) ξ) κ Σ)
+  ;; set-basedにすることにより，得にfullではbind-syntaxesがbinding storeに多重化を
+  ;; もたらし，名前の解決が不正確になる．
+  ;; at が not-found なら unbound error で停止するのではなく，探索候補から除去する．
+  [(ζ (Stxξ (? id? id) ξ)
+      κ Σ)
    (<- nam (resolve id Σ))
-   (:= at  (results (lookup-ξ ξ nam)))
-   (<- id′ (if (∅? at)
-             (error '==> "unbound identifier: ~a" nam)
-             (do v <- (lift at)
-                 (match v
-                   [(TVar id′) (pure id′)]
-                   [_ (error '==> "unbound identifier: ~a" nam)]))))
-   (ζ id′ κ Σ)
+   (<- at  (lookup-ξ ξ nam))
+   #:when (TVar? at)
+   (ζ (TVar-id at)
+      κ Σ)
    ex-var])
 
 (define-unit-from-reduction red@ ==>)
