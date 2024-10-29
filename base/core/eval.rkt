@@ -15,18 +15,11 @@
 
 ;; (--> δ :=<1>) : State → (Setof State)
 (define-reduction (--> δ :=<1>)
-  #:import [(only domain^    val?)
+  #:import [(only common^    push-cont)
+            (only domain^    val?)
             (only    env^    lookup-env extend-env*)
-            (only  store^    lookup-store alloc-loc* update-store*)
-            (only   cont^    push-cont)]
-
-  #:do [;; lookup-val : Store Loc → Val
-        (define (lookup-val sto loc)
-          (lookup-store sto loc))
-
-        ;; lookup-cont : Store Loc → Cont
-        (define (lookup-cont sto loc)
-          (lookup-store sto loc))]
+            (only  store^    lookup-store alloc-loc* update-store*
+                             lookup-cont lookup-val)]
 
   ;; value
   [`(,(AstEnv (? val? val) _env) ,cnt ,sto)

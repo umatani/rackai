@@ -3,13 +3,14 @@
 
 (require&provide
  ["../../units.rkt"             io@ run@
+                                [  phases-common@    common@]
                                 [ core-evaluator@ evaluator@]
                                 [phases-expander@  expander@]
-                                [  phases-parser@    parser@]        ]
- ["../../base/phases/units.rkt" cont@ mcont@ syntax@ debug@ expander@]
- ["../units.rkt"                domain@ env@ store@ menv@ mstore@    ]
- ["bind-unit.rkt"                 bind@                              ]
- ["../core/units.rkt"             eval@                              ]
- ["expand.rkt"                  expand@                              ]
- ["id-unit.rkt"                     id@                              ]
- ["parse-unit.rkt"               parse@                              ])
+                                [  phases-parser@    parser@]    ]
+ ["../../base/phases/units.rkt" syntax@ debug@ expander@         ]
+ ["../units.rkt"                domain@ env@ store@ menv@ mstore@]
+ ["bind-unit.rkt"                 bind@                          ]
+ ["../core/units.rkt"             eval@                          ]
+ ["expand.rkt"                  expand@                          ]
+ ["id-unit.rkt"                     id@                          ]
+ ["parse-unit.rkt"               parse@                          ])

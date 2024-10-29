@@ -12,22 +12,11 @@
 
 ;; --> : State → (Setof State)
 (define-reduction (--> δ) #:super (base:--> δ <-)
-  #:import [(only domain^    val?)
+  #:import [(only common^    push-cont)
+            (only domain^    val?)
             (only    env^    lookup-env extend-env*)
-            (only  store^    lookup-store update-store* alloc-loc*)
-            (only   cont^    push-cont)]
-
-  #:do [;; lookup-val : Store Loc → (SetM Val)
-        (define (lookup-val sto loc)
-          (do val <- (lookup-store sto loc)
-              #:when (val? val)
-              (pure val)))
-
-        ;; lookup-cont : Store Loc → (SetM Cont)
-        (define (lookup-cont sto loc)
-          (do cnt <- (lookup-store sto loc)
-              #:when (cont? cnt)
-              (pure cnt)))])
+            (only  store^    lookup-store update-store* alloc-loc*
+                             lookup-cont lookup-val)])
 
 (define-unit-from-reduction red@ -->)
 

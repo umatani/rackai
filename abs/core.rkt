@@ -14,7 +14,7 @@
  "../test/suites.rkt"
  "../base/core/terms.rkt"
  (only-in "../mult/core/units.rkt"
-          io@ cont@ mcont@ debug@ expand@ expander@ syntax@ domain@
+          common@ io@ debug@ expand@ expander@ syntax@ domain@
           env@ menv@ run@ eval@ parse@ parser@ [bind@ mult:bind@] id@)
  (only-in "../mult/core/expand.rkt" [==> mult:==>] define-expand-unit)
  (only-in "alloc.rkt"               store@ mstore@
@@ -31,33 +31,27 @@
   (inherit [mult:bind@      bind])
 
   ; resolve : Id Σ -> (SetM Nam)
-  (define (resolve id Σ0)
+  (define (resolve id Σ)
     (match-let ([(Stx (Sym nam) ctx) id])
-      ;(printf "resolve: ~a\n" nam)
-      (let* ([sbss (filter set? (set→list (results (lookup-Σ Σ0 nam))))]
-             ;[_ (printf "sbss: ~a\n" sbss)]
+      (let* ([sbss (filter set? (set→list (results (lookup-Σ Σ nam))))]
              [scpsss
               (let ([scpsss (map (λ (sbs)
                                    (set-map (λ (sb) (StoBind-scps sb)) sbs))
                                  sbss)])
                 (map remove-duplicates scpsss))]
-             ;[_ (printf "scpsss: ~a\n" scpsss)]
              [scps_biggests (remove-duplicates
                              (append-map (λ (scpss)
                                            (biggest-subset ctx scpss))
                                          scpsss))]
-             ;[_ (printf "scps_biggests: ~a\n" scps_biggests)]
              [nam_biggests
               (remove-duplicates
                (apply append
                       (for*/list ([sbs (in-list sbss)]
                                   [scps_biggest (in-list scps_biggests)])
                         (binding-lookup sbs scps_biggest))))])
-        ;(printf "nam_biggests: ~a\n" nam_biggests)
         (let ([r (if (null? nam_biggests)
                    (set nam)
                    (list→set nam_biggests))])
-          ;(printf "resolve done: ~a\n" r)
           (lift r))))))
 
 
@@ -87,9 +81,9 @@
 
 (define-compound-unit/infer main-minus@
   (import domain^ eval^ expand^ parser^)
-  (export syntax^ env^ store^ cont^ evaluator^ menv^ mstore^ bind^ id^ mcont^
+  (export common^ syntax^ env^ store^ evaluator^ menv^ mstore^ bind^ id^
           run^ debug^)
-  (link   syntax@ env@ store@ cont@  evaluator@ menv@ mstore@ bind@ id@ mcont@
+  (link   common@ syntax@ env@ store@ evaluator@ menv@ mstore@ bind@ id@
           expander@ io@ run@ debug@))
 
 (define-values/invoke-unit

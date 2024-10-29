@@ -7,17 +7,17 @@
  (only-in "../../reduction.rkt"          define-reduction
                                          define-unit-from-reduction
                                          enable-tracing)
- (only-in "../../nondet.rkt"             := <- pure lift results)
+ (only-in "../../nondet.rkt"             do := <- pure lift results)
  (only-in "../../mix.rkt"                define-mixed-unit inherit)
  (only-in "../../misc.rkt"               union)
  (only-in "../../set.rkt"                set ∅ ∅? set-add set→list)
- (only-in "../../syntax.rkt"             snoc)
+ (only-in "../../syntax.rkt"             snoc stx→datum)
  "../../test/suites.rkt"
  "../../base/phases/terms.rkt"
 
  (only-in "../../mult/phases/units.rkt"  [parse@ mult:parse@] parser@)
- (only-in "../../mult/phases/expand.rkt" define-expand-unit)
- (only-in "../phases.rkt"                [==> abs:==>] main-minus@)
+ (only-in "../../mult/phases/expand.rkt" [==> mult:==>] define-expand-unit)
+ (only-in "../phases.rkt"                main-minus@)
  (only-in "domain.rkt"                   domain@ val-⊤ atom-⊤ num-⊤ sym-⊤
                                          stx-⊤ list-⊤)
  (only-in "core.rkt"                     eval@))
@@ -27,16 +27,19 @@
 ;;;; Expander
 
 ;; ==> : ζ -> (Setof ζ)
-(define-reduction (==> -->) #:super (abs:==> -->)
-  #:import [(only syntax^    empty-ctx zip unzip add flip in-hole prune at-phase)
+(define-reduction (==> -->) #:super (mult:==> -->)
+  #:import [(only common^    push-κ regist-vars)
+            (only syntax^    empty-ctx zip unzip add flip in-hole prune at-phase)
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
             (only mstore^    lookup-Σ alloc-name alloc-scope)
             (only   bind^    bind resolve)
             (only     id^    id=?)
-            (only  mcont^    push-κ)
             (only  parse^    parse)]
+
+  #:default [(ζ (Stxξ ph stx ξ scpsₚ) κ Σ) ;; for debug
+             (printf "default: ~a\n" (lst→list/recur (stx→datum stx)))]
 
   [(InEval (list stx '● _sto)
            (ζ (Stxξ ph (Stx (Bool #f) _ctxᵢ) ξ scpsₚ)

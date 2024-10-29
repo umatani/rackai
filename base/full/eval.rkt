@@ -12,25 +12,18 @@
 
 ;; --> : State → (Setof State)
 (define-reduction (--> δ ==> :=<1>)
-  #:import [(only domain^    val? stx?)
+  #:import [(only common^    push-cont)
+            (only domain^    val? stx?)
             (only syntax^    add flip prune)
             (only    env^    init-env lookup-env extend-env*)
-            (only  store^    lookup-store update-store* alloc-loc*)
-            (only   cont^    push-cont)
+            (only  store^    lookup-store update-store* alloc-loc*
+                             lookup-cont lookup-val)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
             (only mstore^    alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
             (only   bind^    bind resolve)
             (only  parse^    parse)]
 
-  #:do [;; lookup-val : Store Loc → Val
-        (define (lookup-val sto loc)
-          (lookup-store sto loc))
-        
-        ;; lookup-cont : Store Loc → Cont
-        (define (lookup-cont sto loc)
-          (lookup-store sto loc))
-
-        ;; resolve* : Ph (Listof Id) Σ → (Listof Nam))
+  #:do [;; resolve* : Ph (Listof Id) Σ → (Listof Nam))
         (define (resolve* ph ids Σ)
           (map (λ (id) (resolve ph id Σ)) ids))
 
@@ -47,6 +40,11 @@
           (match at
             [(TStop at) at]
             [_ at]))
+
+        ;; unstop-ξ : ξ → ξ
+        (define (unstop-ξ ξ)
+          (make-immutable-hash
+           (hash-map ξ (λ (nam at) (cons nam (unstop at))))))
 
         ;; ----------------------------------------
         ;; Definition-context environment allocations and updates:
@@ -119,6 +117,7 @@
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    (:=<1> nam (resolve ph id Σ))
    (:=<1> val (lookup-ξ ξ nam))
+   #:when (val? val)
    (:=<1> cnt (lookup-cont sto loc))
    `(,val ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    ev-lval]
@@ -136,6 +135,7 @@
    (:=<1> ξ_defs (lookup-def-ξ Σ 𝓁))
    (:=<1> nam    (resolve ph id Σ))
    (:=<1> val    (lookup-ξ ξ_defs nam))
+   #:when (val? val)
    (:=<1> cnt    (lookup-cont sto loc))
    `(,val ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    ev-lval-defs]
@@ -221,8 +221,7 @@
      ,(KApp′ `(,(? stx? stx_arg) ,_val_context ,ids_stop)
              `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
-   (:=    ξ′   (make-immutable-hash
-                (hash-map ξ (λ (nam at) (cons nam (unstop at))))))
+   (:=    ξ′   (unstop-ξ ξ))
    (:=<1> nams (resolve* ph (lst→list ids_stop) Σ))
    (:=<1> ats  (lookup-ξ* ξ′ nams))
    (:=    ξ″   (extend-ξ* ξ′ (map (λ (nam at) (cons nam (TStop at)))
@@ -251,8 +250,7 @@
              `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    (:=<1> ξ_defs (lookup-def-ξ Σ 𝓁))
-   (:=    ξ′     (make-immutable-hash
-                  (hash-map ξ_defs (λ (nam at) (cons nam (unstop at))))))
+   (:=    ξ′     (unstop-ξ ξ_defs))
    (:=<1> nams   (resolve* ph (lst→list ids_stop) Σ))
    (:=<1> ats    (lookup-ξ* ξ′ nams))
    (:=    ξ″     (extend-ξ* ξ′ (map (λ (nam at) (cons nam (TStop at)))

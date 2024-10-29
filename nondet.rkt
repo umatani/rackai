@@ -2,9 +2,9 @@
 (require
  (for-syntax racket/base racket/string syntax/parse)
  (only-in racket/match match-lambda match-lambda**)
- (only-in "set.rkt" set ∅ ∪ set-map for/set))
+ (only-in "set.rkt" set ∅ ∪ set-map))
 (provide := <-
-         pure bind lift results aborts for/m+ do
+         pure never bind lift results aborts for/m+ do
          (for-syntax assign elem))
 
 (define := (gensym ':=))

@@ -1,17 +1,13 @@
 #lang racket/unit
 (require
- (only-in "../../set.rkt"    ∈)
- (only-in "../../nondet.rkt" results)
+ (only-in "../../nondet.rkt" do <- pure)
  "../../signatures.rkt")
 
 (import (only bind^    resolve))
 (export id^)
 
 
-;; id=? : Id Nam ξ Σ → Boolean
+;; id=? : Id Nam Σ → (SetM Boolean)
 (define (id=? id nam Σ)
-  (∈ nam (results (resolve id Σ))))
-
-;; core-form? : Nam Σ → Id → Boolean
-(define (core-form? nam Σ)
-  (λ (id) (id=? id nam Σ)))
+  (do nam′ <- (resolve id Σ)
+      (pure (eq? nam nam′))))

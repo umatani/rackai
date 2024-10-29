@@ -4,7 +4,7 @@
  (only-in racket/match                   match)
  (only-in "../../set.rkt"                set ∅ ∅? set-add set→list)
  (only-in "../../mix.rkt"                define-mixed-unit inherit)
- (only-in "../../syntax.rkt"             snoc)
+ (only-in "../../syntax.rkt"             snoc stx→datum)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/phases/terms.rkt"
@@ -13,7 +13,8 @@
 
 ;; ==> : ζ → (Setof ζ)
 (define-reduction (==> -->) #:super (base:==> --> <-)
-  #:import [(only domain^    val? stx? proper-stl?)
+  #:import [(only common^    push-κ regist-vars)
+            (only domain^    val? stx? proper-stl?)
             (only syntax^    empty-ctx zip unzip add flip in-hole prune at-phase)
             (only    env^    init-env)
             (only  store^    init-store)
@@ -21,7 +22,6 @@
             (only mstore^    lookup-Σ alloc-name alloc-scope)
             (only   bind^    bind resolve)
             (only     id^    id=?)
-            (only  mcont^    push-κ)
             (only  parse^    parse)]
 
   #:do [;; lookup-κ : Σ 𝓁 → (SetM κ)
@@ -30,7 +30,10 @@
               #:when (or (κ? κ) (eq? κ '●))
               (pure κ)))]
 
-  ;; application (free var-ref)
+  #:default [(ζ (Stxξ ph stx ξ scpsₚ) κ Σ) ;; for debug
+             (printf "default: ~a\n" (lst→list/recur (stx→datum stx)))]
+
+  ;; application (free var ref)
   [(ζ (Stxξ ph (and (Stx (Lst stx_f . stl) ctx) stx) ξ scpsₚ) κ₀ Σ₀)
    #:when (id? stx_f)
    (<- nam (resolve ph stx_f Σ₀))
@@ -59,8 +62,7 @@
 
 (define-syntax-rule (define-expand-unit expand@ red@)
   (define-mixed-unit expand@
-    (import  domain^ syntax^ env^ store^ eval^ menv^ mstore^
-             mcont^ bind^ id^ parse^)
+    (import  domain^ syntax^ env^ store^ eval^ menv^ mstore^ bind^ id^ parse^)
     (export  expand^)
     (inherit [red@    reducer])
     

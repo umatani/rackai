@@ -10,8 +10,8 @@
  (only-in "../../nondet.rkt"           do := <- pure lift results)
  (only-in "../../mix.rkt"              define-mixed-unit inherit)
  (only-in "../../misc.rkt"             union)
- (only-in "../../set.rkt"              set ∅ ∅? set-add set→list)
- (only-in "../../syntax.rkt"           snoc)
+ (only-in "../../set.rkt"              set ∅ set-add for/set)
+ (only-in "../../syntax.rkt"           snoc stx→datum)
  "../../test/suites.rkt"
  "../../base/full/terms.rkt"
  (only-in "../../mult/full/units.rkt"  [parse@ mult:parse@] parser@)
@@ -26,15 +26,18 @@
 ;;;; Expander
 
 (define-reduction (==> -->) #:super (mult:==> -->)
-  #:import [(only syntax^    empty-ctx zip unzip add flip in-hole prune at-phase)
+  #:import [(only common^    push-κ regist-vars)
+            (only syntax^    empty-ctx zip unzip add flip in-hole prune at-phase)
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
             (only mstore^    lookup-Σ alloc-name alloc-scope)
             (only   bind^    bind resolve)
             (only     id^    id=?)
-            (only  mcont^    push-κ)
             (only  parse^    parse)]
+
+  #:default [(ζ (Stxξ ph stx ξ) κ Σ̂) ;; for debug
+             (printf "default: ~a\n" (lst→list/recur (stx→datum stx)))]
   
   [(InEval (list stx '● _sto Σ̂)
            (ζ (Stxξ ph (Stx (Bool #f) _ctxᵢ) ξ)
@@ -90,10 +93,10 @@
 ;;;; Evaluator
 
 (define-reduction (--> δ ==>) #:super (mult:--> δ ==>)
-  #:import [(only syntax^    add flip prune)
+  #:import [(only common^    push-cont)
+            (only syntax^    add flip prune)
             (only    env^    init-env lookup-env extend-env*)
             (only  store^    lookup-store update-store* alloc-loc*)
-            (only   cont^    push-cont)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
             (only mstore^    alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
             (only   bind^    bind resolve)

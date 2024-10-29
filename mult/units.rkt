@@ -3,7 +3,7 @@
 
 (require&provide
  ["domain.rkt"     domain@]
- ["env.rkt"        env@   ]
- ["menv.rkt"       menv@  ]
+ ["env.rkt"           env@]
+ ["menv.rkt"         menv@]
  ["mstore.rkt"     mstore@]
- ["store.rkt"      store@ ])
+ ["store.rkt"       store@])

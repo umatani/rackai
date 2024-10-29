@@ -11,7 +11,3 @@
 (define (id=? ph id nam ξ Σ)
   (let ([nam′ (resolve ph id Σ)])
     (and (eq? nam nam′) (not (TStop? (lookup-ξ ξ nam))))))
-
-;; core-form? : Ph Nam Σ → Id → Boolean
-(define (core-form? ph nam Σ)
-  (λ (id) (id=? ph id nam (init-ξ) Σ)))

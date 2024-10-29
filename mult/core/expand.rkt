@@ -4,7 +4,7 @@
  (only-in racket/match                 match)
  (only-in "../../set.rkt"              set ∅? set→list)
  (only-in "../../mix.rkt"              define-mixed-unit inherit)
- (only-in "../../syntax.rkt"           snoc)
+ (only-in "../../syntax.rkt"           snoc stx→datum)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/core/terms.rkt"
@@ -15,22 +15,19 @@
 
 ;; ==> : ζ → (Setof ζ)
 (define-reduction (==> -->) #:super (base:==> --> <-)
-  #:import [(only domain^    val? stx? proper-stl?)
+  #:import [(only common^    push-κ regist-vars)
+            (only domain^    val? stx? proper-stl?)
             (only syntax^    empty-ctx zip unzip add flip in-hole)
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
-            (only mstore^    lookup-Σ alloc-name alloc-scope)
+            (only mstore^    lookup-Σ lookup-κ alloc-name alloc-scope)
             (only   bind^    bind resolve)
             (only     id^    id=?)
-            (only  mcont^    push-κ)
             (only  parse^    parse)]
 
-  #:do [;; lookup-κ : Σ 𝓁 → (SetM κ)
-        (define (lookup-κ Σ 𝓁)
-          (do κ <- (lookup-Σ Σ 𝓁)
-              #:when (or (κ? κ) (eq? κ '●))
-              (pure κ)))]
+  #:default [(ζ (Stxξ stx ξ) κ Σ) ;; for debug
+             (printf "default: ~a\n" (lst→list/recur (stx→datum stx)))]
 
   ;; application (free var ref)
   [(ζ (Stxξ (and (Stx (Lst stx_f . stl) ctx) stx) ξ) κ₀ Σ₀)
@@ -50,7 +47,7 @@
   ;; reference
   ;; set-basedにすることにより，得にfullではbind-syntaxesがbinding storeに多重化を
   ;; もたらし，名前の解決が不正確になる．
-  ;; at が not-found なら unbound error で停止するのではなく，探索候補から除去する．
+  ;; TVar 以外の at があっても unbound error で停止せず，単に探索候補から除去する．
   [(ζ (Stxξ (? id? id) ξ)
       κ Σ)
    (<- nam (resolve id Σ))
@@ -64,8 +61,7 @@
 
 (define-syntax-rule (define-expand-unit expand@ red@)
   (define-mixed-unit expand@
-    (import  domain^ syntax^ env^ store^ eval^ menv^ mstore^
-             mcont^ bind^ id^ parse^)
+    (import  domain^ syntax^ env^ store^ eval^ menv^ mstore^ bind^ id^ parse^)
     (export  expand^)
     (inherit [red@    reducer])
 

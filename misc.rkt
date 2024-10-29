@@ -30,30 +30,28 @@
 ;; subtract : Scps Scps → Scps
 (define (subtract scps scps′) (set-subtract scps scps′))
 
-; biggest-subset : Scps (Listof Scps) → Scps
-(define (biggest-subset scps_ref scpss)
-  ;(printf "[biggest-subset] ~a ~a\n" scps_ref scpss)
-  (let* ([matching (filter (λ (scps_bind)
-                             (⊆ scps_bind scps_ref))
-                           scpss)]
-         [sorted (sort matching > #:key set-size)])
+
+; biggest-subset : Scps (Setof Scps) → Scps
+(define (biggest-subset scps scpss)
+  (let* ([matchings (filter (λ (scps′) (⊆ scps′ scps))
+                            (set→list scpss))]
+         [sorted (sort matchings > #:key set-size)])
     ;; The binding is ambiguous if the first scps in
     ;; `sorted` is not bigger than the others, or if
     ;; some scps in `sorted` is not a subset of the
     ;; first one.
-    (if (or (empty? sorted)
-            (and (pair? (rest sorted))
-                 (= (set-size (first sorted))
-                    (set-size (second sorted))))
-            (ormap (λ (b) (not (⊆ b (first sorted))))
-                   (rest sorted)))
-        ∅
-        (first sorted))))
+    (if (empty? sorted)
+      ∅
+      (let ([winner (first sorted)]
+            [others (rest  sorted)])
+        (if (or (and (not (null? others))
+                     (= (set-size winner) (set-size (first others))))
+                (ormap (λ (other) (not (⊆ other winner))) others))
+          ∅
+          winner)))))
 
 ; binding-lookup : (Setof StoBind) Scps → (Maybe Nam)
 (define (binding-lookup sbs scps)
-  ;(printf "[binding-lookup] ~a ~a\n" sbs scps)
-  (let ([r (member scps (set→list sbs)
-                   (λ (scps sb)
-                     (set=? scps (StoBind-scps sb))))])
-    (and r (StoBind-nam (first r)))))
+  (let ([sbs′ (member scps (set→list sbs)
+                      (λ (scps sb) (set=? scps (StoBind-scps sb))))])
+    (and sbs′ (StoBind-nam (first sbs′)))))

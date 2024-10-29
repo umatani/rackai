@@ -2,7 +2,8 @@
 (require (only-in "../../misc.rkt" require&provide))
 
 (require&provide
- ["../../units.rkt"     cont@ io@ mcont@ run@
+ ["../../units.rkt"     io@ run@
+                        [   full-common@    common@]
                         [full-evaluator@ evaluator@]
                         [ full-expander@  expander@]     ]
  ["../units.rkt"        domain@ env@ store@ menv@ mstore@]

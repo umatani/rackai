@@ -3,13 +3,14 @@
 
 (require&provide
  ["../../units.rkt"           io@ run@
+                              [   core-common@    common@]
                               [core-evaluator@ evaluator@]
                               [ core-expander@  expander@]
-                              [   core-parser@    parser@]         ]
- ["../../base/core/units.rkt" cont@ mcont@ syntax@ expander@ debug@]
- ["../units.rkt"              domain@ env@ store@ menv@ mstore@    ]
- ["bind-unit.rkt"               bind@                              ]
- ["eval.rkt"                    eval@                              ]
- ["expand.rkt"                expand@                              ]
- ["id-unit.rkt"                   id@                              ]
- ["parse-unit.rkt"             parse@                              ])
+                              [   core-parser@    parser@]     ]
+ ["../../base/core/units.rkt" syntax@ expander@ debug@         ]
+ ["../units.rkt"              domain@ env@ store@ menv@ mstore@]
+ ["bind-unit.rkt"               bind@                          ]
+ ["eval.rkt"                    eval@                          ]
+ ["expand.rkt"                expand@                          ]
+ ["id-unit.rkt"                   id@                          ]
+ ["parse-unit.rkt"             parse@                          ])

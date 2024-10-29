@@ -2,7 +2,8 @@
 (require (only-in "../../misc.rkt" require&provide))
 
 (require&provide
- ["../../units.rkt"   cont@ io@ mcont@ run@
+ ["../../units.rkt"   io@ run@
+                      [  phases-common@    common@]
                       [ core-evaluator@ evaluator@]
                       [phases-expander@  expander@]
                       [  phases-parser@    parser@]    ]

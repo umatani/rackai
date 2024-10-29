@@ -10,7 +10,7 @@
  (only-in "../../nondet.rkt"           do := <- pure lift results)
  (only-in "../../set.rkt"              set ∅? set→list)
  (only-in "../../mix.rkt"              define-mixed-unit inherit)
- (only-in "../../syntax.rkt"           snoc)
+ (only-in "../../syntax.rkt"           snoc stx→datum)
  "../../test/suites.rkt"
  "../../base/core/terms.rkt"
  (only-in "../../mult/core/units.rkt"  [parse@ mult:parse@] parser@)
@@ -26,15 +26,20 @@
 
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (mult:==> -->)
-  #:import [(only syntax^    empty-ctx zip unzip add flip in-hole)
+  #:import [(only common^    push-κ regist-vars)
+            (only syntax^    empty-ctx zip unzip add flip in-hole)
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
-            (only mstore^    lookup-Σ alloc-name alloc-scope)
+            (only mstore^    lookup-Σ lookup-κ alloc-name alloc-scope)
             (only   bind^    bind resolve)
             (only     id^    id=?)
-            (only  mcont^    push-κ)
             (only  parse^    parse)]
+
+  #:default [(ζ (Stxξ stx ξ) κ Σ) ;; for debug
+             (printf "default: ~a\n" (lst→list/recur (stx→datum stx)))]
+
+
 
   [(InEval (list stx '● _sto)
            (ζ (Stxξ (Stx (Bool #f) (set _scpᵢ)) ξ)
@@ -86,9 +91,10 @@
 ;; Revise --> to interpret abstract values (val-⊤, stx-⊤, etc.)
 ;; --> : State -> (Setof State)
 (define-reduction (--> δ) #:super (mult:--> δ)
-  #:import [(only   env^    extend-env* lookup-env)
-            (only store^    update-store* lookup-store alloc-loc*)
-            (only  cont^    push-cont)]
+  #:import [(only common^    push-cont)
+            (only    env^    extend-env* lookup-env)
+            (only  store^    update-store* lookup-store
+                             lookup-cont lookup-val alloc-loc*)]
   ;; β (val-⊤ ...)
   [`(,f ,(KApp′ _args _env loc) ,sto)
    #:when (equal? f val-⊤)

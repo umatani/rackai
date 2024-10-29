@@ -26,6 +26,14 @@
   (foldl (λ (loc u sto) (update-store sto loc u))
          sto locs us))
 
+;; lookup-cont : Store Loc → Cont
+(define (lookup-cont sto loc)
+  (lookup-store sto loc))
+
+;; lookup-val : Store Loc → Val
+(define (lookup-val sto loc)
+  (lookup-store sto loc))
+
 ;; alloc-loc : Symbol Store → (Values Loc Store)
 ;;   - called from push-cont
 ;;   - a unique lbl is generated for each App and If during parse

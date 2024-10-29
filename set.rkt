@@ -22,6 +22,8 @@
  
 (struct repl (elems)
   #:transparent
+  #:property prop:sequence
+  (lambda (s) (in-set s))
   #:methods gen:custom-write
   [(define write-proc set-print)])
 

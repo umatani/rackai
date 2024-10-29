@@ -2,7 +2,7 @@
 (require
  racket/unit
  (only-in racket/match               match match-λ**)
- (only-in "../../set.rkt"            set ∅ ∅? set-add)
+ (only-in "../../set.rkt"            set ∅ ∅? set-add for/set)
  (only-in "../../mix.rkt"            define-mixed-unit inherit)
  "../../reduction.rkt"
  "../../signatures.rkt"
@@ -12,11 +12,11 @@
 
 ;; --> : State -> (Setof State)
 (define-reduction (--> δ ==>) #:super (base:--> δ ==> <-)
-  #:import [(only domain^    val? stx?)
+  #:import [(only common^    push-cont)
+            (only domain^    val? stx?)
             (only syntax^    add flip prune)
             (only    env^    init-env lookup-env extend-env*)
             (only  store^    lookup-store update-store* alloc-loc*)
-            (only   cont^    push-cont)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
             (only mstore^    alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
             (only   bind^    bind resolve)
@@ -62,13 +62,19 @@
             [(cons n ns)
              (do  a  <- (lookup-ξ  ξ n)
                   as <- (lookup-ξ* ξ ns)
-                  (pure (cons a as)))]))])
+                  (pure (cons a as)))]))
+
+        ;; unstop-ξ : ξ → ξ
+        (define (unstop-ξ ξ)
+          (make-immutable-hash
+           (hash-map ξ (λ (nam ats)
+                         (cons nam (for/set ([at ats]) (unstop at)))))))])
 
 (define-unit-from-reduction red@ -->)
 
 (define-syntax-rule (define-eval-unit eval@ red@)
   (define-mixed-unit eval@
-    (import domain^ syntax^ env^ store^ cont^ menv^ mstore^ bind^ expand^ parse^)
+    (import domain^ syntax^ env^ store^ menv^ mstore^ bind^ expand^ parse^)
     (export eval^)
     (inherit [red@    reducer])
 

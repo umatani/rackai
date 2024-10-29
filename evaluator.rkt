@@ -20,9 +20,13 @@
   (define (evaluator δ ast)
     (define -->δ (--> δ))
     
-    (do `(,(? val? val) ● ,_sto) <- (apply-reduction*
-                                     -->δ `(,(c:AstEnv ast (init-env))
-                                            ● ,(init-store)))
+    (do `(,val ,cnt ,_sto) <- (apply-reduction*
+                               -->δ `(,(c:AstEnv ast (init-env))
+                                      ● ,(init-store)))
+        (when (not (val? val))
+          (error 'eval "non value: ~a\n" val))
+        (when (not (eq? cnt '●))
+          (error 'eval "remaining cont: ~a\n" cnt))
         (pure val))))
 
 
@@ -39,10 +43,14 @@
   (define (eval δ ph ast maybe-scpᵢ ξ Σ̂)
     (define -->δ (--> δ))
 
-    (do `(,(? val? val) ● ,_sto ,Σ̂′) <- (apply-reduction*
-                                         (-->δ) `(,(f:AstEnv ph ast (init-env)
-                                                             maybe-scpᵢ ξ)
-                                                  ● ,(init-store) ,Σ̂))
+    (do `(,val ,cnt ,_sto ,Σ̂′) <- (apply-reduction*
+                                   (-->δ) `(,(f:AstEnv ph ast (init-env)
+                                                       maybe-scpᵢ ξ)
+                                            ● ,(init-store) ,Σ̂))
+        (when (not (val? val))
+          (error 'eval "non value: ~a\n" val))
+        (when (not (eq? cnt '●))
+          (error 'eval "remaining cont: ~a\n" cnt))
         (pure (cons val Σ̂′))))
 
   ;; evaluator : δ Ast → (SetM Val)

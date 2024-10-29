@@ -1,7 +1,7 @@
 #lang racket/unit
 (require
  (only-in racket/match          match)
- (only-in "../../set.rkt"       set list→set set-map)
+ (only-in "../../set.rkt"       set list→set)
  (only-in "../../reduction.rkt" results do <- lift apply-reduction*)
  (only-in "../../syntax.rkt"    stx→datum)
  "../../signatures.rkt"
@@ -30,7 +30,7 @@
                          #:steps steps))])
     (if compact
         (match rslts
-          [(set (ζ stx _ _) ...)
+          [(set (ζ stx _κ _Σ) ...)
            (list→set (map (compose1 lst→list/recur stx→datum) stx))])
         rslts)))
 

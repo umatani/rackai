@@ -1,13 +1,14 @@
 #lang racket/unit
 (require
- (only-in racket/match     match-let)
- (only-in "../../set.rkt"  ∅ set-add set-map)
+ (only-in racket/match     match match-let)
+ (only-in "../../set.rkt"  ∅ set-add for/set)
  "../../signatures.rkt"
  "../../terms.rkt"
  (only-in "../../misc.rkt" biggest-subset binding-lookup))
 
-(import (only syntax^    at-phase)
-        (only mstore^    lookup-Σ))
+(import (only   menv^    extend-ξ)
+        (only mstore^    lookup-Σ alloc-name)
+        (only syntax^    at-phase add))
 (export bind^)
 
 
@@ -25,7 +26,7 @@
 (define (resolve ph id Σ₀)
   (match-let ([(Stx (Sym nam) ctx) id])
     (let* ([sbs          (lookup-Σ Σ₀ nam)]
-           [scpss        (set-map (λ (sb) (StoBind-scps sb)) sbs)]
+           [scpss        (for/set ([sb sbs]) (StoBind-scps sb))]
            [scps_biggest (biggest-subset (at-phase ctx ph) scpss)]
-           [nam_biggest (binding-lookup sbs scps_biggest)])
+           [nam_biggest  (binding-lookup sbs scps_biggest)])
       (or nam_biggest nam))))

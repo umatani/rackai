@@ -7,16 +7,18 @@
 ;; Add a binding using the name and scopes of an identifier, mapping
 ;; them to a given name in the binding store
 (define-signature bind^
-  (bind          ;    Σ Id Nam   → Σ                            (core)
-                 ; Ph Σ Id Nam   → Σ                            (phases, full)
-   resolve       ;    Σ Id       → Nam                          (core)
-                 ; Ph Σ Id       → Nam                          (phases, full)
+  (bind          ;    Σ Id Nam   → Σ                              (core)
+                 ; Ph Σ Id Nam   → Σ                              (phases, full)
+   resolve       ;    Σ Id       → Nam                            (core)
+                 ; Ph Σ Id       → Nam                            (phases, full)
    ))
 
-;; ----------------------------------------
- ;; Continuation:
-(define-signature cont^
+;; Common operations sensitive to contexts
+(define-signature common^
   (push-cont     ; Store Cont → (Values Loc Store)
+   push-κ        ; Σ κ → (Values 𝓁 Σ)
+   regist-vars   ;    Scp ProperStl ξ Σ → (Values ProperStl ξ Σ)  (core)
+                 ; Ph Scp ProperStl ξ Σ → (Values ProperStl ξ Σ)  (phases, full)
    ))
 
 ;; for debug
@@ -74,23 +76,18 @@
    ))
 
 (define-signature id^
-  (id=?          ;    Id Nam   Σ → Boolean                      (core)
-                 ; Ph Id Nam   Σ → Boolean                      (phases)
-                 ; Ph Id Nam ξ Σ → Boolean                      (full)
-   core-form?    ;       Nam   Σ → Id → Boolean                 (core)
-                 ; Ph    Nam   Σ → Id → Boolean                 (phases, full)
+  (id=?          ;    Id Nam   Σ → Boolean                      (base/core)
+                 ; Ph Id Nam   Σ → Boolean                      (base/phases)
+                 ; Ph Id Nam ξ Σ → Boolean                      (base/full)
+                 ;    Id Nam   Σ → (SetM Boolean)               (mult/core)
+                 ; Ph Id Nam   Σ → (SetM Boolean)               (mult/phases)
+                 ; Ph Id Nam ξ Σ → (SetM Boolean)               (mult/full)
    ))
 
 ;;;; reader & printer
 (define-signature io^
   (reader        ; Sexp → Stx
    printer       ; Val → Sexp
-   ))
-
-;; ----------------------------------------
-;; Expand-time call stack operations:
-(define-signature mcont^
-  (push-κ        ; Σ κ → (Values 𝓁 Σ)
    ))
 
 ;; ----------------------------------------
@@ -109,6 +106,9 @@
                  ; Σ 𝓁   → (U Val ξ κ)
    update-Σ      ; Σ Nam (Setof StoBind) → Σ
                  ; Σ 𝓁   (U Val ξ κ)     → Σ
+
+   lookup-κ      ; Σ 𝓁 → κ
+
    ;; ----------------------------------------
    ;; Alloc name, scope, and 𝓁 for expander:
    alloc-name    ; Id     Σ → (Values Nam Σ)
@@ -143,6 +143,9 @@
    lookup-store  ; Store Loc              → (U Val Cont)
    update-store  ; Store Loc (U Val Cont) → Store
    update-store* ; Store (Listof Loc) (Listof (U Val Cont)) → Store
+
+   lookup-cont   ; Store Loc → Cont
+   lookup-val    ; Store Loc → Val
 
    alloc-loc     ; Symbol       Store → (Values         Loc  Store)
    alloc-loc*    ; (Listof Nam) Store → (Values (Listof Loc) Store)

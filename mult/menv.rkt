@@ -11,7 +11,7 @@
 (define-mixed-unit menv@
   (import)
   (export  menv^)
-  (inherit [base:menv@ init-ξ])
+  (inherit [base:menv@    init-ξ])
 
   ;;;; Set-based ξ
 

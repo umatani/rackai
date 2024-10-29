@@ -4,7 +4,7 @@
  (only-in racket/match       match match-let)
  (only-in "../../set.rkt"    set ∅ set-add set→list)
  (only-in "../../mix.rkt"    define-mixed-unit inherit)
- (only-in "../../syntax.rkt" snoc)
+ (only-in "../../syntax.rkt" snoc stx→datum)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "terms.rkt")
@@ -17,48 +17,33 @@
 
 ;; ==> :  ζ -> (Setof ζ)
 (define-reduction (==> --> :=<1>)
-  #:import [(only domain^    val? stx? proper-stl?)
+  #:import [(only common^    push-κ regist-vars)
+            (only domain^    val? stx? proper-stl?)
             (only syntax^    empty-ctx zip unzip add flip in-hole prune at-phase)
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
-            (only mstore^    lookup-Σ alloc-name alloc-scope)
+            (only mstore^    lookup-Σ alloc-name alloc-scope lookup-κ)
             (only   bind^    bind resolve)
             (only     id^    id=?)
-            (only  mcont^    push-κ)
             (only  parse^    parse)]
 
   #:do [;; Constants
         (define id-kont (Stx (Sym '#%kont) (empty-ctx)))
         (define id-seq  (Stx (Sym '#%seq)  (empty-ctx)))
         (define id-snoc (Stx (Sym '#%snoc) (empty-ctx)))
-        (define stx-nil (Stx (Null)        (empty-ctx)))
+        (define stx-nil (Stx (Null)        (empty-ctx)))]
 
-        ;; lookup-κ : Σ 𝓁 → κ
-        (define (lookup-κ Σ 𝓁)
-          (lookup-Σ Σ 𝓁))
-
-        ;; regist-vars : Ph Scp ProperStl ξ Σ → (Values ProperStl ξ Σ)
-        ;;   This is the same as the single-phase one, but with `ph`
-        ;;   threaded through to `add` & `bind`
-        (define (regist-vars ph scp ids₀ ξ₀ Σ₀)
-          (match ids₀
-            [(Null)
-             (values (Null) ξ₀ Σ₀)]
-            [(Pair id ids)
-             (let*-values ([(ids′ ξ₁ Σ₁) (regist-vars ph scp ids ξ₀ Σ₀)]
-                           [(nam Σ₂)     (alloc-name id Σ₁)]
-                           [(id′)        (add ph id scp)]
-                           [(Σ₃)         (bind ph Σ₂ id′ nam)]
-                           [(ξ₂)         (extend-ξ ξ₁ nam (TVar id′))])
-               (values (Pair id′ ids′) ξ₂ Σ₃))]))]
+  #:default [(ζ (Stxξ ph stx ξ scpsₚ) κ Σ) ;; for debug
+             (printf "default: ~a\n" (lst→list/recur (stx→datum stx)))]
 
   ;; lambda
   [(ζ (Stxξ ph (and (Stx (Lst (? id? id_lam)
                               (Stx (? proper-stl? stl_params) ctx_params)
                               stx_body) ctx) stx) ξ scpsₚ)
       κ₀ Σ₀)
-   #:when (id=? ph id_lam 'lambda Σ₀)
+   (:=<1> lambda? (id=? ph id_lam 'lambda Σ₀))
+   #:when lambda?
    (:= (values scp Σ₁)            (alloc-scope 'lam Σ₀))
    (:= (values stl_params′ ξ′ Σ₂) (regist-vars ph scp stl_params ξ Σ₁))
    (:= (values 𝓁 Σ₃)              (push-κ Σ₂ stx κ₀))
@@ -72,7 +57,8 @@
                               (Stx (? proper-stl? stl_binds) ctx_binds)
                               stx_body) ctx) stx) ξ scpsₚ)
       κ₀ Σ₀)
-   #:when (id=? ph id_let 'let Σ₀)
+   (:=<1> let? (id=? ph id_let 'let Σ₀))
+   #:when let?
    (:= (values stl_vars stl_rhs) (unzip stl_binds))
    (:= (values scp Σ₁)           (alloc-scope 'let Σ₀))
    (:= (values stl_vars′ ξ′ Σ₂)  (regist-vars ph scp stl_vars ξ Σ₁))
@@ -91,8 +77,9 @@
                                    ctx_binds)
                               stx_body′) ctx) stx) ξ scpsₚ)
       κ₀ Σ₀)
-   #:when (and (id=? ph id_kont '#%kont Σ₀)
-               (id=? ph id_let  'let    Σ₀))
+   (:=<1> kont? (id=? ph id_kont '#%kont Σ₀))
+   (:=<1> let?  (id=? ph id_let  'let    Σ₀))
+   #:when (and kont? let?)
    (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil . stl_rhs) ctx_binds) ξ scpsₚ)
       (κ (Stxξ ph (Stx (Lst id_kont id_kont id_let
@@ -108,9 +95,10 @@
                               ctx_binds)
                          stx_body′) ctx) _ξ _scpsₚ)
       κ Σ)
-   #:when (and (id=? ph id_kont  '#%kont Σ)
-               (id=? ph id_kont′ '#%kont Σ)
-               (id=? ph id_let   'let    Σ))
+   (:=<1> kont?  (id=? ph id_kont  '#%kont Σ))
+   (:=<1> kont′? (id=? ph id_kont′ '#%kont Σ))
+   (:=<1> let?   (id=? ph id_let   'let    Σ))
+   #:when (and kont? kont′? let?)
    (ζ (Stx (Lst id_let (Stx (zip stl_vars′ stl_rhs′ (empty-ctx)) ctx_binds)
                 stx_body′) ctx)
       κ Σ)
@@ -119,7 +107,8 @@
   ;; quote
   [(ζ (Stxξ ph (and (Stx (Lst (? id? id_quote) _) _ctx) stx) _ξ _scpsₚ)
       κ Σ)
-   #:when (id=? ph id_quote 'quote Σ)
+   (:=<1> quote? (id=? ph id_quote 'quote Σ))
+   #:when quote?
    (ζ stx
       κ Σ)
    ex-quote]
@@ -127,7 +116,8 @@
   ;; syntax
   [(ζ (Stxξ ph (Stx (Lst (? id? id_syntax) stx) ctx) _ξ scpsₚ)
       κ Σ)
-   #:when (id=? ph id_syntax 'syntax Σ)
+   (:=<1> syntax? (id=? ph id_syntax 'syntax Σ))
+   #:when syntax?
    (:= stx′ (prune ph stx scpsₚ))
    (ζ (Stx (Lst id_syntax stx′) ctx)
       κ Σ)
@@ -139,7 +129,8 @@
                                    ctx_binds)
                               stx_body) ctx) stx) ξ scpsₚ)
       κ₀ Σ₀)
-   #:when (id=? ph id_ls 'let-syntax Σ₀)
+   (:=<1> let-syntax? (id=? ph id_ls 'let-syntax Σ₀))
+   #:when let-syntax?
    (:= (values nam Σ₁) (alloc-name   id Σ₀)) 
    (:= (values scp Σ₂) (alloc-scope 'ls Σ₁))
    (:= id′             (add ph id scp))
@@ -158,8 +149,9 @@
                               _ctx_binds)
                          stx_body′) ctx) ξ scpsₚ′)
       κ Σ)
-   #:when (and (id=? ph id_kont '#%kont     Σ)
-               (id=? ph id_ls   'let-syntax Σ))
+   (:=<1> kont?       (id=? ph id_kont '#%kont     Σ))
+   (:=<1> let-syntax? (id=? ph id_ls   'let-syntax Σ))
+   #:when (and kont? let-syntax?)
    (<- ast (parse (add1 ph) stx_rhs′ Σ))
    (InEval (list (AstEnv ast (init-env)) '● (init-store))
            (ζ (Stxξ ph (Stx (Lst id′ stx_body′) (empty-ctx)) ξ scpsₚ′)
@@ -205,7 +197,8 @@
   ;; if
   [(ζ (Stxξ ph (and (Stx (Lst (? id? id_if) . stl) ctx) stx) ξ scpsₚ)
       κ₀ Σ₀)
-   #:when (id=? ph id_if 'if Σ₀)
+   (:=<1> if? (id=? ph id_if 'if Σ₀))
+   #:when if?
    (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil . stl) ctx) ξ scpsₚ)
       (κ (Stxξ ph (Stx (Lst id-kont id_if (Hole)) (empty-ctx)) ξ scpsₚ) 𝓁) Σ₁)
@@ -214,8 +207,9 @@
   [(ζ (Stxξ ph (Stx (Lst (? id? id_kont) (? id? id_if)
                          (Stx (? proper-stl? stl′) ctx)) _ctx) _ξ _scpsₚ)
       κ Σ)
-   #:when (and (id=? ph id_kont '#%kont Σ)
-               (id=? ph id_if   'if     Σ))
+   (:=<1> kont? (id=? ph id_kont '#%kont Σ))
+   (:=<1> if?   (id=? ph id_if   'if     Σ))
+   #:when (and kont? if?)
    (ζ (Stx (Lst id_if . stl′) ctx)
       κ Σ)
    ex-if]
@@ -225,7 +219,8 @@
                                (Stx (Lst stx_f . stl) ctx_seq)) ctx) stx) ξ
             scpsₚ)
       κ₀ Σ₀)
-   #:when (id=? ph id_app '#%app Σ₀)
+   (:=<1> app? (id=? ph id_app '#%app Σ₀))
+   #:when app?
    (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_f . stl) ctx_seq) ξ scpsₚ)
       (κ (Stx (Pair id_app (Hole)) ctx) 𝓁) Σ₁)
@@ -235,7 +230,8 @@
   [(ζ (Stxξ ph (and (Stx (Lst (? id? id_app) stx_f . stl) ctx) stx) ξ
             scpsₚ)
       κ₀ Σ₀)
-   #:when (id=? ph id_app '#%app Σ₀)
+   (:=<1> app? (id=? ph id_app '#%app Σ₀))
+   #:when app?
    (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_f . stl) ctx) ξ scpsₚ)
       (κ (Stx (Pair id_app (Hole)) ctx) 𝓁) Σ₁)
@@ -334,7 +330,8 @@
                               (? Stx? stx′)
                               stx₀ . stl) ctx) stx) ξ scpsₚ)
       κ₀ Σ₀)
-   #:when (id=? ph id_seq '#%seq Σ₀)
+   (:=<1> seq? (id=? ph id_seq '#%seq Σ₀))
+   #:when seq?
    (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
    (ζ (Stxξ ph stx₀ ξ scpsₚ)
       (κ (Stxξ ph (Stx (Lst id-kont id_seq
@@ -347,9 +344,10 @@
                                    (Stx stl′ _ctx′) (? stx? stx₀′)) _ctx)
                          . stl) ctx) ξ scpsₚ)
       κ Σ)
-   #:when (and (id=? ph id_kont '#%kont Σ)
-               (id=? ph id_seq  '#%seq  Σ)
-               (id=? ph id_snoc '#%snoc Σ))
+   (:=<1> kont? (id=? ph id_kont '#%kont Σ))
+   (:=<1> seq?  (id=? ph id_seq  '#%seq  Σ))
+   (:=<1> snoc? (id=? ph id_snoc '#%snoc Σ))
+   #:when (and kont? seq? snoc?)
    (ζ (Stxξ ph (Stx (Lst id_seq
                          (Stx (snoc stl′ stx₀′) (empty-ctx))
                          . stl) ctx) ξ scpsₚ)
@@ -359,7 +357,8 @@
   ;; (#%seq (d ...)) ==> (d ...)
   [(ζ (Stxξ ph (Stx (Lst (? id? id_seq) (Stx stl′ _ctx′)) ctx) _ξ _scpsₚ)
       κ Σ)
-   #:when (id=? ph id_seq '#%seq Σ)
+   (:=<1> seq? (id=? ph id_seq '#%seq Σ))
+   #:when seq?
    (ζ (Stx stl′ ctx)
       κ Σ)
    ex-seq])
@@ -369,7 +368,7 @@
 
 (define-mixed-unit expand@
   (import  domain^ syntax^ env^ store^ eval^
-           menv^ mstore^ mcont^ bind^ id^ parse^)
+           menv^ mstore^ bind^ id^ parse^)
   (export  expand^)
   (inherit [red@    reducer])
 

@@ -27,6 +27,11 @@
   (Σ (Σ-size Σ₀)
     (hash-set (Σ-tbl Σ₀) k v)))
 
+;; lookup-κ : Σ 𝓁 → κ
+(define (lookup-κ Σ 𝓁)
+  (lookup-Σ Σ 𝓁))
+        
+
 ;; ----------------------------------------
 ;; Alloc name, scope, and 𝓁 for expander:
 

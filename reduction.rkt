@@ -60,7 +60,8 @@
        (with-syntax ([(b′ ...) (make-match-body #'(b ...))])
          #'(b₀ b′ ...))]))
 
-  (define (make-reducer-body ctx red-desc s maybe-args sub-clause-names)
+  (define (make-reducer-body ctx red-desc s maybe-args sub-clause-names
+                             default-clause)
     (define (stx-rescope stx)
       (datum->syntax ctx (if (syntax? stx)
                            (syntax->datum stx)
@@ -76,37 +77,49 @@
                       s
                       super-args
                       (append sub-clause-names
-                              (clause-map-rule-names clause-map)))
+                              (clause-map-rule-names clause-map))
+                      #'#f)
                      #'∅)))
-    (let* ([args (or maybe-args #'())]
-           [params (if maybe-args
-                     (reduction-desc-params red-desc)
-                     #'())]
-           [clause-map (reduction-desc-clause-map red-desc)])
-      (unless (= (length (syntax->list params))
-                 (length (syntax->list args)))
-        (raise-syntax-error
-         'define-reduction
-         (format "red args arity mismatch: ~a ~a"
-                 (syntax->datum params) (syntax->datum args))))
-      (with-syntax ([(arg   ...) (stx-rescope args)]
-                    [(param ...) (stx-rescope params)])
-        #`(let-syntax ([param (make-rename-transformer #'arg)] ...)
-            #,(for/fold ([body body])
-                        ([clause (in-list
-                                  (clause-map-clauses
-                                   (clause-map-filter
-                                    (λ (k) (not (member k sub-clause-names)))
-                                    clause-map)))])
-                (syntax-case (stx-rescope clause) ()
-                  [(p b ... rule-name)
-                   #`(let ([nexts #,body])
-                       (match #,s
-                         [p (when (enable-tracing)
-                              (printf "→[~a]\n" 'rule-name)) 
-                            (∪ nexts
-                               (results (do #,@(make-match-body #'(b ...)))))]
-                         [_ nexts]))]))))))
+    (define body2
+      (let* ([args (or maybe-args #'())]
+             [params (if maybe-args
+                       (reduction-desc-params red-desc)
+                       #'())]
+             [clause-map (reduction-desc-clause-map red-desc)])
+        (unless (= (length (syntax->list params))
+                   (length (syntax->list args)))
+          (raise-syntax-error
+           'define-reduction
+           (format "red args arity mismatch: ~a ~a"
+                   (syntax->datum params) (syntax->datum args))))
+        (with-syntax ([(arg   ...) (stx-rescope args)]
+                      [(param ...) (stx-rescope params)])
+          #`(let-syntax ([param (make-rename-transformer #'arg)] ...)
+              #,(for/fold ([body body])
+                          ([clause (in-list
+                                    (clause-map-clauses
+                                     (clause-map-filter
+                                      (λ (k) (not (member k sub-clause-names)))
+                                      clause-map)))])
+                  (syntax-case (stx-rescope clause) ()
+                    [(p b ... rule-name)
+                     #`(let ([nexts #,body])
+                         (match #,s
+                           [p (when (enable-tracing)
+                                (printf "→[~a]\n" 'rule-name)) 
+                              (∪ nexts
+                                 (results (do #,@(make-match-body #'(b ...)))))]
+                           [_ nexts]))]))))))
+    (if (syntax->datum default-clause)
+      (syntax-case (stx-rescope default-clause) ()
+        [(p b ...)
+         #`(let ([nexts #,body2])
+             (when (∅? nexts)
+               (match #,s
+                 [p (do #,@(make-match-body #'(b ...)))]
+                 [_ (void)]))
+             nexts)])
+      body2))
 
   (define-syntax-class red-spec
     (pattern name:id
@@ -115,17 +128,22 @@
              #:with params #'(param ...)))
 
   (define-splicing-syntax-class options-spec
-    (pattern (~seq (~alt (~optional (~seq #:super s:red-spec)
-                                    #:name "#:super option")
-                         (~optional (~seq #:import [sig-spec ...])
-                                    #:name "#:import option")
-                         (~optional (~seq #:do [body ...])
-                                    #:name "#:do option"))
-                   ...)
-             #:with name      #'(~? s.name         #f)
-             #:with args      #'(~? s.params       ())
-             #:with sigs      #'(~? (sig-spec ...) ())
-             #:with do-bodies #'(~? (body ...)     ())))
+    (pattern
+     (~seq (~alt (~optional (~seq #:super s:red-spec)
+                            #:name "#:super option")
+                 (~optional (~seq #:import [sig-spec ...])
+                            #:name "#:import option")
+                 (~optional (~seq #:do [body ...])
+                            #:name "#:do option")
+                 (~optional (~seq #:default (~and [_pat _body ...+]
+                                                  clause))
+                            #:name "#:default option"))
+           ...)
+     #:with name      #'(~? s.name         #f)
+     #:with args      #'(~? s.params       ())
+     #:with sigs      #'(~? (sig-spec ...) ())
+     #:with do-bodies #'(~? (body ...)     ())
+     #:with default   #'(~? clause         #f)))
 
   (define (expand-do-bodies do-bodies def-cxt)
     (define (check-duplicates/sub ids)
@@ -224,6 +242,7 @@
      #:with (arg ...)              #'opts.args
      #:with (do-body ...)          #'opts.do-bodies
      #:with (import-signature ...) #'opts.sigs
+     #:with default-clause         #'opts.default
      #:with (import-sig-id ...)    (stx-map
                                     (λ (sig)
                                       (syntax-parse sig
@@ -258,7 +277,8 @@
                       (λ (s)
                         #,(make-reducer-body #'red-id
                                              (syntax-local-value #'red-id)
-                                             #'s #f '())))))))
+                                             #'s #f '()
+                                             #'default-clause)))))))
            (define-unit M@ (import) (export M^))
 
            (define reducer (invoke-unit

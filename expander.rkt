@@ -24,7 +24,9 @@
     (define ==>δ (==> δ))
     (define ζᵢ (c:ζ (c:Stxξ stx ξ) '● Σ))
 
-    (do (c:ζ stx′ '● Σ′) <- (apply-reduction* ==>δ ζᵢ)
+    (do (c:ζ stx′ κ′ Σ′) <- (apply-reduction* ==>δ ζᵢ)
+        (when (not (eq? κ′ '●))
+          (error 'expand "remaining κ: ~a\n" κ′))
         (pure (cons stx′ Σ′))))
 
   (define (expander δ stx)
@@ -42,7 +44,9 @@
     (define ==>δ (==> δ))
     (define ζᵢ   (p:ζ (p:Stxξ ph stx ξ scpsₚ) '● Σ))
 
-    (do (p:ζ stx′ '● Σ′) <- (apply-reduction* ==>δ ζᵢ)
+    (do (p:ζ stx′ κ′ Σ′) <- (apply-reduction* ==>δ ζᵢ)
+        (when (not (eq? κ′ '●))
+          (error 'expand "remaining κ: ~a\n" κ′))
         (pure (cons stx′ Σ′))))
   
   (define (expander δ stx)
@@ -66,9 +70,11 @@
         ;; mult の場合のみ stuck が生じる．
         ;; その原因は，set-box!とbind-syntaxesがstoreへのassignmentで
         ;; あることによりstore中の値の多重化が生じること．
-        (f:ζ stx′ '● Σ̂′) <- (if (not (InEval? ζ′))
+        (f:ζ stx′ κ′ Σ̂′) <- (if (not (InEval? ζ′))
                               (pure ζ′)
                               (lift ∅))
+        (when (not (eq? κ′ '●))
+          (error 'expand "remaining κ: ~a\n" κ′))
         (pure (cons stx′ Σ̂′))))
 
   (define (expander δ stx)
