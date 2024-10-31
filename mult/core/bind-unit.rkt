@@ -5,7 +5,7 @@
           set→list for/set in-set)
  (only-in "../../nondet.rkt" do := <- pure lift results)
  (only-in "../../misc.rkt"   biggest-subset binding-lookup
-                             lookup-sbs update-sbs set-of-stobind?)
+                             update-sbs set-of-stobind?)
  "../../signatures.rkt"
  "../../base/core/terms.rkt")
 
@@ -17,7 +17,7 @@
 (define (bind Σ₀ id nam₀)
   (match-define (Stx (Sym nam) ctx) id)
   (define sbs (results (lookup-Σ Σ₀ nam)))
-  (if (and (not (∅? sbs)) (lookup-sbs sbs ctx))
+  (if (and (not (∅? sbs)) (binding-lookup sbs ctx))
     (match-let ([(Σ size tbl) Σ₀])               ;; add to exsisting StoBind
       (Σ size (hash-set tbl nam (update-sbs sbs ctx nam₀))))
     (update-Σ Σ₀ nam (StoBind ctx (set nam₀)))   ;; new StoBind

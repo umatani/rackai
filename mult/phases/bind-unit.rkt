@@ -6,7 +6,7 @@
  "../../signatures.rkt"
  "../../base/phases/terms.rkt"
  (only-in "../../misc.rkt"   biggest-subset binding-lookup
-                             lookup-sbs update-sbs set-of-stobind?))
+                             update-sbs set-of-stobind?))
 
 (import (only syntax^    at-phase)
         (only mstore^    lookup-Σ update-Σ))
@@ -16,7 +16,7 @@
 (define (bind ph Σ₀ id nam₀)
   (match-define (Stx (Sym nam) ctx) id)
   (define sbs (results (lookup-Σ Σ₀ nam)))
-  (if (and (not (∅? sbs)) (lookup-sbs sbs (at-phase ctx ph)))
+  (if (and (not (∅? sbs)) (binding-lookup sbs (at-phase ctx ph)))
     (match-let ([(Σ size tbl) Σ₀])                ;; add to exsisting StoBind
       (Σ size (hash-set tbl nam (update-sbs sbs (at-phase ctx ph) nam₀))))
     (update-Σ Σ₀ nam (StoBind (at-phase ctx ph) (set nam₀)))   ;; new StoBind

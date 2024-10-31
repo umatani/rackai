@@ -7,7 +7,7 @@
                          set=? set→list for/set in-set)
  "terms.rkt")
 (provide require&provide union subtract biggest-subset binding-lookup
-         set-of-stobind? lookup-sbs update-sbs)
+         set-of-stobind? update-sbs)
 
 (begin-for-syntax
   (define-syntax-class require-spec
@@ -60,23 +60,14 @@
                       (λ (scps sb) (set=? scps (StoBind-scps sb))))])
     (and sbs′ (StoBind-nam (first sbs′)))))
 
+
 ;;; For use in mult
 
 (define (set-of-stobind? sbs)
   (andmap StoBind? (set→list sbs)))
 
-;; lookup-sbs : (Setof StoBind) Scps → (Setof Nam)
-(define (lookup-sbs sbs ctx)
-  (define founds (for/list ([sb (in-set sbs)]
-                            #:when (set=? (StoBind-scps sb) ctx))
-                   (define nams (StoBind-nam sb)) ;; multi
-                   nams))
-  (cond [(null? founds) #f]
-        [(= (length founds) 1) (car founds)]
-        [else (error 'lookup-sbs "no such case")]))
-
 ;; update-sbs : (Setof StoBind) Scps Nam → (Setof StoBind)
-(define (update-sbs sbs ctx nam)
+(define (update-sbs sbs scps nam)
   (for/set ([sb (in-set sbs)])
     (match-define (StoBind scps nams) sb)
-    (StoBind scps (if (set=? scps ctx) (set-add nams nam) nams))))
+    (StoBind scps (if (set=? scps scps) (set-add nams nam) nams))))
