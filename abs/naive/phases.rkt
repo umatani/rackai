@@ -35,7 +35,6 @@
             (only   menv^    init-ξ lookup-ξ extend-ξ)
             (only mstore^    lookup-Σ alloc-name alloc-scope)
             (only   bind^    bind resolve)
-            (only     id^    id=?)
             (only  parse^    parse)]
 
   #:default [(ζ (Stxξ ph stx ξ scpsₚ) κ Σ) ;; for debug

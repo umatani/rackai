@@ -25,14 +25,17 @@
             (only   menv^    init-ξ lookup-ξ extend-ξ)
             (only mstore^    lookup-Σ alloc-name alloc-scope lookup-κ)
             (only   bind^    bind resolve)
-            (only     id^    id=?)
             (only  parse^    parse)]
 
   #:do [;; Constants
         (define id-kont (Stx (Sym '#%kont) (empty-ctx)))
         (define id-seq  (Stx (Sym '#%seq)  (empty-ctx)))
         (define id-snoc (Stx (Sym '#%snoc) (empty-ctx)))
-        (define stx-nil (Stx (Null)        (empty-ctx)))]
+        (define stx-nil (Stx (Null)        (empty-ctx)))
+
+        ;; id=? : Id Nam Σ → Boolean
+        (define (id=? id nam Σ)
+          (eq? (resolve id Σ) nam))]
 
   #:default [(ζ (Stxξ stx ξ) κ Σ) ;; for debug
              (printf "default: ~a\n" (lst→list/recur (stx→datum stx)))]
@@ -362,7 +365,7 @@
 
 (define-mixed-unit expand@
   (import  domain^ syntax^ env^ store^ eval^
-           menv^ mstore^ bind^ id^ parse^)
+           menv^ mstore^ bind^ parse^)
   (export  expand^)
   (inherit [red@    reducer])
 

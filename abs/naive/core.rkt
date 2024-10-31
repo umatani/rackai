@@ -33,12 +33,10 @@
             (only   menv^    init-ξ lookup-ξ extend-ξ)
             (only mstore^    lookup-Σ lookup-κ alloc-name alloc-scope)
             (only   bind^    bind resolve)
-            (only     id^    id=?)
             (only  parse^    parse)]
 
   #:default [(ζ (Stxξ stx ξ) κ Σ) ;; for debug
              (printf "default: ~a\n" (lst→list/recur (stx→datum stx)))]
-
 
 
   [(InEval (list stx '● _sto)

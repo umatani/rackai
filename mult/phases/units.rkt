@@ -12,5 +12,4 @@
  ["bind-unit.rkt"                 bind@                          ]
  ["../core/units.rkt"             eval@                          ]
  ["expand.rkt"                  expand@                          ]
- ["id-unit.rkt"                     id@                          ]
  ["parse-unit.rkt"               parse@                          ])

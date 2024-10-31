@@ -21,14 +21,19 @@
             (only   menv^    init-ξ lookup-ξ extend-ξ)
             (only mstore^    lookup-Σ alloc-name alloc-scope)
             (only   bind^    bind resolve)
-            (only     id^    id=?)
             (only  parse^    parse)]
 
   #:do [;; lookup-κ : Σ 𝓁 → (SetM κ)
         (define (lookup-κ Σ 𝓁)
           (do κ <- (lookup-Σ Σ 𝓁)
               #:when (or (κ? κ) (eq? κ '●))
-              (pure κ)))]
+              (pure κ)))
+
+        ;; id=? : Ph Id Nam ξ Σ → (SetM Boolean)
+        (define (id=? ph id nam ξ Σ)
+          (do nam′ <- (resolve ph id Σ)
+              at   <- (lookup-ξ ξ nam)
+              (pure (and (eq? nam nam′) (not (TStop? at))))))]
 
   #:default [(ζ (Stxξ ph stx ξ) κ Σ̂) ;; for debug
              (printf "default: ~a\n" (lst→list/recur (stx→datum stx)))]
@@ -66,7 +71,7 @@
 
 (define-syntax-rule (define-expand-unit expand@ red@)
   (define-mixed-unit expand@
-    (import  domain^ syntax^ env^ store^ eval^ menv^ mstore^ bind^ id^ parse^)
+    (import  domain^ syntax^ env^ store^ eval^ menv^ mstore^ bind^ parse^)
     (export  expand^)
     (inherit [red@    reducer])
 

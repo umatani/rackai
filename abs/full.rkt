@@ -8,7 +8,7 @@
  "../base/full/terms.rkt"
  (only-in "../mult/full/units.rkt"
           common@ bind@ io@ syntax@ debug@ domain@ env@ menv@ run@
-          eval@ evaluator@ id@ parse@ parser@ expand@ expander@)
+          eval@ evaluator@ parse@ parser@ expand@ expander@)
  (only-in "alloc.rkt"  store@ mstore@))
 (provide syntax@ main-minus@ interp)
 
@@ -19,9 +19,9 @@
 
 (define-compound-unit/infer main-minus@
   (import domain^ eval^ parser^ expand^)
-  (export common^ syntax^ env^ store^ evaluator^ menv^ mstore^ bind^ id^
+  (export common^ syntax^ env^ store^ evaluator^ menv^ mstore^ bind^
           run^ debug^)
-  (link   common@ syntax@ env@ store@ evaluator@ menv@ mstore@ bind@ id@
+  (link   common@ syntax@ env@ store@ evaluator@ menv@ mstore@ bind@
           expander@ io@ run@ debug@))
 
 (define-values/invoke-unit

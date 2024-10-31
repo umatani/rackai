@@ -75,15 +75,6 @@
   (expander      ; δ Stx → (SetM (Cons Stx Σ))
    ))
 
-(define-signature id^
-  (id=?          ;    Id Nam   Σ → Boolean                      (base/core)
-                 ; Ph Id Nam   Σ → Boolean                      (base/phases)
-                 ; Ph Id Nam ξ Σ → Boolean                      (base/full)
-                 ;    Id Nam   Σ → (SetM Boolean)               (mult/core)
-                 ; Ph Id Nam   Σ → (SetM Boolean)               (mult/phases)
-                 ; Ph Id Nam ξ Σ → (SetM Boolean)               (mult/full)
-   ))
-
 ;;;; reader & printer
 (define-signature io^
   (reader        ; Sexp → Stx

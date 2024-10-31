@@ -12,7 +12,7 @@
   (compound-unit/infer
    (import) (export domain^ run^ debug^)
    (link common@ domain@ syntax@ env@ store@ eval@ evaluator@
-         menv@ mstore@ bind@ id@ parse@ parser@ expand@ expander@
+         menv@ mstore@ bind@ parse@ parser@ expand@ expander@
          io@ run@ debug@))
   (import) (export domain^ run^ debug^))
 

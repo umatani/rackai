@@ -12,6 +12,5 @@
  ["debug-unit.rkt"     debug@                          ]
  ["../core/units.rkt"   eval@                          ]
  ["expand.rkt"        expand@                          ]
- ["id-unit.rkt"           id@                          ]
  ["parse-unit.rkt"     parse@                          ]
  ["syntax.rkt"        syntax@                          ])
