@@ -1,61 +1,18 @@
 #lang racket/base
 (require
  racket/unit
- (only-in racket/list        remove-duplicates append-map)
- (only-in racket/match       match match-let)
  "../interpreter.rkt"
  "../signatures.rkt"
- (only-in "../reduction.rkt" define-reduction define-unit-from-reduction
-                             enable-tracing)
- (only-in "../nondet.rkt"    := <- lift results)
- (only-in "../set.rkt"       set set? ∅ ∅? set-add set→list list→set set-map)
- (only-in "../mix.rkt"       define-mixed-unit inherit)
- (only-in "../syntax.rkt"    snoc)
+ (only-in "../reduction.rkt" enable-tracing)
  "../test/suites.rkt"
  "../base/phases/terms.rkt"
  (only-in "../mult/phases/units.rkt"
-          common@ io@ debug@ syntax@ expander@ domain@ env@ menv@ run@
+          common@ bind@ io@ debug@ syntax@ expander@ domain@ env@ menv@ run@
           parse@ parser@ [bind@ mult:bind@] id@)
  (only-in "../mult/phases/units.rkt"  eval@ expand@)
- (only-in "../mult/phases/expand.rkt" [==> mult:==>] define-expand-unit)
- (only-in "alloc.rkt"                 store@ mstore@
-                                      biggest-subset binding-lookup)
+ (only-in "alloc.rkt"                 store@ mstore@)
  (only-in "core.rkt"                  evaluator@))
-(provide bind@ syntax@ main-minus@ interp)
-
-;;;; bind^
-
-(define-mixed-unit bind@
-  (import  (only syntax^    at-phase)
-           (only mstore^    lookup-Σ))
-  (export  bind^)
-  (inherit [mult:bind@      bind])
-
-  ; resolve : Ph Id Σ -> (SetM Nam)
-  (define (resolve ph id Σ0)
-    (match-let ([(Stx (Sym nam) ctx) id])
-      (let* ([sbss (filter set? (set→list (results (lookup-Σ Σ0 nam))))]
-             [scpsss
-              (let ([scpsss (map (λ (sbs)
-                                   (set-map (λ (sb) (StoBind-scps sb)) sbs))
-                                 sbss)])
-                (map remove-duplicates scpsss))]
-             [scps_biggests (remove-duplicates
-                             (append-map (λ (scpss)
-                                           (biggest-subset
-                                            (at-phase ctx ph)
-                                            scpss))
-                                         scpsss))]
-             [nam_biggests
-              (remove-duplicates
-               (apply append
-                      (for*/list ([sbs (in-list sbss)]
-                                  [scps_biggest (in-list scps_biggests)])
-                        (binding-lookup sbs scps_biggest))))])
-        (let ([r (if (null? nam_biggests)
-                   (set nam)
-                   (list→set nam_biggests))])
-          (lift r))))))
+(provide syntax@ main-minus@ interp)
 
 
 ;;;; Main

@@ -11,7 +11,7 @@
  "../terms.rkt"
  (only-in "../mult/units.rkt" [ store@  mult:store@]
                               [mstore@ mult:mstore@]))
-(provide store@ mstore@ biggest-subset binding-lookup)
+(provide store@ mstore@)
 
 
 (define-mixed-unit store@
@@ -85,29 +85,3 @@
       (r:set-add! all-𝓁 stx))
     (values ;(𝓁 (string->symbol (format "𝓁:~a:~a" stx size)))
      (𝓁 stx) Σ)))
-
-
-; biggest-subset : Scps (Listof Scps) → (Listof Scps)
-(define (biggest-subset scps_ref scpss)
-  ;(printf "[biggest-subset] ~a ~a\n" scps_ref scpss)
-  (let* ([matching (filter (λ (scps_bind)
-                             (⊆ scps_bind scps_ref))
-                           scpss)]
-         [sorted (sort matching > #:key set-size)])
-    ;; The binding is ambiguous if the first scps in
-    ;; `sorted` is not bigger than the others, or if
-    ;; some scps in `sorted` is not a subset of the
-    ;; first one.
-    ;; --> サイズが最大なスコープセット全部を候補として返す
-    (if (empty? sorted)
-      (list ∅)
-      (let ([n (set-size (first sorted))])
-        (for/list ([scps (in-list sorted)]
-                   #:when (= (set-size scps) n))
-          scps)))))
-
-; binding-lookup : (Setof StoBind) Scps → (Listof Nam)
-(define (binding-lookup sbs scps)
-  ;(printf "[binding-lookup] ~a ~a\n" sbs scps)
-  (map StoBind-nam (filter (λ (sb) (set=? (StoBind-scps sb) scps))
-                           (set→list sbs))))

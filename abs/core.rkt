@@ -1,58 +1,20 @@
 #lang racket/base
 (require
  racket/unit
- (only-in racket/list        remove-duplicates append-map)
- (only-in racket/match       match match-let)
  "../interpreter.rkt"
  "../signatures.rkt"
- (only-in "../reduction.rkt" define-reduction define-unit-from-reduction
-                             apply-reduction* enable-tracing)
- (only-in "../nondet.rkt"    do := <- pure lift results)
- (only-in "../set.rkt"       set set? ∅ ∅? set→list list→set set-map)
- (only-in "../mix.rkt"       define-mixed-unit inherit)
- (only-in "../syntax.rkt"    snoc)
+ (only-in "../reduction.rkt" apply-reduction* enable-tracing)
+ (only-in "../nondet.rkt"    do <- pure lift)
+ (only-in "../set.rkt"       ∅)
  "../test/suites.rkt"
  "../base/core/terms.rkt"
  (only-in "../mult/core/units.rkt"
-          common@ io@ debug@ expand@ expander@ syntax@ domain@
+          common@ bind@ io@ debug@ expand@ expander@ syntax@ domain@
           env@ menv@ run@ eval@ parse@ parser@ [bind@ mult:bind@] id@)
  (only-in "../mult/core/expand.rkt" [==> mult:==>] define-expand-unit)
- (only-in "alloc.rkt"               store@ mstore@
-                                    biggest-subset binding-lookup))
+ (only-in "alloc.rkt"               store@ mstore@))
 (provide syntax@ evaluator@ main-minus@
          interp eval-->* expand==>*)
-
-
-;;;; bind^
-
-(define-mixed-unit bind@
-  (import  (only mstore^    lookup-Σ))
-  (export  bind^)
-  (inherit [mult:bind@      bind])
-
-  ; resolve : Id Σ -> (SetM Nam)
-  (define (resolve id Σ)
-    (match-let ([(Stx (Sym nam) ctx) id])
-      (let* ([sbss (filter set? (set→list (results (lookup-Σ Σ nam))))]
-             [scpsss
-              (let ([scpsss (map (λ (sbs)
-                                   (set-map (λ (sb) (StoBind-scps sb)) sbs))
-                                 sbss)])
-                (map remove-duplicates scpsss))]
-             [scps_biggests (remove-duplicates
-                             (append-map (λ (scpss)
-                                           (biggest-subset ctx scpss))
-                                         scpsss))]
-             [nam_biggests
-              (remove-duplicates
-               (apply append
-                      (for*/list ([sbs (in-list sbss)]
-                                  [scps_biggest (in-list scps_biggests)])
-                        (binding-lookup sbs scps_biggest))))])
-        (let ([r (if (null? nam_biggests)
-                   (set nam)
-                   (list→set nam_biggests))])
-          (lift r))))))
 
 
 ;;;; Evaluator

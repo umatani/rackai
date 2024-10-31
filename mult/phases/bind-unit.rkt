@@ -5,31 +5,31 @@
  (only-in "../../nondet.rkt" do := <- pure lift results)
  "../../signatures.rkt"
  "../../base/phases/terms.rkt"
- (only-in "../../misc.rkt"   biggest-subset binding-lookup))
+ (only-in "../../misc.rkt"   biggest-subset binding-lookup
+                             lookup-sbs update-sbs set-of-stobind?))
 
 (import (only syntax^    at-phase)
-        (only mstore^    lookup-Σ))
+        (only mstore^    lookup-Σ update-Σ))
 (export bind^)
 
 ;; bind : Ph Σ Id Nam → Σ
 (define (bind ph Σ₀ id nam₀)
-  (match-let ([(Σ size tbl) Σ₀]
-              [(Stx (Sym nam) ctx) id])
-    (Σ size (hash-update tbl nam
-                         (λ (sbss)
-                           (results
-                            (do sbs <- (lift sbss)
-                                #:when (set? sbs)     ;; (Setof StoBind)
-                                (pure (set-add sbs (StoBind (at-phase ctx ph)
-                                                            nam₀))))))
-                         (set ∅)))))
+  (match-define (Stx (Sym nam) ctx) id)
+  (define sbs (results (lookup-Σ Σ₀ nam)))
+  (if (and (not (∅? sbs)) (lookup-sbs sbs (at-phase ctx ph)))
+    (match-let ([(Σ size tbl) Σ₀])                ;; add to exsisting StoBind
+      (Σ size (hash-set tbl nam (update-sbs sbs (at-phase ctx ph) nam₀))))
+    (update-Σ Σ₀ nam (StoBind (at-phase ctx ph) (set nam₀)))   ;; new StoBind
+    ))
 
 ;; resolve : Ph Id Σ → (SetM Nam)
 (define (resolve ph id Σ)
   (match-define (Stx (Sym nam) ctx) id)
-  (do sbs          <- (lookup-Σ Σ nam)
-      #:when (set? sbs)                  ;; (Setof StoBind)
+  (do sbs          := (results (lookup-Σ Σ nam))
+      #:when (set-of-stobind? sbs)                ;; (Setof StoBind)
       scpss        := (for/set ([sb sbs]) (StoBind-scps sb))
       scps_biggest := (biggest-subset (at-phase ctx ph) scpss)
-      nam_biggest  := (binding-lookup sbs scps_biggest)
-      (pure (or nam_biggest nam))))
+      nams_biggest := (binding-lookup sbs scps_biggest)
+      (if nams_biggest
+        (lift nams_biggest)
+        (pure nam))))

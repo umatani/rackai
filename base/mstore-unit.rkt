@@ -18,8 +18,8 @@
 
 ;; lookup-Σ : Σ Nam → (Setof StoBind)
 ;;          : Σ 𝓁   → (U Val ξ κ)
-(define (lookup-Σ Σ₀ k)
-  (hash-ref (Σ-tbl Σ₀) k ∅))
+(define (lookup-Σ Σ k)
+  (hash-ref (Σ-tbl Σ) k ∅))
 
 ;; update-Σ : Σ Nam (Setof StoBind) → Σ
 ;;          : Σ 𝓁   (U Val ξ κ)     → Σ

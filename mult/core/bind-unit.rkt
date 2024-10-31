@@ -1,47 +1,36 @@
 #lang racket/unit
 (require
  (only-in racket/match       match-let match-define)
- (only-in "../../set.rkt"    set ∅ ∅? set? set-add for/set)
+ (only-in "../../set.rkt"    set ∅ ∅? set? set=? set-size set-add
+          set→list for/set in-set)
  (only-in "../../nondet.rkt" do := <- pure lift results)
+ (only-in "../../misc.rkt"   biggest-subset binding-lookup
+                             lookup-sbs update-sbs set-of-stobind?)
  "../../signatures.rkt"
- "../../base/core/terms.rkt"
- (only-in "../../misc.rkt"   biggest-subset binding-lookup))
+ "../../base/core/terms.rkt")
 
-(import (only mstore^    lookup-Σ))
+(import (only mstore^    lookup-Σ update-Σ))
 (export bind^)
+
 
 ;; bind : Σ Id Nam → Σ
 (define (bind Σ₀ id nam₀)
-  (match-let ([(Σ size tbl) Σ₀]
-              [(Stx (Sym nam) ctx) id])
-    (Σ size (hash-update tbl nam
-                         (λ (sbss)
-                           (results
-                            (do sbs <- (lift sbss)
-                                #:when (set? sbs)     ;; (Setof StoBind)
-                                (pure (set-add sbs (StoBind ctx nam₀))))))
-                         (set ∅)))))
+  (match-define (Stx (Sym nam) ctx) id)
+  (define sbs (results (lookup-Σ Σ₀ nam)))
+  (if (and (not (∅? sbs)) (lookup-sbs sbs ctx))
+    (match-let ([(Σ size tbl) Σ₀])               ;; add to exsisting StoBind
+      (Σ size (hash-set tbl nam (update-sbs sbs ctx nam₀))))
+    (update-Σ Σ₀ nam (StoBind ctx (set nam₀)))   ;; new StoBind
+    ))
 
 ;; resolve : Id Σ → (SetM Nam)
 (define (resolve id Σ)
   (match-define (Stx (Sym nam) ctx) id)
-  (do sbs          <- (lookup-Σ Σ nam)
-      #:when (set? sbs)                  ;; (Setof StoBind)
+  (do sbs          := (results (lookup-Σ Σ nam))
+      #:when (set-of-stobind? sbs)               ;; (Setof StoBind)
       scpss        := (for/set ([sb sbs]) (StoBind-scps sb))
       scps_biggest := (biggest-subset ctx scpss)
-      nam_biggest  := (binding-lookup sbs scps_biggest)
-      (pure (or nam_biggest nam))))
-#;
-(define (resolve id Σ)
-  (match-define (Stx (Sym nam) ctx) id)
-  (define nams
-    (do sbs          <- (lookup-Σ Σ nam)
-        #:when (set? sbs)                  ;; (Setof StoBind)
-        scpss        := (for/set ([sb sbs]) (StoBind-scps sb))
-        scps_biggest := (biggest-subset ctx scpss)
-        nam_biggest  := (binding-lookup sbs scps_biggest)
-        #:when nam_biggest
-        (pure nam_biggest)))
-  (if (∅? (results nams))
-    (pure nam)
-    nams))
+      nams_biggest := (binding-lookup sbs scps_biggest)
+      (if nams_biggest
+        (lift nams_biggest)
+        (pure nam))))

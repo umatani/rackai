@@ -4,14 +4,12 @@
  "../interpreter.rkt"
  "../signatures.rkt"
  (only-in "../reduction.rkt" enable-tracing)
- (only-in "../mix.rkt"       define-mixed-unit)
  "../test/suites.rkt"
  "../base/full/terms.rkt"
  (only-in "../mult/full/units.rkt"
-          common@ io@ syntax@ debug@ domain@ env@ menv@ run@
+          common@ bind@ io@ syntax@ debug@ domain@ env@ menv@ run@
           eval@ evaluator@ id@ parse@ parser@ expand@ expander@)
- (only-in "alloc.rkt"  store@ mstore@)
- (only-in "phases.rkt" bind@))
+ (only-in "alloc.rkt"  store@ mstore@))
 (provide syntax@ main-minus@ interp)
 
 

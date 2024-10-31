@@ -3,7 +3,7 @@
  racket/unit
  (only-in "../nondet.rkt"     do <- pure lift)
  (only-in "../mix.rkt"        define-mixed-unit inherit)
- (only-in "../set.rkt"        set ∅ set-add)
+ (only-in "../set.rkt"        ∅ set-add)
  "../signatures.rkt"
  "../terms.rkt"
  (only-in "../base/units.rkt" [mstore@ base:mstore@]))
@@ -18,8 +18,8 @@
 
   ;; lookup-Σ : Σ Nam → (SetM (Setof StoBind))
   ;;          : Σ 𝓁   → (SetM (U Val ξ κ))
-  (define (lookup-Σ Σ₀ k)
-    (lift (hash-ref (Σ-tbl Σ₀) k (set ∅))))
+  (define (lookup-Σ Σ k)
+    (lift (hash-ref (Σ-tbl Σ) k ∅)))
 
   ;; update-Σ : Σ Nam (Setof StoBind) → Σ
   ;;          : Σ 𝓁   (U Val ξ κ)     → Σ
