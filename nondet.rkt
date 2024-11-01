@@ -3,9 +3,11 @@
  (for-syntax racket/base racket/string syntax/parse)
  (only-in racket/match match-lambda match-lambda**)
  (only-in "set.rkt" set ∅ ∪ set-map))
-(provide := <-
+(provide enable-checkpoint := <-
          pure never bind lift results aborts for/m+ do
          (for-syntax assign elem))
+
+(define enable-checkpoint (make-parameter #f))
 
 (define := (gensym ':=))
 (define <- (gensym '<-))
@@ -78,5 +80,7 @@
      #'(if t
          (abort e)
          (do s ...))]
+    [(do #:checkpoint s₀ s ...)
+     #'(begin (when (enable-checkpoint) s₀) (do s ...))]
     [(do s₀ s ...)
      #'(begin s₀ (do s ...))]))

@@ -4,6 +4,7 @@
  "../../interpreter.rkt"
  "../../signatures.rkt"
  (only-in "../../reduction.rkt" enable-tracing)
+ (only-in "../../nondet.rkt"    enable-checkpoint)
  "../../test/suites.rkt"
  "units.rkt")
 (provide interp)

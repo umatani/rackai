@@ -65,13 +65,16 @@
         (define (lookup-box Σ 𝓁) (lookup-Σ Σ 𝓁))
         ;; update-box : Σ 𝓁 Val → Σ
         (define (update-box Σ 𝓁 v) (update-Σ Σ 𝓁 v))]
+
   ;; value
   [`(,(AstEnv _ph (? val? val) _env _maybe-scpᵢ _ξ) ,cnt ,sto ,Σ̂)
+   #:checkpoint (printf "ev-val\n")
    `(,val ,cnt ,sto ,Σ̂)
    ev-val]
 
   ;; reference
   [`(,(AstEnv _ph (? Var? var) env _maybe-scpᵢ _ξ) ,cnt ,sto ,Σ̂)
+   #:checkpoint (printf "ev-x\n")
    (:=<1> loc (lookup-env env var))
    (:=<1> val (lookup-val sto loc))
    `(,val ,cnt ,sto ,Σ̂)
@@ -79,11 +82,13 @@
 
   ;; lambda
   [`(,(AstEnv _ph (Fun vars ast) env _maybe-scpᵢ _ξ) ,cnt ,sto ,Σ̂)
+   #:checkpoint (printf "ev-lam\n")
    `(,(VFun vars ast env) ,cnt ,sto ,Σ̂)
    ev-lam]
 
   ;; application
   [`(,(AstEnv ph (App lbl ast asts) env maybe-scpᵢ ξ) ,cnt ,sto ,Σ̂)
+   ;#:checkpoint (printf "ev-push-app\n")
    (:= (values loc sto′) (push-cont sto lbl cnt))
    `(,(AstEnv ph ast env maybe-scpᵢ ξ)
      ,(KApp '() asts `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
@@ -93,6 +98,7 @@
   [`(,(? val? val)
      ,(KApp vals (cons ast asts) `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,Σ̂)
+   ;#:checkpoint (printf "ev-pop-app₁\n")
    `(,(AstEnv ph ast env maybe-scpᵢ ξ)
      ,(KApp (append vals (list val)) asts `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,Σ̂)
@@ -101,12 +107,14 @@
   [`(,(? val? val)
      ,(KApp '() '() `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,Σ̂)
+   ;#:checkpoint (printf "ev-pop-app₂\n")
    `(,val ,(KApp′ '() `(,ph ,env ,maybe-scpᵢ ,ξ) loc) ,sto ,Σ̂)
    ev-pop-app₂]
 
   [`(,(? val? val)
      ,(KApp (cons val′ vals) '() `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,Σ̂)
+   ;#:checkpoint (printf "ev-pop-app₃\n")
    `(,val′ ,(KApp′ (append vals (list val))
                    `(,ph ,env ,maybe-scpᵢ ,ξ) loc) ,sto ,Σ̂)
    ev-pop-app₃]
@@ -118,6 +126,7 @@
    (:=<1> nam (resolve ph id Σ))
    (:=<1> val (lookup-ξ ξ nam))
    #:when (val? val)
+   #:checkpoint (printf "ev-lval\n")
    (:=<1> cnt (lookup-cont sto loc))
    `(,val ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    ev-lval]
@@ -136,6 +145,7 @@
    (:=<1> nam    (resolve ph id Σ))
    (:=<1> val    (lookup-ξ ξ_defs nam))
    #:when (val? val)
+   #:checkpoint (printf "ev-lval-defs\n")
    (:=<1> cnt    (lookup-cont sto loc))
    `(,val ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    ev-lval-defs]
@@ -144,6 +154,7 @@
   [`(,(Prim 'syntax-local-identifier-as-binding _stx)
      ,(KApp′ `(,(? id? id)) `(,ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
+   #:checkpoint (printf "ev-lbinder\n")
    (:=<1> cnt (lookup-cont sto loc))
    `(,(prune ph id scpsᵤ) ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    ev-lbinder]
@@ -152,6 +163,7 @@
   [`(,(Prim 'syntax-local-make-definition-context stx)
      ,(KApp′ `() `(,_ph ,_env ,_maybe-scpᵢ ,ξ) loc)
      ,sto ,(Σ̂ Σ₀ scpsₚ scpsᵤ))
+   #:checkpoint (printf "ev-slmdc\n")
    (:=    (values scp Σ₁) (alloc-scope 'defs Σ₀))
    (:=    (values 𝓁 Σ₂)   (alloc-def-ξ stx Σ₁))
    (:=<1> cnt             (lookup-cont sto loc))
@@ -164,6 +176,7 @@
      ,(KApp′ `(,(Lst (? id? id)) ,(Bool #f) ,(Defs scp 𝓁))
              `(,ph ,_env ,maybe-scpᵢ ,_ξ) loc)
      ,sto ,(Σ̂ Σ₀ scpsₚ scpsᵤ))
+   #:checkpoint (printf "ev-slbsv\n")
    (:=    id′             (add ph (prune ph (flip ph id maybe-scpᵢ) scpsᵤ) scp))
    (:=    (values nam Σ₁) (alloc-name id′ Σ₀))
    (:=    Σ₂              (bind ph Σ₁ id′ nam))
@@ -179,6 +192,7 @@
      ,(KApp′ `(,(Lst (? id? id)) ,(? stx? stx_arg) ,(Defs scp 𝓁))
              `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
+   #:checkpoint (printf "ev-slbsm\n")
    (InExpand
     (ζ (Stxξ (add1 ph)
              (add ph (flip ph stx_arg maybe-scpᵢ) scp) (init-ξ))
@@ -193,6 +207,7 @@
              `(,(Prim 'syntax-local-bind-syntaxes2 _stx)
                ,(KApp′ `(,id ,(Defs scp 𝓁)) `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
                ,sto ,(Σ̂ _Σ scpsₚ scpsᵤ)))
+   #:checkpoint (printf "ev-slbsm′\n")
    (<- ast (parse (add1 ph) stx_arg′ Σ))
    `(,(AstEnv ph ast (init-env) 'no-scope ξ)
      ,(KApp `(,(Prim 'syntax-local-bind-syntaxes2
@@ -207,6 +222,7 @@
      ,(KApp′ `(,(? id? id) ,(Defs scp 𝓁) ,val)
              `(,ph ,_env ,maybe-scpᵢ ,_ξ) loc)
      ,sto ,(Σ̂ Σ₀ _scpsₚ _scpsᵤ))
+   #:checkpoint (printf "ev-slbsm″\n")
    (:=<1> ξ_defs          (lookup-def-ξ Σ₀ 𝓁))
    (:=    id′             (add ph (prune ph (flip ph id maybe-scpᵢ) scpsᵤ) scp))
    (:=    (values nam Σ₁) (alloc-name id′ Σ₀))
@@ -221,6 +237,7 @@
      ,(KApp′ `(,(? stx? stx_arg) ,_val_context ,ids_stop)
              `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
+   #:checkpoint (printf "ev-lexpand\n")
    (:=    ξ′   (unstop-ξ ξ))
    (:=<1> nams (resolve* ph (lst→list ids_stop) Σ))
    (:=<1> ats  (lookup-ξ* ξ′ nams))
@@ -238,6 +255,7 @@
              `(,(Prim 'local-expand _stx)
                ,(KApp′ '() `(,ph ,_env ,maybe-scpᵢ ,_ξ) loc)
                ,sto ,_Σ̂))
+   #:checkpoint (printf "ev-lexpand′\n")
    (:=<1> cnt (lookup-cont sto loc))
    `(,(flip ph stx_arg′ maybe-scpᵢ) ,cnt ,sto ,Σ̂)
    ev-lexpand′]
@@ -249,6 +267,7 @@
      ,(KApp′ `(,(? stx? stx_arg) ,_val_context ,ids_stop ,(Defs scp 𝓁))
              `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
+   #:checkpoint (printf "ev-lexpand-defs\n")
    (:=<1> ξ_defs (lookup-def-ξ Σ 𝓁))
    (:=    ξ′     (unstop-ξ ξ_defs))
    (:=<1> nams   (resolve* ph (lst→list ids_stop) Σ))
@@ -276,6 +295,7 @@
   [`(,(Prim 'box stx)
      ,(KApp′ `(,val) `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
+   #:checkpoint (printf "ev-box\n")
    (:=    (values 𝓁 Σ′) (alloc-box stx Σ))
    (:=<1> cnt           (lookup-cont sto loc))
    `(,𝓁 ,cnt ,sto ,(Σ̂ (update-box Σ′ 𝓁 val) scpsₚ scpsᵤ))
@@ -285,6 +305,7 @@
   [`(,(Prim 'unbox _stx)
      ,(KApp′ `(,(? 𝓁? 𝓁)) `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
+   #:checkpoint (printf "ev-unbox\n")
    (:=<1> val (lookup-box Σ 𝓁))
    (:=<1> cnt (lookup-cont sto loc))
    `(,val ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
@@ -294,6 +315,7 @@
   [`(,(Prim 'set-box! _stx)
      ,(KApp′ `(,(? 𝓁? 𝓁) ,val) `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
+   #:checkpoint (printf "ev-set-box!\n")
    (:=<1> cnt (lookup-cont sto loc))
    `(,val ,cnt ,sto ,(Σ̂ (update-box Σ 𝓁 val) scpsₚ scpsᵤ))
    ev-set-box!]
@@ -302,6 +324,7 @@
   [`(,(VFun vars ast env)
      ,(KApp′ args `(,ph ,_env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,Σ̂)
+   #:checkpoint (printf "ev-β\n")
    (:=    `(,(Var nams) ...) vars)
    (:=    (values locs sto′) (alloc-loc* nams sto))
    (:=    env′               (extend-env* env vars locs))
@@ -315,6 +338,7 @@
      ,(KApp′ args `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,Σ̂)
    #:when (not (stx-prim? nam))
+   #:checkpoint (printf "ev-δ\n")
    (:=<1> val (δ prim args))
    (:=<1> cnt (lookup-cont sto loc))
    `(,val ,cnt ,sto ,Σ̂)
@@ -324,6 +348,7 @@
   [`(,(AstEnv ph (If lbl ast₀ ast₁ ast₂) env maybe-scpᵢ ξ)
      ,cnt
      ,sto ,Σ̂)
+   #:checkpoint (printf "ev-push-if\n")
    (:= (values loc sto′) (push-cont sto lbl cnt))
    `(,(AstEnv ph ast₀ env maybe-scpᵢ ξ)
      ,(KIf ast₁ ast₂ `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
@@ -333,6 +358,7 @@
   [`(,(Bool #f)
      ,(KIf _ast₁ ast₂ `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,Σ̂)   
+   #:checkpoint (printf "ev-if-#f\n")
    (:=<1> cnt (lookup-cont sto loc))
    `(,(AstEnv ph ast₂ env maybe-scpᵢ ξ)
      ,cnt ,sto ,Σ̂)
@@ -342,6 +368,7 @@
      ,(KIf ast₁ _ast₂ (list ph env maybe-scpᵢ ξ) loc)
      ,sto ,Σ̂)   
    #:when (not (equal? val (Bool #f)))
+   #:checkpoint (printf "ev-if-#t\n")
    (:=<1> cnt (lookup-cont sto loc))
    `(,(AstEnv ph ast₁ env maybe-scpᵢ ξ)
      ,cnt
