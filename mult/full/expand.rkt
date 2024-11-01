@@ -19,24 +19,22 @@
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
-            (only mstore^    lookup-Σ alloc-name alloc-scope)
+            (only mstore^    lookup-Σ lookup-κ alloc-name alloc-scope)
             (only   bind^    bind resolve)
             (only  parse^    parse)]
 
-  #:do [;; lookup-κ : Σ 𝓁 → (SetM κ)
-        (define (lookup-κ Σ 𝓁)
-          (do κ <- (lookup-Σ Σ 𝓁)
-              #:when (or (κ? κ) (eq? κ '●))
-              (pure κ)))
-
-        ;; id=? : Ph Id Nam ξ Σ → (SetM Boolean)
+  #:do [;; id=? : Ph Id Nam ξ Σ → (SetM Boolean)
         (define (id=? ph id nam ξ Σ)
           (do nam′ <- (resolve ph id Σ)
               at   <- (lookup-ξ ξ nam)
               (pure (and (eq? nam nam′) (not (TStop? at))))))]
 
   #:default [(ζ (Stxξ ph stx ξ) κ Σ̂) ;; for debug
-             (printf "default: ~a\n" (lst→list/recur (stx→datum stx)))]
+             (if (id? stx)
+               (printf "expand: unbound identifier: ~a\n"
+                       (Sym-nam (Stx-e stx)))
+               (printf "expand: unknown form ~a\n"
+                       (lst→list/recur (stx→datum stx))))]
 
   ;; application (free var ref)
   [(ζ (Stxξ ph (and (Stx (Lst stx_f . stl) ctx) stx) ξ)

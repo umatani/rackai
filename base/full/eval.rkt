@@ -55,6 +55,10 @@
         (define (lookup-def-ξ Σ 𝓁) (lookup-Σ Σ 𝓁))
         ;; update-def-ξ : Σ 𝓁 ξ → Σ
         (define (update-def-ξ Σ 𝓁 ξ) (update-Σ Σ 𝓁 ξ))
+        ;; extend-def-ξ : Σ 𝓁 nam at → Σ
+        (define (extend-def-ξ Σ 𝓁 nam at)
+          (update-def-ξ Σ 𝓁 (extend-ξ (lookup-def-ξ Σ 𝓁) nam at)))
+
 
         ;; ----------------------------------------
         ;; Box allocations and updates:
@@ -180,9 +184,7 @@
    (:=    id′             (add ph (prune ph (flip ph id maybe-scpᵢ) scpsᵤ) scp))
    (:=    (values nam Σ₁) (alloc-name id′ Σ₀))
    (:=    Σ₂              (bind ph Σ₁ id′ nam))
-   (:=<1> ξ_defs          (lookup-def-ξ Σ₂ 𝓁))
-   (:=    Σ₃              (update-def-ξ Σ₂ 𝓁
-                            (extend-ξ ξ_defs nam (TVar id′))))
+   (:=    Σ₃              (extend-def-ξ Σ₂ 𝓁 nam (TVar id′)))
    (:=<1> cnt             (lookup-cont sto loc))
    `(,(Lst id′) ,cnt ,sto ,(Σ̂ Σ₃ scpsₚ scpsᵤ))
    ev-slbsv]
@@ -223,13 +225,11 @@
              `(,ph ,_env ,maybe-scpᵢ ,_ξ) loc)
      ,sto ,(Σ̂ Σ₀ _scpsₚ _scpsᵤ))
    #:checkpoint (printf "ev-slbsm″\n")
-   (:=<1> ξ_defs          (lookup-def-ξ Σ₀ 𝓁))
    (:=    id′             (add ph (prune ph (flip ph id maybe-scpᵢ) scpsᵤ) scp))
    (:=    (values nam Σ₁) (alloc-name id′ Σ₀))
    (:=    Σ₂              (bind ph Σ₁ id′ nam))
    (:=<1> cnt             (lookup-cont sto loc))
-   `(,(Lst id′) ,cnt ,sto ,(Σ̂ (update-def-ξ Σ₂ 𝓁 (extend-ξ ξ_defs nam val))
-                              scpsₚ scpsᵤ))
+   `(,(Lst id′) ,cnt ,sto ,(Σ̂ (extend-def-ξ Σ₂ 𝓁 nam val) scpsₚ scpsᵤ))
    ev-slbsm″]
 
   ;; local expand

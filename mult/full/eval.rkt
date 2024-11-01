@@ -40,6 +40,15 @@
               #:when (hash? ξ)
               (pure ξ)))
 
+        ;; extend-def-ξ : Σ 𝓁 nam at → Σ
+        (define (extend-def-ξ Σ₀ 𝓁 nam at)
+          (Σ (Σ-size Σ₀) (hash-update (Σ-tbl Σ₀) 𝓁
+                                      (λ (vs)
+                                        (for/set ([ξ vs])
+                                          (if (hash? ξ)
+                                            (extend-ξ ξ nam at)
+                                            ξ))))))
+
         ;; lookup-box : Σ 𝓁 → (SetM Val)
         (define (lookup-box Σ 𝓁)
           (do val <- (lookup-Σ Σ 𝓁)

@@ -19,17 +19,11 @@
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
-            (only mstore^    lookup-Σ alloc-name alloc-scope)
+            (only mstore^    lookup-Σ lookup-κ alloc-name alloc-scope)
             (only   bind^    bind resolve)
             (only  parse^    parse)]
 
-  #:do [;; lookup-κ : Σ 𝓁 → (SetM κ)
-        (define (lookup-κ Σ 𝓁)
-          (do κ <- (lookup-Σ Σ 𝓁)
-              #:when (or (κ? κ) (eq? κ '●))
-              (pure κ)))
-
-        ;; id=? : Ph Id Nam Σ → (SetM Boolean)
+  #:do [;; id=? : Ph Id Nam Σ → (SetM Boolean)
         (define (id=? ph id nam Σ)
           (do nam′ <- (resolve ph id Σ)
               (pure (eq? nam nam′))))]
