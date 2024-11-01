@@ -31,7 +31,6 @@
 (define-term ζ        phases:ζ      (Σ̂) #:remove [Σ])
 
 ;; used only in full
-(define-term LBind2   Val           (scps_p scps_u))
 (define-term Defs     Atom          (scp 𝓁))
 
 
@@ -42,8 +41,7 @@
             (InExpand ζ state)
             (κ        stxξ scpsₚ scpsᵤ 𝓁)
             (ζ        stxξ κ Σ̂)
-            (LBind2   scpsₚ scpsᵤ)
             (Defs     scp 𝓁))
           (syntax-local-value #'phases:#%term-forms)))
 
-(use-terms Stxξ AstEnv Σ̂ InExpand κ ζ LBind2 Defs)
+(use-terms Stxξ AstEnv Σ̂ InExpand κ ζ Defs)

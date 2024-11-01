@@ -20,20 +20,17 @@
 (define-term Atom Val   ())
 (define-term List Val   ())
 
-(define-term Prim Val   (nam stx))       ;; primitive functions
-                                         ;;   stx is used for alloc-box
-                                         ;;   and alloc-def-ξ
-(define-term VFun Val   (vars ast env))  ;; lambda
-
-;; Literal values
 (define-term Bool Atom  (b))
 (define-term Num  Atom  (n))
 (define-term Sym  Atom  (nam))
+(define-term Stx  Atom  (e ctx))        ;; Syntax objects
+(define-term VFun Atom  (vars ast env)) ;; lambda
+(define-term Prim Atom  (nam stx))      ;; primitive functions
+                                        ;;   stx is used for alloc-box
+                                        ;;   and alloc-def-ξ
 
 (define-term Null List  ())
 (define-term Pair List  (a d))
-
-(define-term Stx  Atom  (e ctx)) ;; Syntax objects (a subset of values)
 
 ;;;; ----------------------------------------
 ;;;; Internal Configurations
