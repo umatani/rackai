@@ -15,7 +15,7 @@
 ;; Implementation of Domains:
 
 ;; α : (Setof Val) → (Setof Val)
-(define α  identity)
+(define α identity)
 
 ;; ≤ₐ : (Setof Val) (Setof Val) → Boolean
 (define ≤ₐ ⊆)

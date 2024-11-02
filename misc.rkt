@@ -67,7 +67,7 @@
   (andmap StoBind? (set→list sbs)))
 
 ;; update-sbs : (Setof StoBind) Scps Nam → (Setof StoBind)
-(define (update-sbs sbs scps nam)
+(define (update-sbs sbs scps′ nam)
   (for/set ([sb (in-set sbs)])
     (match-define (StoBind scps nams) sb)
-    (StoBind scps (if (set=? scps scps) (set-add nams nam) nams))))
+    (StoBind scps (if (set=? scps scps′) (set-add nams nam) nams))))

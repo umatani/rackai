@@ -15,7 +15,8 @@
 (export parse^)
 
 ;; ----------------------------------------
-;; Simple parsing of already-expanded code
+;; Parsing of already-expanded code
+;;   rewrite with open recursions to enable hooks in abs
 
 ;; build-vars : (Listof Id) → (SetM (Listof Var))
 (define (build-vars ids Σ)
@@ -88,51 +89,7 @@
                 e <- ((prs1 prs1 prs*) stx_else Σ)
                 (pure (If (gensym 'if) c t e)))]
            [else (error 'parse "unknown op: ~a\n" op)]))]
-    [_ (error 'parse "unknown form: ~a\n" (lst→list/recur (stx→datum stx)))]
-
-    ;; ; (lambda (id ...) stx_body)
-    ;; [(Stx (Lst (? (core-form? 'lambda Σ))
-    ;;            (Stx (? proper-stl? stl_ids) _)
-    ;;            stx_body) _)
-    ;;  (do vs <- (build-vars (lst→list stl_ids) Σ)
-    ;;      b  <- ((prs1 prs1 prs*) stx_body     Σ)
-    ;;      (pure (Fun vs b)))]
-    
-    ;; ; (let ([id stx_rhs] ...) stx_body)
-    ;; [(Stx (Lst (? (core-form? 'let Σ))
-    ;;            (Stx (? proper-stl? stl_binds) _)
-    ;;            stx_body) _)
-    ;;  (do (values stl_ids stl_rhs) := (unzip stl_binds)
-    ;;      vs <- (build-vars (lst→list stl_ids) Σ)
-    ;;      as <- ((prs* prs1 prs*) stl_rhs      Σ)
-    ;;      b  <- ((prs1 prs1 prs*) stx_body     Σ)
-    ;;      (pure (App (gensym 'let) (Fun vs b) as)))]
-
-    ;; ; (quote stx)
-    ;; [(Stx (Lst (? (core-form? 'quote Σ)) stx) _)
-    ;;  (pure (let ([datum (strip stx)])
-    ;;          (if (prim? datum)
-    ;;            (Prim datum stx)
-    ;;            datum)))]
-
-    ;; ; (syntax stx)
-    ;; [(Stx (Lst (? (core-form? 'syntax Σ)) stx) _)
-    ;;  (pure stx)]
-
-    ;; ; (#%app stx_fun stx_arg ...)
-    ;; [(Stx (Pair (? (core-form? '#%app Σ))
-    ;;             (Stx (Pair stx_fun stl_args) _)) _)
-    ;;  (do f  <- ((prs1 prs1 prs*) stx_fun  Σ)
-    ;;      as <- ((prs* prs1 prs*) stl_args Σ)
-    ;;      (pure (App (gensym 'app) f as)))]
-
-    ;; ; (if stx stx stx)
-    ;; [(Stx (Lst (? (core-form? 'if Σ)) stx_test stx_then stx_else) _)
-    ;;  (do c <- ((prs1 prs1 prs*) stx_test Σ)
-    ;;      t <- ((prs1 prs1 prs*) stx_then Σ)
-    ;;      e <- ((prs1 prs1 prs*) stx_else Σ)
-    ;;      (pure (If (gensym 'if) c t e)))]
-    ))
+    [_ (error 'parse "unknown form: ~a\n" (lst→list/recur (stx→datum stx)))]))
 
 
 
