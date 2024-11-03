@@ -3,6 +3,7 @@
  racket/unit
  "../../reduction.rkt"
  (only-in "../../mix.rkt"            define-mixed-unit inherit)
+ (only-in "../../misc.rkt"           update-store* alloc-loc*)
  "../../signatures.rkt"
  "../../base/core/terms.rkt"
  (only-in "../../base/core/eval.rkt" [--> base:-->]))
@@ -15,8 +16,8 @@
   #:import [(only common^    push-cont)
             (only domain^    val?)
             (only    env^    lookup-env extend-env*)
-            (only  store^    lookup-store update-store* alloc-loc*
-                             lookup-cont lookup-val)])
+            (only  store^    lookup-store update-store
+                             alloc-loc lookup-cont lookup-val)])
 
 (define-unit-from-reduction red@ -->)
 

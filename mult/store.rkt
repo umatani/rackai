@@ -12,7 +12,7 @@
 (define-mixed-unit store@
   (import  (only domain^    val?))
   (export  store^)
-  (inherit [base:store@ init-store alloc-loc alloc-loc*])
+  (inherit [base:store@ init-store alloc-loc])
 
   ;;;; Set-based heap
 
@@ -25,13 +25,6 @@
     (Store (Store-size sto)
            (hash-update (Store-tbl sto) loc
                         (λ (us) (set-add us u)) ∅)))
-
-  ;; update-store* : Store (Listof Loc) (Listof (U Val Cont)) → Store
-  (define (update-store* sto locs us)
-    (Store (Store-size sto)
-           (foldl (λ (loc u tbl)
-                    (hash-update tbl loc (λ (us) (set-add us u)) ∅))
-                  (Store-tbl sto) locs us)))
 
   ;; lookup-cont : Store Loc → (SetM Cont)
   (define (lookup-cont sto loc)

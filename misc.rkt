@@ -1,12 +1,14 @@
 #lang racket/base
 (require
  (for-syntax racket/base syntax/parse)
- (only-in racket/match   match-define)
+ (only-in racket/match   match match-define)
  (only-in racket/list    empty? first second rest)
  (only-in "set.rkt"      set ∅ ∪ set-subtract ⊆ set-size set-add
                          set=? set→list for/set in-set)
  "terms.rkt")
-(provide require&provide union subtract biggest-subset binding-lookup
+(provide require&provide
+         update-store* alloc-loc*
+         union subtract biggest-subset binding-lookup
          set-of-stobind? update-sbs)
 
 (begin-for-syntax
@@ -25,6 +27,25 @@
      #'(begin
          (require mod ...)
          (provide (all-from-out mod) ...))]))
+
+;;;; Simple iterations
+
+;; update-store* : Store (Listof Loc) (Listof (U Val Cont)) → Store
+(define (update-store* update-store sto locs us)
+  (foldl (λ (loc u sto) (update-store sto loc u))
+         sto locs us))
+
+;; alloc-loc* : (Listof Nam) Store → (Values (Listof Loc) Store)
+;;   - for eval-time value binding
+(define (alloc-loc* alloc-loc nams sto)
+  (match nams
+    ['()
+     (values '() sto)]
+    [(list nam nams ...)
+     (let*-values ([(loc  sto′) (alloc-loc            nam  sto)]
+                   [(locs sto″) (alloc-loc* alloc-loc nams sto′)])
+       (values (cons loc locs) sto″))]))
+
 
 
 ;;;; Scope-set utilities

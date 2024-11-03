@@ -21,11 +21,6 @@
 (define (update-store sto loc u)
   (Store (Store-size sto) (hash-set (Store-tbl sto) loc u)))
 
-;; update-store* : Store (Listof Loc) (Listof (U Val Cont)) → Store
-(define (update-store* sto locs us)
-  (foldl (λ (loc u sto) (update-store sto loc u))
-         sto locs us))
-
 ;; lookup-cont : Store Loc → Cont
 (define (lookup-cont sto loc)
   (lookup-store sto loc))
@@ -34,23 +29,11 @@
 (define (lookup-val sto loc)
   (lookup-store sto loc))
 
-;; alloc-loc : Symbol Store → (Values Loc Store)
-;;   - called from push-cont
-;;   - a unique lbl is generated for each App and If during parse
+;; alloc-loc : Nam Store → (Values Loc Store)
+;;   - called via alloc-loc*.
+;;   - also called directly from push-cont.
+;;     Unique lbl is generated for each App and If during parse.
 (define (alloc-loc lbl sto)
   (let ([size (Store-size sto)])
     (values (string->symbol (format "~a::~a" lbl size))
             (Store (add1 size) (Store-tbl sto)))))
-
-;; alloc-loc* : (Listof Nam) Store → (Values (Listof Loc) Store)
-;;   - for eval-time value binding
-(define (alloc-loc* nams sto)
-  (match nams
-    ['()
-     (values '() sto)]
-    [(list nam nams ...)
-     (let* ([size (Store-size sto)]
-            [loc (string->symbol (format "~a:~a" nam size))])
-       (let-values
-           ([(locs sto′) (alloc-loc* nams (Store (add1 size) (Store-tbl sto)))])
-         (values (cons loc locs) sto′)))]))

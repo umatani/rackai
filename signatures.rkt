@@ -133,13 +133,10 @@
   (init-store    ; → Store
    lookup-store  ; Store Loc              → (U Val Cont)
    update-store  ; Store Loc (U Val Cont) → Store
-   update-store* ; Store (Listof Loc) (Listof (U Val Cont)) → Store
-
    lookup-cont   ; Store Loc → Cont
    lookup-val    ; Store Loc → Val
 
    alloc-loc     ; Symbol       Store → (Values         Loc  Store)
-   alloc-loc*    ; (Listof Nam) Store → (Values (Listof Loc) Store)
    ))
 
 ;; ----------------------------------------

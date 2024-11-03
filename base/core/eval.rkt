@@ -1,10 +1,11 @@
 #lang racket/base
 (require
  racket/unit
- (only-in racket/match match-let)
+ (only-in racket/match     match-let)
  "../../reduction.rkt"
- (only-in "../../set.rkt" set)
- (only-in "../../mix.rkt" define-mixed-unit inherit)
+ (only-in "../../set.rkt"  set)
+ (only-in "../../mix.rkt"  define-mixed-unit inherit)
+ (only-in "../../misc.rkt" update-store* alloc-loc*)
  "../../signatures.rkt"
  "terms.rkt")
 (provide --> eval@)
@@ -18,8 +19,9 @@
   #:import [(only common^    push-cont)
             (only domain^    val?)
             (only    env^    lookup-env extend-env*)
-            (only  store^    lookup-store alloc-loc* update-store*
-                             lookup-cont lookup-val)]
+            (only  store^    lookup-store update-store
+                             lookup-cont lookup-val
+                             alloc-loc)]
 
   #:default [`(,(AstEnv ast env) ,cnt ,sto) ;; for debug
              (printf "eval: unknown form ~a\n" ast)]
@@ -62,9 +64,9 @@
   ;; β
   [`(,(VFun vars ast env) ,(KApp′ args _env loc) ,sto)
    (:=    `(,(Var nams) ...) vars)
-   (:=    (values locs sto′) (alloc-loc* nams sto))
+   (:=    (values locs sto′) (alloc-loc* alloc-loc nams sto))
    (:=    env′               (extend-env* env vars locs))
-   (:=    sto″               (update-store* sto′ locs args))
+   (:=    sto″               (update-store* update-store sto′ locs args))
    (:=<1> cnt                (lookup-cont sto″ loc))
    `(,(AstEnv ast env′) ,cnt ,sto″)
    ev-β]

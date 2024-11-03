@@ -5,6 +5,7 @@
  (only-in racket/match     match match-let match-λ match-λ**)
  (only-in "../../set.rkt"  set ∅ set-add)
  (only-in "../../mix.rkt"  define-mixed-unit inherit)
+ (only-in "../../misc.rkt" update-store* alloc-loc*)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "terms.rkt")
@@ -16,8 +17,8 @@
             (only domain^    val? stx?)
             (only syntax^    add flip prune)
             (only    env^    init-env lookup-env extend-env*)
-            (only  store^    lookup-store update-store* alloc-loc*
-                             lookup-cont lookup-val)
+            (only  store^    lookup-store update-store
+                             alloc-loc lookup-cont lookup-val)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
             (only mstore^    alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
             (only   bind^    bind resolve)
@@ -329,9 +330,9 @@
      ,sto ,Σ̂)
    #:checkpoint (printf "ev-β\n")
    (:=    `(,(Var nams) ...) vars)
-   (:=    (values locs sto′) (alloc-loc* nams sto))
+   (:=    (values locs sto′) (alloc-loc* alloc-loc nams sto))
    (:=    env′               (extend-env* env vars locs))
-   (:=    sto″               (update-store* sto′ locs args))
+   (:=    sto″               (update-store* update-store sto′ locs args))
    (:=<1> cnt                (lookup-cont sto″ loc))
    `(,(AstEnv ph ast env′ maybe-scpᵢ ξ) ,cnt ,sto″ ,Σ̂)
    ev-β]

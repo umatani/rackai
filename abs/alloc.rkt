@@ -17,34 +17,19 @@
 (define-mixed-unit store@
   (import)
   (export  store^)
-  (inherit [mult:store@    init-store lookup-store update-store update-store*
+  (inherit [mult:store@    init-store lookup-store update-store
                            lookup-cont lookup-val])
 
   (define all-locs (r:mutable-seteq))
 
   ;; alloc-loc : Symbol Store -> (Values Loc Store)
-  ;;   - called only from push-cont
+  ;;   - called from push-cont
   ;;   - a unique lbl is generated for each App and If form during parse
-  (define (alloc-loc lbl st)
+  (define (alloc-loc lbl sto)
     (let ([loc (string->symbol (format "~a::" lbl))])
-      (if (r:set-member? all-locs loc)
-        (void) ;(printf "duplicate loc: ~a\n" loc)
+      (unless (r:set-member? all-locs loc)
         (r:set-add! all-locs loc))
-      (values loc st)))
-
-  ; alloc-loc* : (Listof Nam) Store -> (Values (Listof Loc) Store)
-  ;   for eval-time value binding
-  ;; TODO: alloc-locを使うeval中の定義があれば，これは不要
-  (define (alloc-loc* nams st)
-    (match nams
-      ['() (values '() st)]
-      [(list nam1 nams ...)
-       (let-values ([(locs _) (alloc-loc* nams st)])
-         (let ([loc (string->symbol (format "~a:" nam1))])
-           (if (r:set-member? all-locs loc)
-             (void) ;(printf "duplicate loc: ~a\n" loc)
-             (r:set-add! all-locs loc))
-           (values (cons loc locs) st)))])))
+      (values loc sto))))
 
 
 (define-mixed-unit mstore@

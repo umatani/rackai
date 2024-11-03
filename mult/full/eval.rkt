@@ -4,6 +4,7 @@
  (only-in racket/match               match match-λ**)
  (only-in "../../set.rkt"            set ∅ ∅? set-add for/set)
  (only-in "../../mix.rkt"            define-mixed-unit inherit)
+ (only-in "../../misc.rkt"           update-store* alloc-loc*)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/full/terms.rkt"
@@ -16,7 +17,7 @@
             (only domain^    val? stx?)
             (only syntax^    add flip prune)
             (only    env^    init-env lookup-env extend-env*)
-            (only  store^    lookup-store update-store* alloc-loc*)
+            (only  store^    lookup-store update-store alloc-loc)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
             (only mstore^    alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
             (only   bind^    bind resolve)

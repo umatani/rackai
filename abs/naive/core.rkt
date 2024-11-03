@@ -10,6 +10,7 @@
  (only-in "../../nondet.rkt"           do := <- pure lift results)
  (only-in "../../set.rkt"              set ∅? set→list)
  (only-in "../../mix.rkt"              define-mixed-unit inherit)
+ (only-in "../../misc.rkt"             update-store* alloc-loc*)
  (only-in "../../syntax.rkt"           snoc stx→datum)
  "../../test/suites.rkt"
  "../../base/core/terms.rkt"
@@ -91,8 +92,8 @@
 (define-reduction (--> δ) #:super (mult:--> δ)
   #:import [(only common^    push-cont)
             (only    env^    extend-env* lookup-env)
-            (only  store^    update-store* lookup-store
-                             lookup-cont lookup-val alloc-loc*)]
+            (only  store^    lookup-store update-store
+                             lookup-cont lookup-val alloc-loc)]
   ;; β (val-⊤ ...)
   [`(,f ,(KApp′ _args _env loc) ,sto)
    #:when (equal? f val-⊤)
@@ -102,9 +103,9 @@
 
   [`(,(VFun vars ast env) ,(KApp′ args _env loc) ,sto)
    (:= `(,(Var nams) ...) vars)
-   (:= (values locs sto′) (alloc-loc* nams sto))
+   (:= (values locs sto′) (alloc-loc* alloc-loc nams sto))
    (:= env′               (extend-env* env vars locs))
-   (:= sto″               (update-store* sto′ locs args))
+   (:= sto″               (update-store* update-store sto′ locs args))
    (<- cnt                (lookup-cont sto″ loc))
    `(,(AstEnv ast env′) ,cnt ,sto″)
    ev-β]

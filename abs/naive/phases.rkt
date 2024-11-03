@@ -33,7 +33,7 @@
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
-            (only mstore^    lookup-Σ alloc-name alloc-scope)
+            (only mstore^    lookup-Σ lookup-κ alloc-name alloc-scope)
             (only   bind^    bind resolve)
             (only  parse^    parse)]
 

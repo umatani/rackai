@@ -9,7 +9,7 @@
                                        enable-tracing)
  (only-in "../../nondet.rkt"           do := <- pure lift results)
  (only-in "../../mix.rkt"              define-mixed-unit inherit)
- (only-in "../../misc.rkt"             union)
+ (only-in "../../misc.rkt"             update-store* alloc-loc*)
  (only-in "../../set.rkt"              set ∅ set-add for/set)
  (only-in "../../syntax.rkt"           snoc stx→datum)
  "../../test/suites.rkt"
@@ -31,7 +31,7 @@
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
-            (only mstore^    lookup-Σ alloc-name alloc-scope)
+            (only mstore^    lookup-Σ lookup-κ alloc-name alloc-scope)
             (only   bind^    bind resolve)
             (only  parse^    parse)]
 
@@ -95,9 +95,9 @@
   #:import [(only common^    push-cont)
             (only syntax^    add flip prune)
             (only    env^    init-env lookup-env extend-env*)
-            (only  store^    lookup-store update-store* alloc-loc*)
+            (only  store^    lookup-store update-store alloc-loc)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
-            (only mstore^    alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
+            (only mstore^    lookup-Σ update-Σ alloc-name alloc-scope alloc-𝓁)
             (only   bind^    bind resolve)
             (only  parse^    parse)]
   ;; (syntax-local-value <abs> _ ...)
