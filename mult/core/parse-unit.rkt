@@ -14,7 +14,7 @@
  (only   bind^    resolve))
 (export parse^)
 
-;; ----------------------------------------
+;; -----------------------------------------------------
 ;; Parsing of already-expanded code
 ;;   rewrite with open recursions to enable hooks in abs
 

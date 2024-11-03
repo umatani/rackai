@@ -39,7 +39,11 @@
             (and (eq? nam nam′) (not (TStop? (lookup-ξ ξ nam))))))]
 
   #:default [(ζ (Stxξ ph stx ξ) κ Σ̂) ;; for debug
-             (printf "default: ~a\n" (lst→list/recur (stx→datum stx)))]
+             (if (id? stx)
+               (printf "expand: unbound identifier: ~a\n"
+                       (Sym-nam (Stx-e stx)))
+               (printf "expand: unknown form ~a\n"
+                       (lst→list/recur (stx→datum stx))))]
 
   ;; stops
   [(ζ (Stxξ ph (and (Stx (Lst (? id? id) . _stl) _ctx) stx) ξ)
@@ -339,13 +343,11 @@
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
    (:=<1> nam           (resolve ph id Σ₀))
    (:=<1> at            (lookup-ξ ξ nam))
-   (:=    (values 𝓁 Σ₁) (push-κ Σ₀ id κ₀))
-   (match at
-     [(TVar id′)
-      (ζ id′
-         (κ (Hole) scpsₚ scpsᵤ 𝓁)
-         (Σ̂ Σ₁ ∅ ∅))]
-     [_ (error '==>f "unbound identifier: ~a" nam)])
+   #:when (TVar? at)
+   (:= (values 𝓁 Σ₁) (push-κ Σ₀ id κ₀))
+   (ζ (TVar-id at)
+      (κ (Hole) scpsₚ scpsᵤ 𝓁)
+      (Σ̂ Σ₁ ∅ ∅))
    ex-var]
 
   ;; literal

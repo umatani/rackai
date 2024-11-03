@@ -38,7 +38,11 @@
           (eq? (resolve ph id Σ) nam))]
 
   #:default [(ζ (Stxξ ph stx ξ scpsₚ) κ Σ) ;; for debug
-             (printf "default: ~a\n" (lst→list/recur (stx→datum stx)))]
+             (if (id? stx)
+               (printf "expand: unbound identifier: ~a\n"
+                       (Sym-nam (Stx-e stx)))
+               (printf "expand: unknown form ~a\n"
+                       (lst→list/recur (stx→datum stx))))]
 
   ;; lambda
   [(ζ (Stxξ ph (and (Stx (Lst (? id? id_lam)
@@ -284,9 +288,9 @@
       κ Σ)
    (:=<1> nam (resolve ph id Σ))
    (:=<1> at  (lookup-ξ ξ nam))
-   (match at
-     [(TVar id′) (ζ id′ κ Σ)]
-     [_ (error '==>p "unbound identifier: ~a" nam)])
+   #:when (TVar? at)
+   (ζ (TVar-id at)
+      κ Σ)
    ex-var]
 
   ;; literal

@@ -14,8 +14,9 @@
  (only   bind^    resolve))
 (export parse^)
 
-;; ----------------------------------------
-;; Simple parsing of already-expanded code
+;; -----------------------------------------------------
+;; parsing of already-expanded code
+;;   rewrite with open recursions to enable hooks in abs
 
 ;; build-vars : Ph (Listof Id) → (SetM (Listof Var))
 (define (build-vars ph ids Σ)

@@ -34,36 +34,7 @@
                (printf "expand: unbound identifier: ~a\n"
                        (Sym-nam (Stx-e stx)))
                (printf "expand: unknown form ~a\n"
-                       (lst→list/recur (stx→datum stx))))]
-
-  ;; application (free var ref)
-  [(ζ (Stxξ ph (and (Stx (Lst stx_f . stl) ctx) stx) ξ)
-      κ₀ (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   #:when (id? stx_f)
-   (<- nam (resolve ph stx_f Σ₀))
-   (<- at  (lookup-ξ ξ nam))
-   #:when (and (eq? at 'not-found)
-               (not (member nam
-                            '(lambda let quote syntax let-syntax if
-                               #%app #%kont #%seq #%snoc))))
-   (:= id_app        (Stx (Sym '#%app) ctx))
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
-   (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_f . stl) ctx) ξ)
-      (κ (Stx (Pair id_app (Hole)) ctx) scpsₚ scpsᵤ 𝓁)
-      (Σ̂ Σ₁ scpsₚ ∅))
-   ex-app-free]
-
-  ;; reference
-  [(ζ (Stxξ ph (? id? id) ξ)
-      κ₀ (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (<- nam (resolve ph id Σ₀))
-   (<- at  (lookup-ξ ξ nam))
-   #:when (TVar? at)
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ id κ₀))
-   (ζ (TVar-id at)
-      (κ (Hole) scpsₚ scpsᵤ 𝓁)
-      (Σ̂ Σ₁ ∅ ∅))
-   ex-var])
+                       (lst→list/recur (stx→datum stx))))])
 
 (define-unit-from-reduction red@ ==>)
 
