@@ -3,16 +3,12 @@
  racket/unit
  "../interpreter.rkt"
  "../signatures.rkt"
- (only-in "../reduction.rkt" enable-tracing)
  "../test/suites.rkt"
- "../base/phases/terms.rkt"
  (only-in "../mult/phases/units.rkt"
-          common@ bind@ io@ debug@ syntax@ expander@ domain@ env@ menv@ run@
-          parse@ parser@ [bind@ mult:bind@])
- (only-in "../mult/phases/units.rkt"  eval@ expand@)
- (only-in "alloc.rkt"                 store@ mstore@)
- (only-in "core.rkt"                  evaluator@))
-(provide syntax@ main-minus@ interp)
+          common@ bind@ io@ debug@ syntax@ eval@ evaluator@
+          expand@ expander@ domain@ env@ menv@ run@ parse@ parser@)
+ (only-in "alloc.rkt" store@ mstore@))
+(provide main-minus@ interp)
 
 
 ;;;; Main

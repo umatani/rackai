@@ -3,40 +3,12 @@
  racket/unit
  "../interpreter.rkt"
  "../signatures.rkt"
- (only-in "../reduction.rkt" apply-reduction* enable-tracing)
- (only-in "../nondet.rkt"    do <- pure lift)
- (only-in "../set.rkt"       ∅)
  "../test/suites.rkt"
- "../base/core/terms.rkt"
  (only-in "../mult/core/units.rkt"
           common@ bind@ io@ debug@ expand@ expander@ syntax@ domain@
-          env@ menv@ run@ eval@ parse@ parser@ [bind@ mult:bind@])
- (only-in "../mult/core/expand.rkt" [==> mult:==>] define-expand-unit)
- (only-in "alloc.rkt"               store@ mstore@))
-(provide syntax@ evaluator@ main-minus@
-         interp eval-->* expand==>*)
-
-
-;;;; Evaluator
-;;;;   filter out stuck states
-
-(define-unit evaluator@
-  (import
-   (only   env^    init-env)
-   (only store^    init-store)
-   (only  eval^    -->))
-  (export evaluator^)
-
-  ;; evaluator : Ast → (SetM Val)
-  (define (evaluator δ ast)
-    (define -->d (--> δ))
-
-    (do `(,val ,done? ,_store) <- (apply-reduction*
-                                   -->d `(,(AstEnv ast (init-env))
-                                          ● ,(init-store)))
-        (if (and (val? val) (eq? done? '●))
-          (pure val)
-          (lift ∅)))))
+          env@ menv@ run@ eval@ evaluator@ parse@ parser@)
+ (only-in "alloc.rkt" store@ mstore@))
+(provide main-minus@ interp)
 
 
 ;;;; Main

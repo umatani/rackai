@@ -3,17 +3,13 @@
  racket/unit
  "../interpreter.rkt"
  "../signatures.rkt"
- (only-in "../reduction.rkt" enable-tracing)
  "../test/suites.rkt"
- "../base/full/terms.rkt"
  (only-in "../mult/full/units.rkt"
           common@ bind@ io@ syntax@ debug@ domain@ env@ menv@ run@
           eval@ evaluator@ parse@ parser@ expand@ expander@)
  (only-in "alloc.rkt"  store@ mstore@))
-(provide syntax@ main-minus@ interp)
+(provide main-minus@ interp)
 
-
-;;;; full/mult's evaluator already filters out stuck states
 
 ;;;; Main
 

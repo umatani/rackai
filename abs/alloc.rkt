@@ -22,9 +22,9 @@
 
   (define all-locs (r:mutable-seteq))
 
-  ; alloc-loc : Symbol Store -> (Values Loc Store)
-  ;   - called only from push-cont
-  ;   - a unique lbl is generated for each App and If form during parse
+  ;; alloc-loc : Symbol Store -> (Values Loc Store)
+  ;;   - called only from push-cont
+  ;;   - a unique lbl is generated for each App and If form during parse
   (define (alloc-loc lbl st)
     (let ([loc (string->symbol (format "~a::" lbl))])
       (if (r:set-member? all-locs loc)
@@ -34,6 +34,7 @@
 
   ; alloc-loc* : (Listof Nam) Store -> (Values (Listof Loc) Store)
   ;   for eval-time value binding
+  ;; TODO: alloc-locを使うeval中の定義があれば，これは不要
   (define (alloc-loc* nams st)
     (match nams
       ['() (values '() st)]
