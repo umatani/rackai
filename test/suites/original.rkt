@@ -32,8 +32,30 @@
 
 ;; full examples
 
+(define ex-defs-bind-var
+  '[defs-bind-var
+    (let-syntax ((q (lambda (stx)
+                      (let ((defs (syntax-local-make-definition-context)))
+                        (let ((ignored #;1   ;; causes unbound-variable error
+                                       (syntax-local-bind-syntaxes
+                                        (list (second (syntax-e stx)))
+                                        #f
+                                        defs)))
+                          (let ((new-x (local-expand
+                                        (second (syntax-e stx))
+                                        'expression
+                                        '()
+                                        defs)))
+                            (datum->syntax #'here
+                                           (list #'lambda
+                                                 (datum->syntax #'here
+                                                                (list new-x))
+                                                 new-x))))))))
+      ((q x) 100))])
+
+
 (define full:examples
-  (list))
+  (list ex-defs-bind-var))
 
 ;; finite exapmles
 

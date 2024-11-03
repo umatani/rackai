@@ -23,6 +23,9 @@
             (only   bind^    bind resolve)
             (only  parse^    parse)]
 
+  #:default [`(,(AstEnv ph ast env maybe-scpᵢ ξ) ,cnt ,sto ,Σ̂) ;; for debug
+             (printf "eval: unknown form ~a\n" ast)]
+
   #:do [;; resolve* : Ph (Listof Id) Σ → (Listof Nam))
         (define (resolve* ph ids Σ)
           (map (λ (id) (resolve ph id Σ)) ids))

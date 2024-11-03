@@ -28,14 +28,7 @@
   #:do [;; id=? : Id Nam Σ → (SetM Boolean)
         (define (id=? id nam Σ)
           (do nam′ <- (resolve id Σ)
-              (pure (eq? nam nam′))))]
-
-  #:default [(ζ (Stxξ stx ξ) κ Σ) ;; for debug
-             (if (id? stx)
-               (printf "expand: unbound identifier: ~a\n"
-                       (Sym-nam (Stx-e stx)))
-               (printf "expand: unknown form ~a\n"
-                       (lst→list/recur (stx→datum stx))))])
+              (pure (eq? nam nam′))))])
 
 (define-unit-from-reduction red@ ==>)
 

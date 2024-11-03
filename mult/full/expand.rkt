@@ -2,7 +2,6 @@
 (require
  racket/unit
  (only-in racket/match                 match)
- (only-in "../../misc.rkt"             union)
  (only-in "../../set.rkt"              set ∅ ∅? set-add set→list)
  (only-in "../../mix.rkt"              define-mixed-unit inherit)
  (only-in "../../syntax.rkt"           snoc stx→datum)
@@ -27,14 +26,7 @@
         (define (id=? ph id nam ξ Σ)
           (do nam′ <- (resolve ph id Σ)
               at   <- (lookup-ξ ξ nam)
-              (pure (and (eq? nam nam′) (not (TStop? at))))))]
-
-  #:default [(ζ (Stxξ ph stx ξ) κ Σ̂) ;; for debug
-             (if (id? stx)
-               (printf "expand: unbound identifier: ~a\n"
-                       (Sym-nam (Stx-e stx)))
-               (printf "expand: unknown form ~a\n"
-                       (lst→list/recur (stx→datum stx))))])
+              (pure (and (eq? nam nam′) (not (TStop? at))))))])
 
 (define-unit-from-reduction red@ ==>)
 

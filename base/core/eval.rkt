@@ -21,6 +21,9 @@
             (only  store^    lookup-store alloc-loc* update-store*
                              lookup-cont lookup-val)]
 
+  #:default [`(,(AstEnv ast env) ,cnt ,sto) ;; for debug
+             (printf "eval: unknown form ~a\n" ast)]
+
   ;; value
   [`(,(AstEnv (? val? val) _env) ,cnt ,sto)
    `(,val ,cnt ,sto)
