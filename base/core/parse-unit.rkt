@@ -2,12 +2,12 @@
 (require
  (only-in racket/match       match match-define)
  (only-in "../../nondet.rkt" pure)
+ (only-in "../../syntax.rkt" unzip strip)
  "../../signatures.rkt"
  "terms.rkt")
 
 (import
- (only domain^    proper-stl?)
- (only syntax^    unzip strip)
+ (only syntax^    proper-stl?)
  (only   bind^    resolve))
 (export parse^)
 

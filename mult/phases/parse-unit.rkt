@@ -2,15 +2,14 @@
 (require
  (only-in racket             match match-define)
  (only-in "../../nondet.rkt" do := <- pure)
- (only-in "../../syntax.rkt" stx→datum)
+ (only-in "../../syntax.rkt" stx→datum unzip strip)
  "../../signatures.rkt"
  "../../base/phases/terms.rkt")
 
 ;; Non-deterministic parsing
 
 (import
- (only domain^    proper-stl?)
- (only syntax^    unzip strip)
+ (only syntax^    proper-stl?)
  (only   bind^    resolve))
 (export parse^)
 

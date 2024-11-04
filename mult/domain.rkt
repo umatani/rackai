@@ -13,7 +13,7 @@
 (define-mixed-unit domain@
   (import)
   (export domain^)
-  (inherit [base:domain@ α ≤ₐ [base:δ δ] val? stx? stl? proper-stl?])
+  (inherit [base:domain@ α ≤ₐ [base:δ δ] val? stx?])
 
   ; δ : Prim (Listof Val) → (SetM Val)
   (define (δ p vs) (pure (base:δ p vs))))

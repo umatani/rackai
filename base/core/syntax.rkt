@@ -9,20 +9,12 @@
 (provide syntax@)
 
 (define-unit syntax@
-  (import)
+  (import
+   (only  domain^    stx?))
   (export syntax^)
 
   ;; ----------------------------------------
   ;; Syntax-object operations:
-
-  ;; not used in core
-  (define (at-phase   . _args) (error "must not be used"))
-  (define (prune      . _args) (error "must not be used"))
-  (define (update-ctx . _args) (error "must not be used"))
-
-  (define zip      common:zip)
-  (define unzip    common:unzip)
-  (define strip    common:strip)
 
   ;; empty-ctx : → Scps
   (define (empty-ctx) ∅)
@@ -46,4 +38,8 @@
   ;;   Pushes flipping a scope down through a syntax object
   (define (flip stx scp)
     (common:map-ctx stx (λ (ctx) (common:⊕ scp ctx))))
-  )
+
+  ;; proper-stl? : Val → Boolean
+  (define (proper-stl? x)
+    (or (Null? x)
+        (and (Pair? x) (stx? (Pair-a x)) (proper-stl? (Pair-d x))))))

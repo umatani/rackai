@@ -37,8 +37,6 @@
    ≤ₐ            ; (Setof Val) (Setof Val) → Boolean
    val?          ; Ast → Boolean
    stx?          ; Val → Boolean
-   stl?          ; Val → Boolean
-   proper-stl?   ; Val → Boolean
    ))
 
 ;; ----------------------------------------
@@ -147,13 +145,8 @@
 ;; Syntax-object operations:
 (define-signature syntax^
   (empty-ctx     ; → Ctx
-   zip           ; ProperStl ProperStl Ctx → ProperStl
-   unzip         ; ProperStl → (Values ProperStl ProperStl)
    in-hole       ; Stx Stx → Stx
-   strip         ; Stl → Val
    add           ; Stx Scp -> Stx
    flip          ; Stx Scp -> Stx
-   at-phase      ; Ctx Ph -> Scps                       (phases, full)
-   update-ctx    ; Ctx Ph Scps -> Ctx                   (phases, full)
-   prune         ; Ph Stx Scps -> Stx                   (phases, full)
+   proper-stl?   ; Val → Boolean
    ))

@@ -6,10 +6,10 @@
  "../../signatures.rkt"
  "../../base/phases/terms.rkt"
  (only-in "../../misc.rkt"   biggest-subset binding-lookup
-                             update-sbs set-of-stobind?))
+                             update-sbs set-of-stobind?)
+ (only-in "../../syntax.rkt" at-phase))
 
-(import (only syntax^    at-phase)
-        (only mstore^    lookup-Σ update-Σ))
+(import (only mstore^    lookup-Σ update-Σ))
 (export bind^)
 
 ;; bind : Ph Σ Id Nam → Σ

@@ -1,11 +1,12 @@
 #lang racket/base
 (require
  racket/unit
- (only-in racket/pretty    pretty-display)
- (only-in racket/match     match match-let match-λ match-λ**)
- (only-in "../../set.rkt"  set ∅ set-add)
- (only-in "../../mix.rkt"  define-mixed-unit inherit)
- (only-in "../../misc.rkt" update-store* alloc-loc*)
+ (only-in racket/pretty      pretty-display)
+ (only-in racket/match       match match-let match-λ match-λ**)
+ (only-in "../../set.rkt"    set ∅ set-add)
+ (only-in "../../mix.rkt"    define-mixed-unit inherit)
+ (only-in "../../misc.rkt"   update-store* alloc-loc*)
+ (only-in "../../syntax.rkt" prune)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "terms.rkt")
@@ -16,7 +17,7 @@
   #:import [(only common^    push-cont)
             (only   misc^    lookup-cont lookup-val)
             (only domain^    val? stx?)
-            (only syntax^    add flip prune)
+            (only syntax^    add flip)
             (only    env^    init-env lookup-env extend-env*)
             (only  store^    lookup-store update-store
                              alloc-loc)

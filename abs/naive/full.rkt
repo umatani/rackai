@@ -11,7 +11,7 @@
  (only-in "../../mix.rkt"              define-mixed-unit inherit)
  (only-in "../../misc.rkt"             update-store* alloc-loc*)
  (only-in "../../set.rkt"              set ∅ set-add for/set)
- (only-in "../../syntax.rkt"           snoc stx→datum)
+ (only-in "../../syntax.rkt"           stx→datum snoc zip unzip prune at-phase)
  "../../test/suites.rkt"
  "../../base/full/terms.rkt"
  (only-in "../../mult/full/units.rkt"  [parse@ mult:parse@] parser@)
@@ -28,7 +28,7 @@
 (define-reduction (==> -->) #:super (mult:==> -->)
   #:import [(only common^    push-κ regist-vars)
             (only   misc^    lookup-κ)
-            (only syntax^    empty-ctx zip unzip add flip in-hole prune at-phase)
+            (only syntax^    empty-ctx add flip in-hole proper-stl?)
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
@@ -97,7 +97,7 @@
 (define-reduction (--> δ ==>) #:super (mult:--> δ ==>)
   #:import [(only common^    push-cont)
             (only   misc^    lookup-cont lookup-val)
-            (only syntax^    add flip prune)
+            (only syntax^    add flip)
             (only    env^    init-env lookup-env extend-env*)
             (only  store^    lookup-store update-store alloc-loc)
             (only   menv^    init-ξ lookup-ξ extend-ξ)

@@ -10,7 +10,7 @@
  (only-in "../../nondet.rkt"             do := <- pure lift results)
  (only-in "../../mix.rkt"                define-mixed-unit inherit)
  (only-in "../../set.rkt"                set ∅ ∅? set-add set→list)
- (only-in "../../syntax.rkt"             snoc stx→datum)
+ (only-in "../../syntax.rkt"             stx→datum snoc zip unzip prune at-phase)
  "../../test/suites.rkt"
  "../../base/phases/terms.rkt"
 
@@ -29,7 +29,7 @@
 (define-reduction (==> -->) #:super (mult:==> -->)
   #:import [(only common^    push-κ regist-vars)
             (only   misc^    lookup-κ)
-            (only syntax^    empty-ctx zip unzip add flip in-hole prune at-phase)
+            (only syntax^    empty-ctx add flip in-hole proper-stl?)
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)

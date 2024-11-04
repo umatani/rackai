@@ -1,13 +1,13 @@
 #lang racket/unit
 (require
- (only-in racket/match     match-define)
- (only-in "../../set.rkt"  set-add for/set)
+ (only-in racket/match       match-define)
+ (only-in "../../set.rkt"    set-add for/set)
  "../../signatures.rkt"
  "../../terms.rkt"
- (only-in "../../misc.rkt" biggest-subset binding-lookup))
+ (only-in "../../misc.rkt"   biggest-subset binding-lookup)
+ (only-in "../../syntax.rkt" at-phase))
 
-(import (only mstore^    lookup-Σ update-Σ)
-        (only syntax^    at-phase))
+(import (only mstore^    lookup-Σ update-Σ))
 (export bind^)
 
 
