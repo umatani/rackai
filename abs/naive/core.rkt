@@ -28,17 +28,17 @@
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (mult:==> -->)
   #:import [(only common^    push-κ regist-vars)
+            (only   misc^    lookup-κ)
             (only syntax^    empty-ctx zip unzip add flip in-hole)
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
-            (only mstore^    lookup-Σ lookup-κ alloc-name alloc-scope)
+            (only mstore^    lookup-Σ alloc-name alloc-scope)
             (only   bind^    bind resolve)
             (only  parse^    parse)]
 
   #:default [(ζ (Stxξ stx ξ) κ Σ) ;; for debug
              (printf "default: ~a\n" (lst→list/recur (stx→datum stx)))]
-
 
   [(InEval (list stx '● _sto)
            (ζ (Stxξ (Stx (Bool #f) (set _scpᵢ)) ξ)
@@ -46,6 +46,7 @@
    #:when (or (equal? stx val-⊤)
               (equal? stx atom-⊤)
               (equal? stx stx-⊤))
+   #:checkpoint (printf "ex-macapp-abs\n")
    (ζ (Stxξ stx ξ)
       κ Σ)
    ex-macapp-abs]
@@ -58,6 +59,7 @@
               (equal? val sym-⊤)
               (equal? val stx-⊤)
               (equal? val list-⊤))
+   #:checkpoint (printf "ex-abs-⊤\n")
    (ζ val κ Σ)
    ex-abs-⊤])
 
@@ -91,17 +93,19 @@
 ;; --> : State -> (Setof State)
 (define-reduction (--> δ) #:super (mult:--> δ)
   #:import [(only common^    push-cont)
+            (only   misc^    lookup-cont lookup-val)
             (only    env^    extend-env* lookup-env)
-            (only  store^    lookup-store update-store
-                             lookup-cont lookup-val alloc-loc)]
+            (only  store^    lookup-store update-store alloc-loc)]
   ;; β (val-⊤ ...)
   [`(,f ,(KApp′ _args _env loc) ,sto)
    #:when (equal? f val-⊤)
+   #:checkpoint (printf "ev-β-abs\n")
    (<- cnt (lookup-cont sto loc))
    `(,f ,cnt ,sto)
    ev-β-abs]
 
   [`(,(VFun vars ast env) ,(KApp′ args _env loc) ,sto)
+   #:checkpoint (printf "ev-β\n")
    (:= `(,(Var nams) ...) vars)
    (:= (values locs sto′) (alloc-loc* alloc-loc nams sto))
    (:= env′               (extend-env* env vars locs))
@@ -113,6 +117,7 @@
   ;; (if ⊤ ...)
   [`(,(? val? val) ,(KIf _ast₁ ast₂ env loc) ,sto)
    #:when (or (equal? val val-⊤) (equal? val atom-⊤))
+   #:checkpoint (printf "ev-if-abs-#f\n")
    (<- cnt (lookup-cont sto loc))
    `(,(AstEnv ast₂ env) ,cnt ,sto)
    ev-if-abs-#f])

@@ -5,7 +5,7 @@
  "../signatures.rkt"
  "../test/suites.rkt"
  (only-in "../mult/core/units.rkt"
-          common@ bind@ io@ debug@ expand@ expander@ syntax@ domain@
+          common@ misc@ bind@ io@ debug@ expand@ expander@ syntax@ domain@
           env@ menv@ run@ eval@ evaluator@ parse@ parser@)
  (only-in "alloc.rkt" store@ mstore@))
 (provide main-minus@ interp)
@@ -15,9 +15,9 @@
 
 (define-compound-unit/infer main-minus@
   (import domain^ eval^ expand^ parser^)
-  (export common^ syntax^ env^ store^ evaluator^ menv^ mstore^ bind^
+  (export common^ misc^ syntax^ env^ store^ evaluator^ menv^ mstore^ bind^
           run^ debug^)
-  (link   common@ syntax@ env@ store@ evaluator@ menv@ mstore@ bind@
+  (link   common@ misc@ syntax@ env@ store@ evaluator@ menv@ mstore@ bind@
           expander@ io@ run@ debug@))
 
 (define-values/invoke-unit

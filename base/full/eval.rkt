@@ -14,11 +14,12 @@
 ;; --> : State → (Setof State)
 (define-reduction (--> δ ==> :=<1>)
   #:import [(only common^    push-cont)
+            (only   misc^    lookup-cont lookup-val)
             (only domain^    val? stx?)
             (only syntax^    add flip prune)
             (only    env^    init-env lookup-env extend-env*)
             (only  store^    lookup-store update-store
-                             alloc-loc lookup-cont lookup-val)
+                             alloc-loc)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
             (only mstore^    alloc-name alloc-scope alloc-𝓁 lookup-Σ update-Σ)
             (only   bind^    bind resolve)

@@ -4,6 +4,7 @@
 (require&provide
  ["../../units.rkt"           io@ run@
                               [   full-common@    common@]
+                              [     mult-misc@      misc@]
                               [full-evaluator@ evaluator@]
                               [ full-expander@  expander@]     ]
  ["../../base/full/units.rkt" syntax@ debug@                   ]

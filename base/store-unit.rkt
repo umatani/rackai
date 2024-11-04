@@ -1,6 +1,5 @@
 #lang racket/unit
 (require
- (only-in racket/match match)
  "../signatures.rkt"
  "../terms.rkt")
 
@@ -20,14 +19,6 @@
 ;; update-store : Store Loc (U Val Cont) → Store
 (define (update-store sto loc u)
   (Store (Store-size sto) (hash-set (Store-tbl sto) loc u)))
-
-;; lookup-cont : Store Loc → Cont
-(define (lookup-cont sto loc)
-  (lookup-store sto loc))
-
-;; lookup-val : Store Loc → Val
-(define (lookup-val sto loc)
-  (lookup-store sto loc))
 
 ;; alloc-loc : Nam Store → (Values Loc Store)
 ;;   - called via alloc-loc*.

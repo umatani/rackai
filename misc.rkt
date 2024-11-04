@@ -1,15 +1,21 @@
 #lang racket/base
 (require
+ racket/unit
  (for-syntax racket/base syntax/parse)
  (only-in racket/match   match match-define)
  (only-in racket/list    empty? first second rest)
+ (only-in "nondet.rkt"   do <- pure)
  (only-in "set.rkt"      set ∅ ∪ set-subtract ⊆ set-size set-add
-                         set=? set→list for/set in-set)
+          set=? set→list for/set in-set)
+ "signatures.rkt"
  "terms.rkt")
 (provide require&provide
          update-store* alloc-loc*
-         union subtract biggest-subset binding-lookup
-         set-of-stobind? update-sbs)
+         subtract biggest-subset binding-lookup
+         set-of-stobind? update-sbs
+         base-misc@ mult-misc@)
+
+;;;; require & provide
 
 (begin-for-syntax
   (define-syntax-class require-spec
@@ -47,11 +53,11 @@
        (values (cons loc locs) sto″))]))
 
 
-
 ;;;; Scope-set utilities
 
 ;; union : Scps Scps → Scps
-(define (union scps scps′) (∪ scps scps′))
+;;   not in use
+;(define (union scps scps′) (∪ scps scps′))
 
 ;; subtract : Scps Scps → Scps
 (define (subtract scps scps′) (set-subtract scps scps′))
@@ -92,3 +98,49 @@
   (for/set ([sb (in-set sbs)])
     (match-define (StoBind scps nams) sb)
     (StoBind scps (if (set=? scps scps′) (set-add nams nam) nams))))
+
+;;;; misc units
+
+(define-unit base-misc@
+  (import
+   (only mstore^    lookup-Σ)
+   (only  store^    lookup-store))
+  (export  misc^)
+
+  ;; lookup-cont : Store Loc → Cont
+  (define (lookup-cont sto loc)
+    (lookup-store sto loc))
+
+  ;; lookup-val : Store Loc → Val
+  (define (lookup-val sto loc)
+    (lookup-store sto loc))
+
+  ;; lookup-κ : Σ 𝓁 → κ
+  (define (lookup-κ Σ 𝓁)
+    (lookup-Σ Σ 𝓁)))
+
+(define-unit mult-misc@
+  (import
+   (only domain^    val?)
+   (only mstore^    lookup-Σ)
+   (only  store^    lookup-store))
+  (export  misc^)
+  
+  ;; lookup-cont : Store Loc → (SetM Cont)
+  (define (lookup-cont sto loc)
+    (do cnt <- (lookup-store sto loc)
+        #:when (cont? cnt)
+        (pure cnt)))
+
+  ;; lookup-val : Store Loc → (SetM Val)
+  (define (lookup-val sto loc)
+    (do val <- (lookup-store sto loc)
+        #:when (val? val)
+        (pure val)))
+
+  ;; lookup-κ : Σ 𝓁 → (SetM κ)
+  (define (lookup-κ Σ 𝓁)
+    (do κ <- (lookup-Σ Σ 𝓁)
+        #:when (or (κ? κ) (eq? κ '●))
+        (pure κ))))
+

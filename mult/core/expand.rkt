@@ -16,12 +16,13 @@
 ;; ==> : ζ → (Setof ζ)
 (define-reduction (==> -->) #:super (base:==> --> <-)
   #:import [(only common^    push-κ regist-vars)
+            (only   misc^    lookup-κ)
             (only domain^    val? stx? proper-stl?)
             (only syntax^    empty-ctx zip unzip add flip in-hole)
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
-            (only mstore^    lookup-Σ lookup-κ alloc-name alloc-scope)
+            (only mstore^    lookup-Σ alloc-name alloc-scope)
             (only   bind^    bind resolve)
             (only  parse^    parse)]
 

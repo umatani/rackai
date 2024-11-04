@@ -27,11 +27,12 @@
 
 (define-reduction (==> -->) #:super (mult:==> -->)
   #:import [(only common^    push-κ regist-vars)
+            (only   misc^    lookup-κ)
             (only syntax^    empty-ctx zip unzip add flip in-hole prune at-phase)
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
-            (only mstore^    lookup-Σ lookup-κ alloc-name alloc-scope)
+            (only mstore^    lookup-Σ alloc-name alloc-scope)
             (only   bind^    bind resolve)
             (only  parse^    parse)]
 
@@ -45,6 +46,7 @@
    #:when (or (equal? stx val-⊤)
               (equal? stx atom-⊤)
               (equal? stx stx-⊤))
+   #:checkpoint (printf "ex-macapp-abs\n")
    (ζ (Stxξ ph stx ξ)
       κ
       Σ̂)
@@ -60,6 +62,7 @@
               (equal? val sym-⊤)
               (equal? val stx-⊤)
               (equal? val list-⊤))
+   #:checkpoint (printf "ex-abs-⊤\n")
    (ζ val
       κ
       Σ̂)
@@ -93,6 +96,7 @@
 
 (define-reduction (--> δ ==>) #:super (mult:--> δ ==>)
   #:import [(only common^    push-cont)
+            (only   misc^    lookup-cont lookup-val)
             (only syntax^    add flip prune)
             (only    env^    init-env lookup-env extend-env*)
             (only  store^    lookup-store update-store alloc-loc)
@@ -106,6 +110,7 @@
      ,sto ,Σ̂)
    #:when (or (equal? id val-⊤) (equal? id atom-⊤)
               (equal? id stx-⊤))
+   #:checkpoint (printf "ev-lval-abs\n")
    (<- cnt (lookup-cont sto loc))
    `(,val-⊤ ,cnt ,sto ,Σ̂)
    ev-lval-abs]
@@ -118,6 +123,7 @@
               (equal? id atom-⊤)
               (equal? id stx-⊤)
               (and (Stx? id) (equal? (Stx-e id) sym-⊤)))
+   #:checkpoint (printf "ev-lbinder-abs\n")
    (<- cnt (lookup-cont sto loc))
    `(,stx-⊤ ,cnt ,sto ,Σ̂)
    ev-lbinder-abs]
@@ -140,6 +146,7 @@
                   (equal? rhs stx-⊤))
               (or (equal? defs val-⊤)
                   (equal? defs atom-⊤)))
+   #:checkpoint (printf "ev-slbs-abs\n")
    (<- cnt (lookup-cont sto loc))
    `(,list-⊤ ,cnt ,sto ,Σ̂)
    ev-slbs-abs]
@@ -152,6 +159,7 @@
    #:when (or (equal? stx_arg val-⊤)
               (equal? stx_arg atom-⊤)
               (equal? stx_arg stx-⊤))
+   #:checkpoint (printf "ev-lexpand-abs\n")
    (<- cnt (lookup-cont sto loc))
    `(,stx-⊤ ,cnt ,sto ,Σ̂)
    ev-lexpand-abs]
@@ -161,6 +169,7 @@
      ,(KApp′ _args `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,Σ̂)
    #:when (equal? f val-⊤)
+   #:checkpoint (printf "ev-β-abs\n")
    (<- cnt (lookup-cont sto loc))
    `(,f ,cnt ,sto ,Σ̂)
    ev-β-abs]
@@ -171,6 +180,7 @@
      ,sto ,Σ̂)   
    #:when (or (equal? val val-⊤)
               (equal? val atom-⊤))
+   #:checkpoint (printf "ev-if-abs-#f\n")
    (<- cnt (lookup-cont sto loc))
    `(,(AstEnv ph ast₂ env maybe-scpᵢ ξ)
      ,cnt

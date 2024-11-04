@@ -4,6 +4,7 @@
 (require&provide
  ["../../units.rkt"     io@ run@
                         [   full-common@    common@]
+                        [     base-misc@      misc@]
                         [full-evaluator@ evaluator@]
                         [ full-expander@  expander@]     ]
  ["../units.rkt"        domain@ env@ store@ menv@ mstore@]

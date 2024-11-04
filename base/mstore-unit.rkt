@@ -26,10 +26,6 @@
 (define (update-Σ Σ₀ k v)
   (Σ (Σ-size Σ₀)
     (hash-set (Σ-tbl Σ₀) k v)))
-
-;; lookup-κ : Σ 𝓁 → κ
-(define (lookup-κ Σ 𝓁)
-  (lookup-Σ Σ 𝓁))
         
 
 ;; ----------------------------------------

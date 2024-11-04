@@ -12,7 +12,7 @@
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export domain^ run^ debug^)
-   (link common@ domain@ syntax@ env@ store@ eval@ evaluator@
+   (link common@ misc@ domain@ syntax@ env@ store@ eval@ evaluator@
          menv@ mstore@ bind@ parse@ parser@ expand@ expander@
          io@ run@ debug@))
   (import) (export domain^ run^ debug^))

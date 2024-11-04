@@ -89,6 +89,14 @@
    extend-ξ      ; ξ Nam AllTransform → ξ
    ))
 
+(define-signature misc^
+  (
+   lookup-cont   ; Store Loc → Cont
+   lookup-val    ; Store Loc → Val
+   lookup-κ      ; Σ 𝓁 → κ
+   ))
+
+
 (define-signature mstore^
   (;; ----------------------------------------
    ;; Expand-time store operations:
@@ -98,7 +106,6 @@
    update-Σ      ; Σ Nam (Setof StoBind) → Σ
                  ; Σ 𝓁   (U Val ξ κ)     → Σ
 
-   lookup-κ      ; Σ 𝓁 → κ
 
    ;; ----------------------------------------
    ;; Alloc name, scope, and 𝓁 for expander:
@@ -133,9 +140,6 @@
   (init-store    ; → Store
    lookup-store  ; Store Loc              → (U Val Cont)
    update-store  ; Store Loc (U Val Cont) → Store
-   lookup-cont   ; Store Loc → Cont
-   lookup-val    ; Store Loc → Val
-
    alloc-loc     ; Symbol       Store → (Values         Loc  Store)
    ))
 

@@ -1,7 +1,7 @@
 #lang racket/base
 (require
  racket/unit
- (only-in "../nondet.rkt"     do <- pure lift)
+ (only-in "../nondet.rkt"     lift)
  (only-in "../mix.rkt"        define-mixed-unit inherit)
  (only-in "../set.rkt"        ∅ set-add)
  "../signatures.rkt"
@@ -10,9 +10,9 @@
 (provide store@)
 
 (define-mixed-unit store@
-  (import  (only domain^    val?))
+  (import)
   (export  store^)
-  (inherit [base:store@ init-store alloc-loc])
+  (inherit [base:store@    init-store alloc-loc])
 
   ;;;; Set-based heap
 
@@ -24,16 +24,4 @@
   (define (update-store sto loc u)
     (Store (Store-size sto)
            (hash-update (Store-tbl sto) loc
-                        (λ (us) (set-add us u)) ∅)))
-
-  ;; lookup-cont : Store Loc → (SetM Cont)
-  (define (lookup-cont sto loc)
-    (do cnt <- (lookup-store sto loc)
-        #:when (cont? cnt)
-        (pure cnt)))
-
-  ;; lookup-val : Store Loc → (SetM Val)
-  (define (lookup-val sto loc)
-    (do val <- (lookup-store sto loc)
-        #:when (val? val)
-        (pure val))))
+                        (λ (us) (set-add us u)) ∅))))

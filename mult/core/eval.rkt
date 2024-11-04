@@ -14,10 +14,11 @@
 ;; --> : State → (Setof State)
 (define-reduction (--> δ) #:super (base:--> δ <-)
   #:import [(only common^    push-cont)
+            (only   misc^    lookup-cont lookup-val)
             (only domain^    val?)
             (only    env^    lookup-env extend-env*)
             (only  store^    lookup-store update-store
-                             alloc-loc lookup-cont lookup-val)])
+                             alloc-loc)])
 
 (define-unit-from-reduction red@ -->)
 

@@ -7,5 +7,6 @@
  ["evaluator.rkt"  core-evaluator@                  full-evaluator@]
  ["expander.rkt"   core-expander@  phases-expander@ full-expander@ ]
  ["io-unit.rkt"    io@                                             ]
+ ["misc.rkt"       base-misc@ mult-misc@                           ]
  ["parser.rkt"     core-parser@   phases-parser@                   ]
  ["run-unit.rkt"   run@                                            ])

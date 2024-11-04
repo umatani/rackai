@@ -9,7 +9,6 @@
                                          enable-tracing)
  (only-in "../../nondet.rkt"             do := <- pure lift results)
  (only-in "../../mix.rkt"                define-mixed-unit inherit)
- (only-in "../../misc.rkt"               union)
  (only-in "../../set.rkt"                set ∅ ∅? set-add set→list)
  (only-in "../../syntax.rkt"             snoc stx→datum)
  "../../test/suites.rkt"
@@ -29,11 +28,12 @@
 ;; ==> : ζ -> (Setof ζ)
 (define-reduction (==> -->) #:super (mult:==> -->)
   #:import [(only common^    push-κ regist-vars)
+            (only   misc^    lookup-κ)
             (only syntax^    empty-ctx zip unzip add flip in-hole prune at-phase)
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
-            (only mstore^    lookup-Σ lookup-κ alloc-name alloc-scope)
+            (only mstore^    lookup-Σ alloc-name alloc-scope)
             (only   bind^    bind resolve)
             (only  parse^    parse)]
 
@@ -46,6 +46,7 @@
    #:when (or (equal? stx val-⊤)
               (equal? stx atom-⊤)
               (equal? stx stx-⊤))
+   #:checkpoint (printf "ex-macapp-abs\n")
    (ζ (Stxξ ph stx ξ scpsₚ)
       κ Σ)
    ex-macapp-abs]
@@ -58,6 +59,7 @@
               (equal? val sym-⊤)
               (equal? val stx-⊤)
               (equal? val list-⊤))
+   #:checkpoint (printf "ex-abs-⊤\n")
    (ζ val κ Σ)
    ex-abs-⊤])
 

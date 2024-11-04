@@ -17,8 +17,7 @@
 (define-mixed-unit store@
   (import)
   (export  store^)
-  (inherit [mult:store@    init-store lookup-store update-store
-                           lookup-cont lookup-val])
+  (inherit [mult:store@    init-store lookup-store update-store])
 
   (define all-locs (r:mutable-seteq))
 
@@ -35,7 +34,7 @@
 (define-mixed-unit mstore@
   (import)
   (export  mstore^)
-  (inherit [mult:mstore@          init-Σ lookup-Σ update-Σ lookup-κ])
+  (inherit [mult:mstore@          init-Σ lookup-Σ update-Σ])
 
   ;; ----------------------------------------
   ;; Alloc name & scope helpers for expander:

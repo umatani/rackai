@@ -4,6 +4,7 @@
 (require&provide
  ["../../units.rkt"           io@ run@
                               [   core-common@    common@]
+                              [     mult-misc@      misc@]
                               [core-evaluator@ evaluator@]
                               [ core-expander@  expander@]
                               [   core-parser@    parser@]     ]
