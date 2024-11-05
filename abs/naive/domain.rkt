@@ -77,9 +77,15 @@
 
       ;; -
       [((Prim '- _) (list (? num? _) (? num? _) ...))
-       (pure num-⊤)]
+       (pure 'num-⊤)]
       [((Prim '- _) (list _          _          ...))
        mzero]
+
+
+      ;; TODO
+
+
+
 
       ;; /
       [((Prim '/ _) (list (? num? _) (? num? n) ...))
