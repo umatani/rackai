@@ -4,7 +4,7 @@
  (only-in racket/match match-lambda match-lambda**)
  (only-in "set.rkt" set ∅ ∪ set-map))
 (provide enable-checkpoint := <-
-         pure never bind lift results aborts for/m+ do
+         mzero mplus pure bind lift results aborts for/m+ do
          (for-syntax assign elem))
 
 (define enable-checkpoint (make-parameter #f))
@@ -30,7 +30,6 @@
 
 (define (pure  x) (cons (set x) ∅))
 (define (abort x) (cons ∅ (set x)))
-(define (never)   (cons ∅ ∅))
 
 (define (bind m k)
   (let ([m′ (set-map k (results m))])
@@ -75,7 +74,7 @@
     [(do #:when t s ...)
      #'(if t
          (do s ...)
-         (never))]
+         mzero)]
     [(do #:abort-if t e s ...)
      #'(if t
          (abort e)

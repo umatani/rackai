@@ -1,175 +1,176 @@
 #lang racket/base
 (require
  racket/unit
- (only-in racket/match       match*)
- (only-in racket/pretty      pretty-print)
- (only-in "../../set.rkt"    set ∅ set→list)
- (only-in "../../nondet.rkt" pure lift)
+ (only-in racket/match           match*)
+ (only-in racket/pretty          pretty-print)
+ (only-in "../../set.rkt"        set ∅ set→list)
+ (only-in "../../nondet.rkt"     mzero mplus pure)
+ (only-in "../../mix.rkt"        define-mixed-unit inherit)
  "../../signatures.rkt"
- "../../terms.rkt")
-(provide domain@ val-⊤ atom-⊤ num-⊤ sym-⊤ stx-⊤ list-⊤ ≤e)
+ "../../terms.rkt"
+ (only-in "../../mult/units.rkt" [domain@ mult:domain@]))
+(provide domain@ val-⊤ pair-⊤ atom-⊤ num-⊤ stx-⊤ ≤e)
 
 ;; ----------------------------------------
 ;; Implementation of Domains:
 
-(define val-⊤  (Val))
-(define atom-⊤ (Atom))
-(define num-⊤  (Num 'num-⊤))
-(define sym-⊤  (Sym 'sym-⊤))
-(define stx-⊤  (Stx 'stx-⊤ ∅))
-(define list-⊤ (List))
+;; Abstract values
+;;   Null, Bool, Sym, VFun, Prim は具象値が有限のため，それがそのまま抽象値
+;;   Pair, Num, Stx は具象値が無限のため，それぞれに ⊤ を用意
 
-(define (≤e v1 v2)
-  (or (equal? v1 v2)
-      (match* (v1 v2)
-        [(_         (? (λ (x) (equal? x val-⊤))))  #t]
-        [((? Atom?) (? (λ (x) (equal? x atom-⊤)))) #t]
-        [((Val)     (? (λ (x) (equal? x atom-⊤)))) #f]
-        [((? Num?)  (Num 'num-⊤))                  #t]
-        [(_         (Num 'num-⊤))                  #f]
-        [((? Sym?)  (Sym 'sym-⊤))                  #t]
-        [(_         (Sym 'sym-⊤))                  #f]
-        [((? Stx?)  (Stx 'stx-⊤ (set)))            #t]
-        [(_         (Stx 'stx-⊤ (set)))            #f]
-        [((? List?) (? (λ (x) (equal? x list-⊤)))) #t]
-        [(_         (? (λ (x) (equal? x list-⊤)))) #f]
-        [(_                        _)              #f])))
+(define (≤v v₁ v₂)
+  (or (equal? v₁ v₂)
+      (match* (v₁ v₂)
+        [(             _         'val-⊤) #t]
+        [(     (? Pair?)        'pair-⊤) #t]
+        [(     (?  Num?)         'num-⊤) #t]
+        [(     (?  Stx?)         'stx-⊤) #t]
 
-(define-unit domain@
+        ;; recursive check for Pair and Stx
+        [(  (Pair a₁ d₁)   (Pair a₂ d₂)) (and (≤v a₁ a₂) (≤v d₁ d₂))]
+        [((Stx e₁ _ctx₁) (Stx e₂ _ctx₂)) (≤v e₁ e₂)]
+
+        [(             _              _) #f])))
+
+(define-mixed-unit domain@
   (import)
   (export domain^)
+  (inherit [mult:domain@    α val?])
+
+  ;; stx? : Val → Boolean
+  (define (stx? x)
+    (or (Stx? x) (eq? x 'val-⊤)))
+
+  ;; num? : Val → Boolean
+  (define (num? x)
+    (or (Num? x)
+        (eq? x 'num-⊤)
+        (eq? x 'val-⊤)))
+
+  ;; maybe-zero? : Val → Boolean
+  (define (maybe-zero? x)
+    (or (and (Num? x) (zero? (Num-n x)))
+        (eq? x 'num-⊤)
+        (eq? x 'val-⊤)))
+
   
-  (define (α vs) vs)
-  (define (≤ₐ vs1 vs2)
-    (define vs1* (set→list vs1))
-    (define vs2* (set→list vs2))
-    (define (∈a v1) (ormap (λ (v2) (≤e v1 v2)) vs2*))
-    (andmap ∈a vs1*))
+  (define (≤ₐ vs₁ vs₂)
+    (define vs₁* (set→list vs₁))
+    (define vs₂* (set→list vs₂))
+    (define (∈ₐ v₁) (ormap (λ (v₂) (≤v v₁ v₂)) vs₂*))
+    (andmap ∈ₐ vs₁*))
 
   ; δ : Prim (Listof Val) → (SetM Val)
-  (define (δ p vs)
-    (match* (p vs)
-      [((Prim (? (λ (op) (or (eq? op '+) (eq? op '*)))) _)
-        (list (Num ns) ...))
+  (define (δ op vs)
+    (match* (op vs)
+      ;; +
+      [((Prim '+ _) (list (? num? _) ...))
+       (pure 'num-⊤)]
+      [((Prim '+ _) (list _          ...))
+       mzero]
+
+      ;; *
+      [((Prim '* _) (list (? num? _) ...))
+       (pure 'num-⊤)]
+      [((Prim '* _) (list _          ...))
+       mzero]
+
+      ;; -
+      [((Prim '- _) (list (? num? _) (? num? _) ...))
        (pure num-⊤)]
-      [((Prim (? (λ (op) (or (eq? op '+) (eq? op '*)))) _)
-        (list (? (λ (x) (or (Num? x)
-                             (equal? x atom-⊤)
-                             (equal? x val-⊤)))) ...))
-       (pure num-⊤)]
-      [((Prim (? (λ (op) (or (eq? op '+) (eq? op '*)))) _)
-        (list _ ...))
-       (lift ∅)]
+      [((Prim '- _) (list _          _          ...))
+       mzero]
 
-      [((Prim (? (λ (op) (or (eq? op '-) (eq? op '/)))) _)
-        (list (Num n) (Num ns) ...))
-       (pure num-⊤)]
-      [((Prim (? (λ (op) (or (eq? op '-) (eq? op '/)))) _)
-        (list (? (λ (x) (or (Num? x)
-                             (equal? x atom-⊤)
-                             (equal? x val-⊤))))
-              (? (λ (x) (or (Num? x)
-                             (equal? x atom-⊤)
-                             (equal? x val-⊤)))) ...))
-       (pure num-⊤)]
-      [((Prim (? (λ (op) (or (eq? op '-) (eq? op '/)))) _)
-        (list _ ...))
-       (lift ∅)]
+      ;; /
+      [((Prim '/ _) (list (? num? _) (? num? n) ...))
+       (cond [(ormap (λ (n)
+                       (and (Num? n)
+                            (zero? (Num-n n)))) n) mzero]
+             [(ormap maybe-zero? n)                (mplus mzero (pure num-⊤))]
+             [else                                 (pure num-⊤)])]
+      [((Prim '/ _) (list _          _          ...))
+       mzero]
 
-      [((Prim (? (λ (op) (or (eq? op '<) (eq? op '=)))) _)
-        (list (Num n) (Num ns) ...))
-       (lift (set (Bool #t) (Bool #f)))]
-      [((Prim (? (λ (op) (or (eq? op '<) (eq? op '=)))) _)
-        (list (? (λ (x) (or (Num? x)
-                             (equal? x atom-⊤)
-                             (equal? x val-⊤))))
-              (? (λ (x) (or (Num? x)
-                             (equal? x atom-⊤)
-                             (equal? x val-⊤)))) ...))
-       (lift (set (Bool #t) (Bool #f)))]
-      [((Prim (? (λ (op) (or (eq? op '<) (eq? op '=)))) _)
-        (list _ ...))
-       (lift ∅)]
+      ;; <
+      [((Prim '< _) (list (? num? _) (? num? _) ...))
+       (mplus (Bool #t) (Bool #f))]
+      [((Prim '< _) (list _          _          ...))
+       mzero]
 
-      [((Prim 'eq? _) (list v1 v2))
-       (lift (set (Bool #t) (Bool #f)))]
-      [((Prim 'eq? _) (list _ ...))
-       (lift ∅)]
+      ;; =
+      [((Prim '= _) (list (? num? _) (? num? _) ...))
+       (mplus (Bool #t) (Bool #f))]
+      [((Prim '= _) (list _          _          ...))
+       mzero]
 
-      [((Prim 'cons _) (list v1 v2))
-       (pure list-⊤)]
-      [((Prim 'cons _) (list _ ...))
-       (lift ∅)]
+      ;; eq?
+      [((Prim 'eq? _) (list (Sym s) (Sym t)))
+       (pure (Bool (eq? s t)))]
+      [((Prim 'eq? _) (list _       _))
+       mzero]
 
-      [((Prim 'list _) (list vs ...))
-       (pure list-⊤)]
+      ;; cons
+      [((Prim 'cons _) (list _ _))
+       (pure pair-⊤)]
 
-      [((Prim (? (λ (op) (or (eq? op 'car) (eq? op 'cdr)
-                              (eq? op 'second) (eq? op 'third)
-                              (eq? op 'fourth)))) _)
+      ;; list
+      [((Prim 'list _) (list))
+       (pure (Null))]
+      [((Prim 'list _) (list _ _ ...))
+       (pure pair-⊤)]
+
+      ; -------------------------------------------------------------------
+
+      ;; car
+      [((Prim 'car _) (list (? (λ (x) (or (Pair? x)
+                                          (equal? x val-⊤))))))
+       (pure val-⊤)]
+      [((Prim (? (λ (op) (or (eq? op 'car) (eq? op 'cdr)))) _) (list _ ...))
+       mzero]
+
+
+      ;; cdr, second, third, fourth
+      [((Prim (? (λ (op) (or (eq? op 'cdr)
+                             (eq? op 'second) (eq? op 'third)
+                             (eq? op 'fourth)))) _)
         (list (? (λ (x) (or (Pair? x)
-                             (equal? x list-⊤)
-                             (equal? x val-⊤))))))
+                            (equal? x val-⊤))))))
        (pure val-⊤)]
-      [((Prim (? (λ (op) (or (eq? op 'car) (eq? op 'cdr)))) _)
-        (list _ ...))
-       (list ∅)]
+      [((Prim (? (λ (op) (or (eq? op 'cdr)))) _) (list _ ...))
+       mzero]
 
-      [((Prim 'syntax-e _)
-        (list (? (λ (x) (or (Stx? x)
-                             (equal? x atom-⊤)
-                             (equal? x val-⊤))))))
+
+
+      ;; syntax-e
+      [((Prim 'syntax-e _) (list (Stx e _)))
+       (pure e)]
+      [((Prim 'syntax-e _) (list (? stx? _)))
        (pure val-⊤)]
-      [((Prim 'syntax-e _) (list _ ...))
-       (lift ∅)]
+      [((Prim 'syntax-e _) (list _))
+       mzero]
 
-      [((Prim 'syntax->datum _)
-        (list (? (λ (x) (or (Stx? x)
-                             (equal? x atom-⊤)
-                             (equal? x val-⊤))))))
+
+      ;; syntax->datum
+      [((Prim 'syntax->datum _) (list (? (λ (x) (or (Stx? x)
+                                                    (equal? x atom-⊤)
+                                                    (equal? x val-⊤))))))
        (pure val-⊤)]
       [((Prim 'syntax->datum _) (list _ ...))
-       (lift ∅)]
+       mzero]
 
-      [((Prim 'datum->syntax _)
-        (list (? (λ (x) (or (Stx? x)
-                             (equal? x atom-⊤)
-                             (equal? x val-⊤))))
-              v))
+      ;; datum->syntax
+      [((Prim 'datum->syntax _) (list (? (λ (x) (or (Stx? x)
+                                                    (equal? x atom-⊤)
+                                                    (equal? x val-⊤))))
+                                      v))
        (pure stx-⊤)]
       [((Prim 'datum->syntax _) (list _ ...))
-       (lift ∅)]
+       mzero]
+
+      ; -------------------------------------------------------------------
+
 
       ;; for debug
-      [((Prim 'printe _) (list v1 v2))
-       (pretty-print (lst→list/recur v1))
-       (pure v2)]))
-
-  ;; adapt to abstract value
-
-  (define (val? x)
-    (or (Val? x)
-        ;(and (Pair? x) (val? (Pair-a x)) (val? (Pair-d x)))
-        ;(stx? x)
-        (equal? x stx-⊤) ;; added
-        ))
-
-  (define (stx? x)
-    (or (and (Stx? x) (Atom? (Stx-e x)))
-        (and (Stx? x) (prim? (Stx-e x)))
-        (and (Stx? x) (Pair? (Stx-e x))
-             (stx? (Pair-a (Stx-e x)))
-             (stl? (Pair-d (Stx-e x))))
-        (and (Stx? x) (proper-stl? (Stx-e x)))
-        (Stxξ? x)
-        (Hole? x)
-        (and (Stx? x) (Hole? (Stx-e x)))))
-
-  (define (stl? x)
-    (or (Null? x) (stx? x)
-        (and (Pair? x) (stx? (Pair-a x)) (stl? (Pair-d x)))
-        (Hole? x)))
-
-  (define (proper-stl? x)
-    (or (Null? x)
-        (and (Pair? x) (stx? (Pair-a x)) (proper-stl? (Pair-d x))))))
+      [((Prim 'printe _) (list v₀ v))
+       (pretty-print (lst→list/recur v₀))
+       (pure v)])))

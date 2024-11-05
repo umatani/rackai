@@ -24,9 +24,9 @@
                                -->δ `(,(c:AstEnv ast (init-env))
                                       ● ,(init-store)))
         (when (not (val? val))
-          (error 'eval "non value: ~a\n" val))
+          (printf "eval: non value: ~a\n" val))
         (when (not (eq? cnt '●))
-          (error 'eval "remaining cont: ~a\n" cnt))
+          (printf "eval: remaining cont: ~a\n" cnt))
         (pure val))))
 
 
@@ -48,9 +48,9 @@
                                                        maybe-scpᵢ ξ)
                                             ● ,(init-store) ,Σ̂))
         (when (not (val? val))
-          (error 'eval "non value: ~a\n" val))
+          (printf "eval: non value: ~a\n" val))
         (when (not (eq? cnt '●))
-          (error 'eval "remaining cont: ~a\n" cnt))
+          (printf "eval: remaining cont: ~a\n" cnt))
         (pure (cons val Σ̂′))))
 
   ;; evaluator : δ Ast → (SetM Val)

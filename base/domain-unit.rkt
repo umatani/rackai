@@ -21,22 +21,8 @@
 (define ≤ₐ ⊆)
 
 
-;; Num
-(define (plus          . ns) (apply +     ns))
-(define (minus       n . ns) (apply -   n ns))
-(define (times         . ns) (apply *     ns))
-(define (div         n . ns) (apply /   n ns))
-(define (less-than m n . ns) (apply < m n ns))
-(define (num-eq    m n . ns) (apply = m n ns))
-
-;; Sym
-(define (sym-eq         s t) (eq?        s t))
-
-
 ;; val? : Ast → Boolean
 (define val? Val?)
-
-;; TODO: atom?, list?
 
 ;; stx? : Val → Boolean
 (define (stx? x)
@@ -56,6 +42,18 @@
       (and (Pair? x) (stx? (Pair-a x)) (stl? (Pair-d x)))
       (stx? x)))
 
+;; Num
+(define (plus          . ns) (apply +     ns))
+(define (minus       n . ns) (apply -   n ns))
+(define (times         . ns) (apply *     ns))
+(define (div         n . ns) (apply /   n ns))
+(define (less-than m n . ns) (apply < m n ns))
+(define (num-eq    m n . ns) (apply = m n ns))
+
+;; Sym
+(define (sym-eq         s t) (eq?        s t))
+
+
 ;;;; δ : Prim (Listof Val) → Val
 (define (δ p vs)
   (match* (p vs)
@@ -68,8 +66,10 @@
      (Bool (apply less-than m n ns))]
     [((Prim '= _) `(,(Num m) ,(Num n) ,(Num ns) ...))
      (Bool (apply num-eq m n ns))]
+
     ;; Sym
     [((Prim 'eq?  _) `(,(Sym s) ,(Sym t))) (Bool (sym-eq s t))]
+
     ;; List
     [((Prim 'cons _) `(,v1 ,v2))           (Pair v1 v2)]
     [((Prim 'car  _) `(,(Pair v _)))       v]
@@ -80,6 +80,7 @@
     [((Prim 'second _) `(,(Pair _ (Pair v _                  )))) v]
     [((Prim 'third  _) `(,(Pair _ (Pair _ (Pair v _         ))))) v]
     [((Prim 'fourth _) `(,(Pair _ (Pair _ (Pair _ (Pair v _)))))) v]
+
     ;; Stx
     [((Prim 'syntax-e      _) `(,(Stx e _))) e]
     [((Prim 'syntax->datum _) `(,v))         (stx→datum v)]
@@ -91,6 +92,7 @@
                 (δ (Prim 'syntax-e #f)
                        `(,(δ (Prim 'datum->syntax #f) `(,stx ,vs)))))
           ctx)]
+
     ;; for debug
     [((Prim 'printe _) `(,u ,v))
      (pretty-print (lst→list/recur u))

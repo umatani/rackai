@@ -25,8 +25,7 @@
     (define ζᵢ (c:ζ (c:Stxξ stx ξ) '● Σ))
 
     (do (c:ζ stx′ κ′ Σ′) <- (apply-reduction* ==>δ ζᵢ)
-        (when (not (eq? κ′ '●))
-          (error 'expand "remaining κ: ~a\n" κ′))
+        #:abort-if (not (eq? κ′ '●)) (format "expand: remaining κ: ~a\n" κ′)
         (pure (cons stx′ Σ′))))
 
   (define (expander δ stx)
@@ -46,7 +45,7 @@
 
     (do (p:ζ stx′ κ′ Σ′) <- (apply-reduction* ==>δ ζᵢ)
         (when (not (eq? κ′ '●))
-          (error 'expand "remaining κ: ~a\n" κ′))
+          (printf "expand: remaining κ: ~a\n" κ′))
         (pure (cons stx′ Σ′))))
   
   (define (expander δ stx)
@@ -74,7 +73,7 @@
                               (pure ζ′)
                               (lift ∅))
         (when (not (eq? κ′ '●))
-          (error 'expand "remaining κ: ~a\n" κ′))
+          (printf "expand: remaining κ: ~a\n" κ′))
         (pure (cons stx′ Σ̂′))))
 
   (define (expander δ stx)

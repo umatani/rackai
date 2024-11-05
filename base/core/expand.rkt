@@ -39,11 +39,10 @@
           (eq? (resolve id Σ) nam))]
 
   #:default [(ζ (Stxξ stx ξ) κ Σ) ;; for debug
-             (if (id? stx)
-               (printf "expand: unbound identifier: ~a\n"
-                       (Sym-nam (Stx-e stx)))
-               (printf "expand: unknown form ~a\n"
-                       (lst→list/recur (stx→datum stx))))]
+             #:abort-if (id? stx) (format "expand: unbound identifier: ~a\n"
+                                          (Sym-nam (Stx-e stx)))
+             (printf "expand: unknown form ~a\n"
+                     (lst→list/recur (stx→datum stx)))]
 
   ;; lambda
   [(ζ (Stxξ (and (Stx (Lst (? id? id_lam)

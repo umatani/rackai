@@ -1,6 +1,6 @@
 #lang racket/unit
 (require
- (only-in "nondet.rkt" aborts do := <- lift)
+ (only-in "nondet.rkt" do := <- pure lift results aborts)
  (only-in "syntax.rkt" stx→datum)
  "signatures.rkt"
  "terms.rkt")
@@ -15,17 +15,19 @@
 
 ;; run : δ Sexp Symbol → (Setof Val)
 (define (run δ form mode)
-  (aborts
-   (do stx := (reader form)
-       #:abort-if (eq? mode 'read) (lst→list/recur (stx→datum stx))
-
-       (cons stx′ Σ) <- (expander δ stx)
-       #:abort-if (eq? mode 'expand) (lst→list/recur (stx→datum stx′))
-
-       ast <- (parser stx′ Σ)
-       #:abort-if (eq? mode 'parse) ast
-
-       val <- (evaluator δ ast)
-       #:abort-if (eq? mode 'eval) val
-
-       (error 'run "unknown mode: ~e" mode))))
+  (define m (do stx := (reader form)
+                (if (eq? mode 'read)
+                  (pure (lst→list/recur (stx→datum stx)))
+                  (do (cons stx′ Σ) <- (expander δ stx)
+                      (if (eq? mode 'expand)
+                        (pure (lst→list/recur (stx→datum stx′)))
+                        (do ast <- (parser stx′ Σ)
+                            (if (eq? mode 'parse)
+                              (pure ast)
+                              (do val <- (evaluator δ ast)
+                                  (if (eq? mode 'eval)
+                                    (pure val)
+                                    (error 'run "unknown mode: ~e" mode))))))))))
+  (for ([a (aborts m)])
+    (printf "[aborts]\n~a\n" a))
+  (results m))
