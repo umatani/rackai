@@ -60,13 +60,13 @@
     (match-define (cons name interpreter) x)
 
     (when verbose? (printf "\n[~a]\n" name))
-    (reset-results interpreter)
+    (reset-outcomes interpreter)
     (for ([suite-name (in-list (hash-ref suites name))])
       (run-suite suite-name interpreter
                  #:mode mode #:check reference #:verbose? verbose?))
 
     (when (or (equal? mode 'check) (equal? mode 'check-with-raw))
-      (show-results interpreter)))
+      (show-outcomes interpreter)))
 
   (when (and reference (equal? mode 'eval))
     (when verbose? (printf "\n\n"))
@@ -80,11 +80,11 @@
                               (+ exact inexact) exact (+ unsound fail) fail)))
               ([x (in-list interpreters)])
       (match-define (cons name interpreter) x)
-      (let* ([result  (get-results interpreter)]
-             [e (hash-ref result 'exact)]
-             [i (hash-ref result 'inexact)]
-             [u (hash-ref result 'unsound)]
-             [f (hash-ref result 'fail)])
+      (let* ([outcomes (get-outcomes interpreter)]
+             [e (hash-ref outcomes 'exact)]
+             [i (hash-ref outcomes 'inexact)]
+             [u (hash-ref outcomes 'unsound)]
+             [f (hash-ref outcomes 'fail)])
         (printf "[~a Summary]\n" name)
         (printf "  OK: ~a (~a exact)\n  NG: ~a (~a fail)\n"
                 (+ e i) e (+ u f) f)        

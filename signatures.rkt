@@ -21,14 +21,6 @@
                  ; Ph Scp ProperStl ξ Σ → (Values ProperStl ξ Σ)  (phases, full)
    ))
 
-;; for debug
-(define-signature debug^
-  (expand==>     ; δ Sexp → (Setof ζ)
-   expand==>*    ; δ Sexp → (Setof ζ)
-   eval-->       ; δ Sexp → (Setof State)
-   eval-->*      ; δ Sexp → (Setof State)
-   ))
-
 ;; ----------------------------------------
 ;; Implementation of Domains:
 (define-signature domain^

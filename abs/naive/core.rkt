@@ -7,7 +7,7 @@
  (only-in "../../reduction.rkt"        define-reduction
                                        define-unit-from-reduction
                                        enable-tracing)
- (only-in "../../nondet.rkt"           do := <- pure lift results)
+ (only-in "../../nondet.rkt"           pure)
  (only-in "../../set.rkt"              set ∅? set→list)
  (only-in "../../mix.rkt"              define-mixed-unit inherit)
  (only-in "../../misc.rkt"             update-store* alloc-loc*)
@@ -100,17 +100,17 @@
   [`(,f ,(KApp′ _args _env loc) ,sto)
    #:when (equal? f val-⊤)
    #:checkpoint (printf "ev-β-abs\n")
-   (<- cnt (lookup-cont sto loc))
+   cnt <- (lookup-cont sto loc)
    `(,f ,cnt ,sto)
    ev-β-abs]
 
   [`(,(VFun vars ast env) ,(KApp′ args _env loc) ,sto)
    #:checkpoint (printf "ev-β\n")
-   (:= `(,(Var nams) ...) vars)
-   (:= (values locs sto′) (alloc-loc* alloc-loc nams sto))
-   (:= env′               (extend-env* env vars locs))
-   (:= sto″               (update-store* update-store sto′ locs args))
-   (<- cnt                (lookup-cont sto″ loc))
+   `(,(Var nams) ...) := vars
+   (values locs sto′) := (alloc-loc* alloc-loc nams sto)
+                 env′ := (extend-env* env vars locs)
+                 sto″ := (update-store* update-store sto′ locs args)
+                  cnt <- (lookup-cont sto″ loc)
    `(,(AstEnv ast env′) ,cnt ,sto″)
    ev-β]
 
@@ -118,7 +118,7 @@
   [`(,(? val? val) ,(KIf _ast₁ ast₂ env loc) ,sto)
    #:when (or (equal? val val-⊤) (equal? val atom-⊤))
    #:checkpoint (printf "ev-if-abs-#f\n")
-   (<- cnt (lookup-cont sto loc))
+   cnt <- (lookup-cont sto loc)
    `(,(AstEnv ast₂ env) ,cnt ,sto)
    ev-if-abs-#f])
 
@@ -131,10 +131,10 @@
 
 (define-values/invoke-unit
   (compound-unit/infer
-   (import) (export domain^ run^ debug^)
+   (import) (export domain^ run^)
    (link  main-minus@
           domain@ eval@ parse@ parser@ expand@))
-  (import) (export domain^ run^ debug^))
+  (import) (export domain^ run^))
 
 (define interp (interpreter run δ α ≤ₐ))
 

@@ -9,7 +9,6 @@
                         [ full-expander@  expander@]     ]
  ["../units.rkt"        domain@ env@ store@ menv@ mstore@]
  ["../phases/units.rkt"   bind@                          ]
- ["debug-unit.rkt"       debug@                          ]
  ["eval.rkt"              eval@                          ]
  ["expand.rkt"          expand@                          ]
  ["../phases/units.rkt"  parse@ parser@                  ]

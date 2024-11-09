@@ -1,5 +1,5 @@
 #lang racket
-(require "../reduction.rkt"
+(require "../../reduction.rkt"
          (only-in "tmp2.rkt" -->))
 
 ;; tmp2.rktからは --> ではなく -->^ が必要

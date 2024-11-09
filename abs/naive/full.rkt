@@ -7,7 +7,7 @@
  (only-in "../../reduction.rkt"        define-reduction
                                        define-unit-from-reduction
                                        enable-tracing)
- (only-in "../../nondet.rkt"           do := <- pure lift results)
+ (only-in "../../nondet.rkt"           pure)
  (only-in "../../mix.rkt"              define-mixed-unit inherit)
  (only-in "../../misc.rkt"             update-store* alloc-loc*)
  (only-in "../../set.rkt"              set ∅ set-add for/set)
@@ -111,7 +111,7 @@
    #:when (or (equal? id val-⊤) (equal? id atom-⊤)
               (equal? id stx-⊤))
    #:checkpoint (printf "ev-lval-abs\n")
-   (<- cnt (lookup-cont sto loc))
+   cnt <- (lookup-cont sto loc)
    `(,val-⊤ ,cnt ,sto ,Σ̂)
    ev-lval-abs]
 
@@ -124,7 +124,7 @@
               (equal? id stx-⊤)
               (and (Stx? id) (equal? (Stx-e id) sym-⊤)))
    #:checkpoint (printf "ev-lbinder-abs\n")
-   (<- cnt (lookup-cont sto loc))
+   cnt <- (lookup-cont sto loc)
    `(,stx-⊤ ,cnt ,sto ,Σ̂)
    ev-lbinder-abs]
 
@@ -147,7 +147,7 @@
               (or (equal? defs val-⊤)
                   (equal? defs atom-⊤)))
    #:checkpoint (printf "ev-slbs-abs\n")
-   (<- cnt (lookup-cont sto loc))
+   cnt <- (lookup-cont sto loc)
    `(,list-⊤ ,cnt ,sto ,Σ̂)
    ev-slbs-abs]
 
@@ -160,7 +160,7 @@
               (equal? stx_arg atom-⊤)
               (equal? stx_arg stx-⊤))
    #:checkpoint (printf "ev-lexpand-abs\n")
-   (<- cnt (lookup-cont sto loc))
+   cnt <- (lookup-cont sto loc)
    `(,stx-⊤ ,cnt ,sto ,Σ̂)
    ev-lexpand-abs]
 
@@ -170,7 +170,7 @@
      ,sto ,Σ̂)
    #:when (equal? f val-⊤)
    #:checkpoint (printf "ev-β-abs\n")
-   (<- cnt (lookup-cont sto loc))
+   cnt <- (lookup-cont sto loc)
    `(,f ,cnt ,sto ,Σ̂)
    ev-β-abs]
 
@@ -181,7 +181,7 @@
    #:when (or (equal? val val-⊤)
               (equal? val atom-⊤))
    #:checkpoint (printf "ev-if-abs-#f\n")
-   (<- cnt (lookup-cont sto loc))
+   cnt <- (lookup-cont sto loc)
    `(,(AstEnv ph ast₂ env maybe-scpᵢ ξ)
      ,cnt
      ,sto ,Σ̂)
@@ -196,9 +196,9 @@
 
 (define-values/invoke-unit
   (compound-unit/infer
-   (import) (export domain^ run^ debug^)
+   (import) (export domain^ run^)
    (link main-minus@ expand@ parse@ parser@ domain@ eval@))
-  (import) (export domain^ run^ debug^))
+  (import) (export domain^ run^))
 
 (define interp (interpreter run δ α ≤ₐ))
 

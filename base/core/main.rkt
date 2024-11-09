@@ -4,17 +4,18 @@
  "../../interpreter.rkt"
  "../../signatures.rkt"
  (only-in "../../reduction.rkt"   enable-tracing)
+ (only-in "../../nondet.rkt"      enable-checkpoint)
  (only-in "../../test/suites.rkt" get-suite get-a-test run-suite run-a-test)
  "units.rkt")
 (provide interp)
 
 (define-values/invoke-unit
   (compound-unit/infer
-   (import) (export domain^ run^ debug^)
+   (import) (export domain^ run^)
    (link common@ misc@ domain@ syntax@ env@ store@ eval@ evaluator@
          menv@ mstore@ bind@ parse@ parser@ expand@ expander@
-         io@ run@ debug@))
-  (import) (export domain^ run^ debug^))
+         io@ run@))
+  (import) (export domain^ run^))
 
 (define interp (interpreter run δ α ≤ₐ))
 

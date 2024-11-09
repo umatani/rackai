@@ -5,7 +5,7 @@
  (only-in racket/sandbox sandbox-make-code-inspector make-evaluator)
  (only-in "set.rkt" set)
  "terms.rkt")
-(provide raw-eval interpreter reset-results get-results show-results)
+(provide raw-eval interpreter reset-outcomes get-outcomes show-outcomes)
 
 (define r:eval
   ;; gain access to local-expand etc.
@@ -14,7 +14,7 @@
                       #:requires '((for-syntax racket/list)))))
 
 ;; raw-eval : Sexp → (Setof Val)
-;;   Host evaluator for checking results
+;;   Host evaluator for checking outcomes
 (define (raw-eval form)
   (define r→v
     (match-λ
@@ -27,7 +27,7 @@
                     (λ () (r:eval form))
                     (λ vs vs))))))
 
-(struct interp (run δ α ≤ₐ results)
+(struct interp (run δ α ≤ₐ outcomes)
   #:property
   prop:procedure
   ;; self : Sexp → (U Val (Setof Val))
@@ -67,26 +67,26 @@
                                     (unsound . 0)
                                     (fail    . 0)))))
 
-;; reset-results : Interp → Void
-(define (reset-results interpreter)
-  (hash-clear! (interp-results interpreter))
-  (hash-set*! (interp-results interpreter)
+;; reset-outcomes : Interp → Void
+(define (reset-outcomes interpreter)
+  (hash-clear! (interp-outcomes interpreter))
+  (hash-set*! (interp-outcomes interpreter)
               'exact   0
               'inexact 0
               'unsound 0
               'fail    0))
 
-;; get-results : Interp → (Listof (Cons Symbol Nat))
-(define (get-results interpreter)
-  (interp-results interpreter))
+;; get-outcomes : Interp → (Listof (Cons Symbol Nat))
+(define (get-outcomes interpreter)
+  (interp-outcomes interpreter))
 
-;; show-results : Interp → Void
-(define (show-results interpreter)
-  (define results (get-results interpreter))
-  (define e (hash-ref results 'exact))
-  (define i (hash-ref results 'inexact))
-  (define u (hash-ref results 'unsound))
-  (define f (hash-ref results 'fail))
+;; show-outcomes : Interp → Void
+(define (show-outcomes interpreter)
+  (define outcomes (get-outcomes interpreter))
+  (define e (hash-ref outcomes 'exact))
+  (define i (hash-ref outcomes 'inexact))
+  (define u (hash-ref outcomes 'unsound))
+  (define f (hash-ref outcomes 'fail))
 
   (printf "OK : ~a (~a exact)\n" (+ e i) e)
   (printf "NG : ~a (~a fail)\n"  (+ u f) f))

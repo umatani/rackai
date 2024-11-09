@@ -50,11 +50,11 @@
   [(ζ (Stxξ ph (and (Stx (Lst (? id? id) . _stl) _ctx) stx) ξ)
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> nam (resolve ph id Σ₀))
-   (:=<1> at  (lookup-ξ ξ nam))
+   nam :=<1> (resolve ph id Σ₀)
+    at :=<1> (lookup-ξ ξ nam)
    #:when (TStop? at)
    #:checkpoint (printf "ex-stop\n")
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ stx
       (κ (Hole) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ₁ ∅ ∅))
@@ -66,12 +66,12 @@
                               stx_body) ctx) stx) ξ)
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> lambda? (id=? ph id_lam 'lambda ξ Σ₀))
+   lambda? :=<1> (id=? ph id_lam 'lambda ξ Σ₀)
    #:when lambda?
    #:checkpoint (printf "ex-lam\n")
-   (:= (values scp Σ₁)            (alloc-scope 'lam Σ₀))
-   (:= (values stl_params′ ξ′ Σ₂) (regist-vars ph scp stl_params ξ Σ₁))
-   (:= (values 𝓁 Σ₃)              (push-κ Σ₂ stx κ₀))
+              (values scp Σ₁) := (alloc-scope 'lam Σ₀)
+   (values stl_params′ ξ′ Σ₂) := (regist-vars ph scp stl_params ξ Σ₁)
+                (values 𝓁 Σ₃) := (push-κ Σ₂ stx κ₀)
    (ζ (Stxξ ph (add ph stx_body scp) ξ′)
       (κ (Stx (Lst id_lam (Stx stl_params′ ctx_params)
                    (Hole)) ctx) scpsₚ scpsᵤ 𝓁)
@@ -84,13 +84,13 @@
                               stx_body) ctx) stx) ξ)
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> let? (id=? ph id_let 'let ξ Σ₀))
+   let? :=<1> (id=? ph id_let 'let ξ Σ₀)
    #:when let?
    #:checkpoint (printf "ex-let-body\n")
-   (:= (values stl_vars stl_rhs) (unzip stl_binds))
-   (:= (values scp Σ₁)           (alloc-scope 'let Σ₀))
-   (:= (values stl_vars′ ξ′ Σ₂)  (regist-vars ph scp stl_vars ξ Σ₁))
-   (:= (values 𝓁 Σ₃)             (push-κ Σ₂ stx κ₀))
+   (values stl_vars stl_rhs) := (unzip stl_binds)
+             (values scp Σ₁) := (alloc-scope 'let Σ₀)
+    (values stl_vars′ ξ′ Σ₂) := (regist-vars ph scp stl_vars ξ Σ₁)
+               (values 𝓁 Σ₃) := (push-κ Σ₂ stx κ₀)
    (ζ (Stxξ ph (add ph stx_body scp) ξ′)
       (κ (Stxξ ph (Stx (Lst id-kont id_let
                             (Stx (Lst (Stx stl_vars′ (empty-ctx))
@@ -107,11 +107,11 @@
                               stx_body′) ctx) stx) ξ)
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> kont? (id=? ph id_kont '#%kont ξ Σ₀))
-   (:=<1> let?  (id=? ph id_let  'let    ξ Σ₀))
+   kont? :=<1> (id=? ph id_kont '#%kont ξ Σ₀)
+    let? :=<1> (id=? ph id_let  'let    ξ Σ₀)
    #:when (and kont? let?)
    #:checkpoint (printf "ex-let-rhs\n")
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil . stl_rhs) ctx_binds) ξ)
       (κ (Stxξ ph (Stx (Lst id_kont id_kont id_let
                             (Stx (Lst (Stx stl_vars′ (empty-ctx))
@@ -128,12 +128,12 @@
                          stx_body′) ctx) ξ)
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> kont?  (id=? ph id_kont  '#%kont ξ Σ₀))
-   (:=<1> kont′? (id=? ph id_kont′ '#%kont ξ Σ₀))
-   (:=<1> let?   (id=? ph id_let   'let    ξ Σ₀))
+    kont? :=<1> (id=? ph id_kont  '#%kont ξ Σ₀)
+   kont′? :=<1> (id=? ph id_kont′ '#%kont ξ Σ₀)
+     let? :=<1> (id=? ph id_let   'let    ξ Σ₀)
    #:when (and kont? kont′? let?)
    #:checkpoint (printf "ex-let\n")
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx_body′ κ₀))
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx_body′ κ₀)
    (ζ (Stx (Lst id_let (Stx (zip stl_vars′ stl_rhs′ (empty-ctx)) ctx_binds)
                 stx_body′) ctx)
       (κ (Hole) scpsₚ scpsᵤ 𝓁)
@@ -144,10 +144,10 @@
   [(ζ (Stxξ ph (and (Stx (Lst (? id? id_quote) _) _ctx) stx) ξ)
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> quote? (id=? ph id_quote 'quote ξ Σ₀) )
+   quote? :=<1> (id=? ph id_quote 'quote ξ Σ₀)
    #:when quote?
    #:checkpoint (printf "ex-quote\n")
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ stx
       (κ (Hole) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ₁ ∅ ∅))
@@ -157,11 +157,11 @@
   [(ζ (Stxξ ph (Stx (Lst (? id? id_syntax) stx) ctx) ξ)
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> syntax? (id=? ph id_syntax 'syntax ξ Σ₀))
+   syntax? :=<1> (id=? ph id_syntax 'syntax ξ Σ₀)
    #:when syntax?
    #:checkpoint (printf "ex-stx\n")
-   (:= stx′          (prune ph stx scpsₚ))
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+            stx′ := (prune ph stx scpsₚ)
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ (Stx (Lst id_syntax stx′) ctx)
       (κ (Hole) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ₁ ∅ ∅))
@@ -174,10 +174,10 @@
                               stx_body) ctx) stx) ξ)
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> let-syntax? (id=? ph id_ls 'let-syntax ξ Σ₀))
+   let-syntax? :=<1> (id=? ph id_ls 'let-syntax ξ Σ₀)
    #:when let-syntax?
    #:checkpoint (printf "ex-ls-rhs\n")
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ (Stxξ (add1 ph) stx_rhs (init-ξ))
       (κ (Stxξ ph (Stx (Lst id-kont id_ls
                             (Stx (Lst (Stx (Lst id (Hole)) ctx_bind))
@@ -192,11 +192,11 @@
                          stx_body) ctx) ξ)
       κ
       (Σ̂ Σ scpsₚ scpsᵤ))
-   (:=<1> kont?       (id=? ph id_kont '#%kont     ξ Σ))
-   (:=<1> let-syntax? (id=? ph id_ls   'let-syntax ξ Σ))
+          kont? :=<1> (id=? ph id_kont '#%kont     ξ Σ)
+    let-syntax? :=<1> (id=? ph id_ls   'let-syntax ξ Σ)
    #:when (and kont? let-syntax?)
    #:checkpoint (printf "ex-ls-eval\n")
-   (<- ast (parse (add1 ph) stx_rhs′ Σ))
+   ast <- (parse (add1 ph) stx_rhs′ Σ)
    (InEval (list (AstEnv ph ast (init-env) 'no-scope ξ)
                  '● (init-store)
                  (Σ̂ Σ scpsₚ ∅))
@@ -210,13 +210,13 @@
               κ₀
               (Σ̂ _Σ scpsₚ scpsᵤ)))
    #:checkpoint (printf "ex-ls\n")
-   (:= (values nam Σ₁) (alloc-name   id Σ₀))
-   (:= (values scp Σ₂) (alloc-scope 'ls Σ₁))
-   (:= id′             (add ph id scp))
-   (:= Σ₃              (bind ph Σ₂ id′ nam))
-   (:= ξ′              (extend-ξ ξ nam val))
-   (:= stx_body′       (add ph stx_body scp))
-   (:= (values 𝓁 Σ₄)   (push-κ Σ₃ stx_body κ₀))
+   (values nam Σ₁) := (alloc-name   id Σ₀)
+   (values scp Σ₂) := (alloc-scope 'ls Σ₁)
+               id′ := (add ph id scp)
+                Σ₃ := (bind ph Σ₂ id′ nam)
+                ξ′ := (extend-ξ ξ nam val)
+         stx_body′ := (add ph stx_body scp)
+     (values 𝓁 Σ₄) := (push-κ Σ₃ stx_body κ₀)
    (ζ (Stxξ ph stx_body′ ξ′)
       (κ (Hole) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ₄ (set-add scpsₚ scp) ∅))
@@ -226,12 +226,12 @@
   [(ζ (Stxξ ph (and (Stx (Lst (? id? id) _stx ...) ctx) stx) ξ)
       κ
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> nam (resolve ph id Σ₀))
-   (:=<1> val (lookup-ξ ξ nam))
+   nam :=<1> (resolve ph id Σ₀)
+   val :=<1> (lookup-ξ ξ nam)
    #:when (val? val)
    #:checkpoint (printf "ex-macapp-eval\n")
-   (:= (values scpᵤ Σ₁) (alloc-scope 'u Σ₀))
-   (:= (values scpᵢ Σ₂) (alloc-scope 'i Σ₁))
+   (values scpᵤ Σ₁) := (alloc-scope 'u Σ₀)
+   (values scpᵢ Σ₂) := (alloc-scope 'i Σ₁)
    (InEval
     (list (AstEnv ph (App (gensym 'macapp) ;; TODO: OK?
                           val
@@ -249,7 +249,7 @@
               κ
               _Σ̂))
    #:checkpoint (printf "ex-macapp\n")
-   (:= (set scpᵢ) (at-phase ctxᵢ ph))
+   (set scpᵢ) := (at-phase ctxᵢ ph)
    (ζ (Stxξ ph (flip ph stx scpᵢ) ξ)
       κ
       Σ̂)
@@ -259,10 +259,10 @@
   [(ζ (Stxξ ph (and (Stx (Lst (? id? id_if) . stl) ctx) stx) ξ)
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> if? (id=? ph id_if 'if ξ Σ₀))
+   if? :=<1> (id=? ph id_if 'if ξ Σ₀)
    #:when if?
    #:checkpoint (printf "ex-if-seq\n")
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil . stl) ctx) ξ)
       (κ (Stxξ ph (Stx (Lst id-kont id_if (Hole)) (empty-ctx)) ξ) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ₁ scpsₚ ∅))
@@ -272,11 +272,11 @@
                               (Stx (? proper-stl? stl′) ctx)) _ctx) stx) ξ)
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> kont? (id=? ph id_kont '#%kont ξ Σ₀))
-   (:=<1> if?   (id=? ph id_if   'if     ξ Σ₀))
+   kont? :=<1> (id=? ph id_kont '#%kont ξ Σ₀)
+     if? :=<1> (id=? ph id_if   'if     ξ Σ₀)
    #:when (and kont? if?)
    #:checkpoint (printf "ex-if\n")
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ (Stx (Lst id_if . stl′) ctx)
       (κ (Hole) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ₁ ∅ ∅))
@@ -287,10 +287,10 @@
                                (Stx (Lst stx_f . stl) ctx_seq)) ctx) stx) ξ)
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> app? (id=? ph id_app '#%app ξ Σ₀))
+   app? :=<1> (id=? ph id_app '#%app ξ Σ₀)
    #:when app?
    #:checkpoint (printf "ex-#%app\n")
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_f . stl) ctx_seq) ξ)
       (κ (Stx (Pair id_app (Hole)) ctx) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ₁ scpsₚ ∅))
@@ -300,10 +300,10 @@
   [(ζ (Stxξ ph (and (Stx (Lst (? id? id_app) stx_f . stl) ctx) stx) ξ)
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> app? (id=? ph id_app '#%app ξ Σ₀))
+   app? :=<1> (id=? ph id_app '#%app ξ Σ₀)
    #:when app?
    #:checkpoint (printf "ex-#%app′\n")
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_f . stl) ctx) ξ)
       (κ (Stx (Pair id_app (Hole)) ctx) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ₁ scpsₚ ∅))
@@ -315,8 +315,8 @@
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
    #:when (not (id? stx_f))
    #:checkpoint (printf "ex-app\n")
-   (:= id_app        (Stx (Sym '#%app) ctx))
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+          id_app := (Stx (Sym '#%app) ctx)
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_f . stl) ctx) ξ)
       (κ (Stx (Pair id_app (Hole)) ctx) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ₁ scpsₚ ∅))
@@ -327,12 +327,12 @@
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
    #:when (id? stx_f)
-   (:=<1> nam (resolve ph stx_f Σ₀))
-   (:=<1> at  (lookup-ξ ξ nam))
+   nam :=<1> (resolve ph stx_f Σ₀)
+    at :=<1> (lookup-ξ ξ nam)
    #:when (TVar? at)
    #:checkpoint (printf "ex-app-bound\n")
-   (:= id_app        (Stx (Sym '#%app) ctx))
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+          id_app := (Stx (Sym '#%app) ctx)
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_f . stl) ctx) ξ)
       (κ (Stx (Pair id_app (Hole)) ctx) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ₁ scpsₚ ∅))
@@ -343,15 +343,15 @@
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
    #:when (id? stx_f)
-   (:=<1> nam (resolve ph stx_f Σ₀))
-   (:=<1> at  (lookup-ξ ξ nam))
+   nam :=<1> (resolve ph stx_f Σ₀)
+    at :=<1> (lookup-ξ ξ nam)
    #:when (and (eq? 'not-found at)
                (not (member nam
                             '(lambda let quote syntax let-syntax if
                                #%app #%kont #%seq #%snoc))))
    #:checkpoint (printf "ex-app-free\n")
-   (:= id_app        (Stx (Sym '#%app) ctx))
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+          id_app := (Stx (Sym '#%app) ctx)
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ (Stxξ ph (Stx (Lst id-seq stx-nil stx_f . stl) ctx) ξ)
       (κ (Stx (Pair id_app (Hole)) ctx) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ₁ scpsₚ ∅))
@@ -361,11 +361,11 @@
   [(ζ (Stxξ ph (? id? id) ξ)
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> nam           (resolve ph id Σ₀))
-   (:=<1> at            (lookup-ξ ξ nam))
+   nam :=<1> (resolve ph id Σ₀)
+    at :=<1> (lookup-ξ ξ nam)
    #:when (TVar? at)
    #:checkpoint (printf "ex-var\n")
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ id κ₀))
+   (values 𝓁 Σ₁) := (push-κ Σ₀ id κ₀)
    (ζ (TVar-id at)
       (κ (Hole) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ₁ ∅ ∅))
@@ -377,7 +377,7 @@
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
    #:when (not (Sym? atom))
    #:checkpoint (printf "ex-lit\n")
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ (Stx (Lst (Stx (Sym 'quote) ctx) stx) ctx)
       (κ (Hole) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ₁ ∅ ∅))
@@ -388,7 +388,7 @@
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
    #:checkpoint (printf "ex-prim\n")
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+   (values 𝓁 Σ₁) := (push-κ Σ₀ stx κ₀)
    (ζ (Stx (Lst (Stx (Sym 'quote) ctx) stx) ctx)
       (κ (Hole) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ₁ ∅ ∅))
@@ -398,7 +398,7 @@
   [(ζ (? Stx? stx)
       (κ (Stxξ ph stxₖ ξ) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ _scpsₚ _scpsᵤ))
-   (:=<1> κ₀ (lookup-κ Σ 𝓁))
+   κ₀ :=<1> (lookup-κ Σ 𝓁)
    (ζ (Stxξ ph (in-hole stxₖ stx) ξ)
       κ₀
       (Σ̂ Σ scpsₚ scpsᵤ))
@@ -408,7 +408,7 @@
   [(ζ (? Stx? stx)
       (κ (? (compose1 not Stxξ?) stxₖ) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ _scpsₚ _scpsᵤ))
-   (:=<1> κ₀ (lookup-κ Σ 𝓁))
+   κ₀ :=<1> (lookup-κ Σ 𝓁)
    (ζ (in-hole stxₖ stx)
       κ₀
       (Σ̂ Σ scpsₚ scpsᵤ))
@@ -416,7 +416,7 @@
 
   ;; in-eval
   [(InEval s ζ)
-   (<- s′ (lift ((-->) s)))
+   s′ <- ((-->) s)
    (InEval s′ ζ)
    ex-in-eval]
 
@@ -428,10 +428,10 @@
                               stx₀ . stl) ctx) stx) ξ)
       κ₀
       (Σ̂ Σ₀ scpsₚ scpsᵤ))
-   (:=<1> seq? (id=? ph id_seq '#%seq ξ Σ₀))
+   seq? :=<1> (id=? ph id_seq '#%seq ξ Σ₀)
    #:when seq?
    #:checkpoint (printf "ex-seq-car\n")
-   (:= (values 𝓁 Σ₁) (push-κ Σ₀ stx κ₀))
+   (values 𝓁 Σ₁):= (push-κ Σ₀ stx κ₀)
    (ζ (Stxξ ph stx₀ ξ)
       (κ (Stxξ ph (Stx (Lst id-kont id_seq
                             (Stx (Lst id-snoc stx′ (Hole)) (empty-ctx))
@@ -445,9 +445,9 @@
                          . stl) ctx) ξ)
       κ
       (Σ̂ Σ scpsₚ scpsᵤ))
-   (:=<1> kont? (id=? ph id_kont '#%kont ξ Σ))
-   (:=<1> seq?  (id=? ph id_seq  '#%seq  ξ Σ))
-   (:=<1> snoc? (id=? ph id_snoc '#%snoc ξ Σ))
+   kont? :=<1> (id=? ph id_kont '#%kont ξ Σ)
+    seq? :=<1> (id=? ph id_seq  '#%seq  ξ Σ)
+   snoc? :=<1> (id=? ph id_snoc '#%snoc ξ Σ)
    #:when (and kont? seq? snoc?)
    #:checkpoint (printf "ex-seq-snoc\n")
    (ζ (Stxξ ph (Stx (Lst id_seq
@@ -461,7 +461,7 @@
   [(ζ (Stxξ ph (Stx (Lst (? id? id_seq) (Stx stl′ _ctx′)) ctx) ξ)
       κ
       (Σ̂ Σ _scpsₚ _scpsᵤ))
-   (:=<1> seq? (id=? ph id_seq '#%seq ξ Σ))
+   seq? :=<1> (id=? ph id_seq '#%seq ξ Σ)
    #:when seq?
    #:checkpoint (printf "ex-seq\n")
    (ζ (Stx stl′ ctx)

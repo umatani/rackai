@@ -34,8 +34,8 @@
   ;; reference
   [`(,(AstEnv (? Var? var) env) ,cnt ,sto)
    #:checkpoint (printf "ev-x\n")
-   (:=<1> loc (lookup-env   env var))
-   (:=<1> val (lookup-val sto loc))
+   loc :=<1> (lookup-env   env var)
+   val :=<1> (lookup-val sto loc)
    `(,val ,cnt ,sto)
    ev-x]
 
@@ -48,7 +48,7 @@
   ;; application
   [`(,(AstEnv (App lbl ast asts) env) ,cnt ,sto)
    #:checkpoint (printf "ev-push-app\n")
-   (:= (values loc sto′) (push-cont sto lbl cnt))
+   (values loc sto′) := (push-cont sto lbl cnt)
    `(,(AstEnv ast env) ,(KApp '() asts env loc) ,sto′)
    ev-push-app]
 
@@ -70,39 +70,39 @@
   ;; β
   [`(,(VFun vars ast env) ,(KApp′ args _env loc) ,sto)
    #:checkpoint (printf "ev-β\n")
-   (:=    `(,(Var nams) ...) vars)
-   (:=    (values locs sto′) (alloc-loc* alloc-loc nams sto))
-   (:=    env′               (extend-env* env vars locs))
-   (:=    sto″               (update-store* update-store sto′ locs args))
-   (:=<1> cnt                (lookup-cont sto″ loc))
+   `(,(Var nams) ...) :=    vars
+   (values locs sto′) :=    (alloc-loc* alloc-loc nams sto)
+                 env′ :=    (extend-env* env vars locs)
+                 sto″ :=    (update-store* update-store sto′ locs args)
+                  cnt :=<1> (lookup-cont sto″ loc)
    `(,(AstEnv ast env′) ,cnt ,sto″)
    ev-β]
 
   ;; primitive application
   [`(,(? Prim? prim) ,(KApp′ args _env loc) ,sto)
    #:checkpoint (printf "ev-δ\n")
-   (:=<1> val (δ prim args))
-   (:=<1> cnt (lookup-cont sto loc))
+   val :=<1> (δ prim args)
+   cnt :=<1> (lookup-cont sto loc)
    `(,val ,cnt ,sto)
    ev-δ]
 
   ;; if
   [`(,(AstEnv (If lbl ast₀ ast₁ ast₂) env) ,cnt ,sto)
    #:checkpoint (printf "ev-push-if\n")
-   (:= (values loc sto′) (push-cont sto lbl cnt))
+   (values loc sto′) := (push-cont sto lbl cnt)
    `(,(AstEnv ast₀ env) ,(KIf ast₁ ast₂ env loc) ,sto′)
    ev-push-if]
 
   [`(,(Bool #f) ,(KIf _ast₁ ast₂ env loc) ,sto)
    #:checkpoint (printf "ev-if-#f\n")
-   (:=<1> cnt (lookup-cont sto loc))
+   cnt :=<1> (lookup-cont sto loc)
    `(,(AstEnv ast₂ env) ,cnt ,sto)
    ev-if-#f]
 
   [`(,(? val? val) ,(KIf ast₁ _ast₂ env loc) ,sto)
    #:when (not (equal? val (Bool #f)))
    #:checkpoint (printf "ev-if-#t\n")
-   (:=<1> cnt (lookup-cont sto loc))
+   cnt :=<1> (lookup-cont sto loc)
    `(,(AstEnv ast₁ env) ,cnt ,sto)
    ev-if-#t])
 

@@ -1,5 +1,5 @@
 #lang racket
-(require "../reduction.rkt")
+(require "../../reduction.rkt")
 (provide -->)
 
 (define-reduction (--> <+>) [(cons a b) (<+> a b) 'add])

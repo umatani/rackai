@@ -8,7 +8,7 @@
                                 [ core-evaluator@ evaluator@]
                                 [phases-expander@  expander@]
                                 [  phases-parser@    parser@]    ]
- ["../../base/phases/units.rkt" syntax@ debug@ expander@         ]
+ ["../../base/phases/units.rkt" syntax@ expander@                ]
  ["../units.rkt"                domain@ env@ store@ menv@ mstore@]
  ["bind-unit.rkt"                 bind@                          ]
  ["../core/units.rkt"             eval@                          ]

@@ -7,7 +7,7 @@
  (only-in "../../reduction.rkt"          define-reduction
                                          define-unit-from-reduction
                                          enable-tracing)
- (only-in "../../nondet.rkt"             do := <- pure lift results)
+ (only-in "../../nondet.rkt"             pure)
  (only-in "../../mix.rkt"                define-mixed-unit inherit)
  (only-in "../../set.rkt"                set ∅ ∅? set-add set→list)
  (only-in "../../syntax.rkt"             stx→datum snoc zip unzip prune at-phase)
@@ -91,10 +91,10 @@
 
 (define-values/invoke-unit
   (compound-unit/infer
-   (import) (export domain^ run^ debug^)
+   (import) (export domain^ run^)
    (link domain@ main-minus@
          eval@ parse@ parser@ expand@))
-  (import) (export domain^ run^ debug^))
+  (import) (export domain^ run^))
 
 (define interp (interpreter run δ α ≤ₐ))
 

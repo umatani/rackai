@@ -7,7 +7,7 @@
                               [     mult-misc@      misc@]
                               [full-evaluator@ evaluator@]
                               [ full-expander@  expander@]     ]
- ["../../base/full/units.rkt" syntax@ debug@                   ]
+ ["../../base/full/units.rkt" syntax@                          ]
  ["../units.rkt"              domain@ env@ store@ menv@ mstore@]
  ["eval.rkt"                    eval@                          ]
  ["expand.rkt"                expand@                          ]

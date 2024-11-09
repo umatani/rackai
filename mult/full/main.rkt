@@ -11,11 +11,11 @@
 
 (define-values/invoke-unit
   (compound-unit/infer
-   (import) (export domain^ run^ debug^)
+   (import) (export domain^ run^)
    (link common@ misc@ domain@ syntax@ env@ store@ eval@ evaluator@
          menv@ mstore@ bind@ parse@ parser@ expand@ expander@
-         io@ run@ debug@))
-  (import) (export domain^ run^ debug^))
+         io@ run@))
+  (import) (export domain^ run^))
 
 (define interp (interpreter run δ α ≤ₐ))
 

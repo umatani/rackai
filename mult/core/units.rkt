@@ -8,7 +8,7 @@
                               [core-evaluator@ evaluator@]
                               [ core-expander@  expander@]
                               [   core-parser@    parser@]     ]
- ["../../base/core/units.rkt" syntax@ expander@ debug@         ]
+ ["../../base/core/units.rkt" syntax@ expander@                ]
  ["../units.rkt"              domain@ env@ store@ menv@ mstore@]
  ["bind-unit.rkt"               bind@                          ]
  ["eval.rkt"                    eval@                          ]

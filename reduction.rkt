@@ -52,13 +52,19 @@
       [(b) #`((pure b))]
       [(#:when t b ...)
        (with-syntax ([(b′ ...) (make-match-body #'(b ...))])
-         #`(#:when t b′ ...))]
-      [((assign-id:assign x e) b ...)
+         #'(#:when t b′ ...))]
+      [(#:abort-if t e b ...)
        (with-syntax ([(b′ ...) (make-match-body #'(b ...))])
-         #'(x assign-id e b′ ...))]
-      [((elem-id:elem x e) b ...)
+         #'(#:abort-if t e b′ ...))]
+      [(#:checkpoint b₀ b ...)
        (with-syntax ([(b′ ...) (make-match-body #'(b ...))])
-         #`(x elem-id e b′ ...))]
+         #'(#:checkpoint b₀ b′ ...))]
+      [(x (~or* ≐:assign ≐:elem) e b ...)
+       (with-syntax ([(b′ ...) (make-match-body #'(b ...))])
+         #'(x ≐ e b′ ...))]
+      [(((~or* ≐:assign ≐:elem) x e) b ...)
+       (with-syntax ([(b′ ...) (make-match-body #'(b ...))])
+         #'(x ≐ e b′ ...))]
       [(b₀ b ...)
        (with-syntax ([(b′ ...) (make-match-body #'(b ...))])
          #'(b₀ b′ ...))]))
@@ -110,12 +116,19 @@
                            [p (when (enable-tracing)
                                 (printf "→[~a]\n" 'rule-name)) 
                               (∪ nexts
-                                 (results (do #,@(make-match-body #'(b ...)))))]
+                                 (do #,@(make-match-body #'(b ...))))]
                            [_ nexts]))]))))))
     (let ([default-clause (clause-map-find clause-map '#%default)])
       (if default-clause
         (syntax-case (stx-rescope default-clause) ()
           [(p b ... _rule-name)
+           #`(let ([nexts #,body2])
+               (if (∅? nexts)
+                 (match #,s
+                   [p (do #,@(make-match-body #'(b ...)))]
+                   [_ ∅])
+                 nexts))
+           #;
            #`(let ([nexts #,body2])
                (when (∅? nexts)
                  (match #,s
@@ -362,7 +375,7 @@
                     (import i-id ... ...))]))
 
 
-;; apply-reduction* : (∀ [A] (A → (Setof A)) A → (SetM A))
+;; apply-reduction* : (∀ [A] (A → (SetM A)) A → (SetM A))
 (define (apply-reduction* --> s #:steps [steps #f])
   (let ([all-states   (r:mutable-set)]
         [irreducibles (r:mutable-set)]
@@ -371,15 +384,20 @@
       (unless (or (queue-empty? worklist)
                   (and steps (<= steps 0)))
         (let* ([s (dequeue! worklist)]
-               [nexts (--> s)])
+               [ss (--> s)]
+               [nexts (results ss)]
+               [as    (aborts  ss)])
+          (for ([a (in-set as)])
+            (r:set-add! irreducibles (Left a))
+            (r:set-add! all-states   (Left a)))
           (if (∅? nexts)
-            (r:set-add! irreducibles s)
+            (r:set-add! irreducibles (Right s))
             (for ([next (in-set nexts)]
-                  #:when (not (r:set-member? all-states next)))
-              (r:set-add! all-states next)
+                  #:when (not (r:set-member? all-states (Right next))))
+              (r:set-add! all-states (Right next))
               (enqueue! worklist next))))
         (loop (and steps (sub1 steps)))))
-    (r:set-add! all-states s)
+    (r:set-add! all-states (Right s))
     (enqueue! worklist s)
     (loop steps)
-    (lift (list→set (r:set->list (if steps all-states irreducibles))))))
+    (list→set (r:set->list (if steps all-states irreducibles)))))

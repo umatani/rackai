@@ -9,8 +9,7 @@
                           core:examples
                           phases:examples
                           full:examples
-                          finite:examples))
- (only-in "../interpreter.rkt" get-results))
+                          finite:examples)))
 (provide get-suite get-a-test run-a-test run-suite)
 
 (define suites
