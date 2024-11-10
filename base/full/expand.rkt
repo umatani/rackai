@@ -39,12 +39,11 @@
           (let ([nam′ (resolve ph id Σ)])
             (and (eq? nam nam′) (not (TStop? (lookup-ξ ξ nam))))))]
 
-  #:default [(ζ (Stxξ ph stx ξ) κ Σ̂) ;; for debug
-             (if (id? stx)
-               (printf "expand: unbound identifier: ~a\n"
-                       (Sym-nam (Stx-e stx)))
-               (printf "expand: unknown form ~a\n"
-                       (lst→list/recur (stx→datum stx))))]
+  #:default [(ζ (Stxξ ph stx ξ) κ Σ̂)
+             #:abort-if (id? stx) (format "expand: unbound identifier: ~a\n"
+                                          (Sym-nam (Stx-e stx)))
+             #:abort (format "expand: unknown form ~a\n"
+                             (lst→list/recur (stx→datum stx)))]
 
   ;; stops
   [(ζ (Stxξ ph (and (Stx (Lst (? id? id) . _stl) _ctx) stx) ξ)

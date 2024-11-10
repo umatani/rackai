@@ -22,8 +22,8 @@
             (only    env^    lookup-env extend-env*)
             (only  store^    lookup-store update-store alloc-loc)]
 
-  #:default [`(,(AstEnv ast env) ,cnt ,sto) ;; for debug
-             (printf "eval: unknown form ~a\n" ast)]
+  #:default [`(,(AstEnv ast env) ,cnt ,sto)
+             #:abort (format "eval: unknown form ~a\n" ast)]
 
   ;; value
   [`(,(AstEnv (? val? val) _env) ,cnt ,sto)

@@ -49,10 +49,14 @@
 
   (define (make-match-body bs)
     (syntax-parse bs
-      [(b) #`((pure b))]
+      [() #'()]
+      [(b) #'((pure b))]
       [(#:when t b ...)
        (with-syntax ([(b′ ...) (make-match-body #'(b ...))])
          #'(#:when t b′ ...))]
+      [(#:abort e b ...)
+       (with-syntax ([(b′ ...) (make-match-body #'(b ...))])
+         #'(#:abort e b′ ...))]
       [(#:abort-if t e b ...)
        (with-syntax ([(b′ ...) (make-match-body #'(b ...))])
          #'(#:abort-if t e b′ ...))]
@@ -60,9 +64,6 @@
        (with-syntax ([(b′ ...) (make-match-body #'(b ...))])
          #'(#:checkpoint b₀ b′ ...))]
       [(x (~or* ≐:assign ≐:elem) e b ...)
-       (with-syntax ([(b′ ...) (make-match-body #'(b ...))])
-         #'(x ≐ e b′ ...))]
-      [(((~or* ≐:assign ≐:elem) x e) b ...)
        (with-syntax ([(b′ ...) (make-match-body #'(b ...))])
          #'(x ≐ e b′ ...))]
       [(b₀ b ...)
@@ -127,14 +128,7 @@
                  (match #,s
                    [p (do #,@(make-match-body #'(b ...)))]
                    [_ ∅])
-                 nexts))
-           #;
-           #`(let ([nexts #,body2])
-               (when (∅? nexts)
-                 (match #,s
-                   [p (do #,@(make-match-body #'(b ...)))]
-                   [_ (void)]))
-               nexts)])
+                 nexts))])
         body2)))
 
   (define-syntax-class red-spec
@@ -197,12 +191,9 @@
                           def-cxt
                           (local-expand #'e '()
                                         (list #'define-values
-                                              #'define-syntaxes
-                                              #;#'define-match-expander
-                                              )
+                                              #'define-syntaxes)
                                         def-cxt))])
-                   (loop (cons body #;#'(define-values (id ...) e*)
-                               def-vals*)
+                   (loop (cons body def-vals*)
                          def-stxes*
                          exprs*
                          (cdr bodies)))))]
@@ -214,15 +205,12 @@
                        def-cxt
                        (local-expand #'e '()
                                      (list #'define-values
-                                           #'define-syntaxes
-                                           #;#'define-match-expander
-                                           )
+                                           #'define-syntaxes)
                                      def-cxt))])
                  (syntax-local-bind-syntaxes
                   (syntax->list #'(id ...)) #'e* def-cxt)
                  (loop def-vals*
-                       (cons body #;#'(define-syntaxes (id ...) e*)
-                             def-stxes*)
+                       (cons body def-stxes*)
                        exprs*
                        (cdr bodies))))]
             [_ (loop def-vals* def-stxes* (cons body exprs*)
@@ -351,7 +339,7 @@
         (link (([e-link : e-id] ...) unit-id i-link ...)
               ...))]))
 
-;; (reducer-of red #:link [unit-id ...]) : State → (Setof State)
+;; (reducer-of red #:link [unit-id ...]) : State → (SetM State)
 (define-syntax (reducer-of stx)
   (syntax-parse stx
     [(_ red-id:id)
@@ -376,28 +364,37 @@
 
 
 ;; apply-reduction* : (∀ [A] (A → (SetM A)) A → (SetM A))
-(define (apply-reduction* --> s #:steps [steps #f])
+(define (apply-reduction* --> s)
   (let ([all-states   (r:mutable-set)]
         [irreducibles (r:mutable-set)]
         [worklist     (make-queue)])
-    (define (loop steps)
-      (unless (or (queue-empty? worklist)
-                  (and steps (<= steps 0)))
+    (define (loop)
+      (unless (queue-empty? worklist)
         (let* ([s (dequeue! worklist)]
-               [ss (--> s)]
-               [nexts (results ss)]
-               [as    (aborts  ss)])
-          (for ([a (in-set as)])
-            (r:set-add! irreducibles (Left a))
-            (r:set-add! all-states   (Left a)))
-          (if (∅? nexts)
+               [ss (--> s)])
+          (if (∅? ss)
             (r:set-add! irreducibles (Right s))
-            (for ([next (in-set nexts)]
-                  #:when (not (r:set-member? all-states (Right next))))
-              (r:set-add! all-states (Right next))
-              (enqueue! worklist next))))
-        (loop (and steps (sub1 steps)))))
-    (r:set-add! all-states (Right s))
+            (let ([nexts (results ss)])
+              (for ([msg (in-set (aborts ss))])
+                (r:set-add! irreducibles (Left msg)))
+              (for ([next (in-set nexts)]
+                    #:when (not (r:set-member? all-states next)))
+                (r:set-add! all-states next)
+                (enqueue! worklist next)))))
+        (loop)))
+    (r:set-add! all-states s)
     (enqueue! worklist s)
-    (loop steps)
-    (list→set (r:set->list (if steps all-states irreducibles)))))
+    (loop)
+    (list→set (r:set->list irreducibles))))
+
+;; apply-reduction* : (∀ [A] (A → (SetM A)) A → (SetM A))
+(define (apply-reduction --> s)
+  (define irreducibles (r:mutable-set))
+  (define (a-r s)
+    (do ss := (--> s)
+        (if (∅? ss)
+          (r:set-add! irreducibles s)
+          (for/m+ ([s′ (in-set ss)])
+            (a-r s′)))))
+  (a-r s)
+  (list→set (r:set->list irreducibles)))

@@ -37,8 +37,8 @@
             (only   bind^    bind resolve)
             (only  parse^    parse)]
 
-  #:default [(ζ (Stxξ stx ξ) κ Σ) ;; for debug
-             (printf "default: ~a\n" (lst→list/recur (stx→datum stx)))]
+  #:default [(ζ (Stxξ stx ξ) κ Σ)
+             #:abort (format "default: ~a\n" (lst→list/recur (stx→datum stx)))]
 
   [(InEval (list stx '● _sto)
            (ζ (Stxξ (Stx (Bool #f) (set _scpᵢ)) ξ)

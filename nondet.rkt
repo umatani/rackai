@@ -90,6 +90,8 @@
      #'(if t
          (do s ...)
          mzero)]
+    [(do #:abort msg s ...)
+     #'(abort msg)]
     [(do #:abort-if t msg s ...)
      #'(if t
          (abort msg)
