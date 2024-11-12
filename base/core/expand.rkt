@@ -16,7 +16,7 @@
 ;;   ζ ∷= ⟨⟨Stx, ξ⟩ ∪ Stx, κ, Σ⟩
 ;;   κ ∷= ⟨⟨Stx, ξ⟩ ∪ Stx, 𝓁⟩
 
-;; ==> : ζ → (Setof ζ)
+;; ==> : ζ → (SetM ζ)
 (define-reduction (==> --> :=<1>)
   #:import [(only common^    push-κ regist-vars)
             (only   misc^    lookup-κ)
@@ -203,9 +203,9 @@
    ex-macapp-eval]
 
   [(InEval (list (? stx? stx) '● _sto)
-           (ζ (Stxξ (Stx (Bool #f) (set scpᵢ)) ξ)
+           (ζ (Stxξ (Stx (Bool #f) (set scpᵢ)) ξ) 
               κ Σ))
-   #:checkpoint (printf "ex-macapp\n")
+   #:checkpoint (printf "ex-macapp: ~s\n" stx)
    (ζ (Stxξ (flip stx scpᵢ) ξ)
       κ Σ)
    ex-macapp]
@@ -232,7 +232,7 @@
       κ Σ)
    ex-if]
 
-  ;; application (canonical #%app version)
+  ;; application (cannonical #%app version)
   [(ζ (Stxξ (and (Stx (Pair (? id? id_app)
                             (Stx (Lst stx_f . stl) ctx_seq)) ctx) stx) ξ)
       κ₀ Σ₀)
@@ -244,7 +244,7 @@
       (κ (Stx (Pair id_app (Hole)) ctx) 𝓁) Σ₁)
    ex-#%app]
 
-  ;; application (non-canonical #%app version)
+  ;; application (non-cannonical #%app version)
   [(ζ (Stxξ (and (Stx (Lst (? id? id_app) stx_f . stl) ctx) stx) ξ)
       κ₀ Σ₀)
    app? :=<1> (id=? id_app '#%app Σ₀)
@@ -398,5 +398,5 @@
   (export  expand^)
   (inherit [red@    reducer])
 
-  ;; δ → ζ → (Setof ζ)
+  ;; δ → ζ → (SetM ζ)
   (define (==> δ) (reducer (--> δ) :=)))

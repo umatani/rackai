@@ -14,7 +14,7 @@
 ;; Evaluating AST:
 ;;   State ::= ⟨⟨Ast, Env⟩ ∪ Val, Cont, Store⟩
 
-;; (--> δ :=<1>) : State → (Setof State)
+;; (--> δ :=<1>) : State → (SetM State)
 (define-reduction (--> δ :=<1>)
   #:import [(only common^    push-cont)
             (only   misc^    lookup-cont lookup-val)
@@ -114,5 +114,5 @@
   (export  eval^)
   (inherit [red@    reducer])
 
-  ; --> : δ → State → (Setof State)
+  ; --> : δ → State → (SetM State)
   (define (--> δ) (reducer δ :=)))

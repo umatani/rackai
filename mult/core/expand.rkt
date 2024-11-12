@@ -13,7 +13,7 @@
 
 ;; Revised reduction rules
 
-;; ==> : ζ → (Setof ζ)
+;; ==> : ζ → (SetM ζ)
 (define-reduction (==> -->) #:super (base:==> --> <-)
   #:import [(only common^    push-κ regist-vars)
             (only   misc^    lookup-κ)
@@ -39,7 +39,7 @@
     (export  expand^)
     (inherit [red@    reducer])
 
-    ;; δ → ζ → (Setof ζ)
+    ;; δ → ζ → (SetM ζ)
     (define (==> δ) (reducer (--> δ)))))
 
 (define-expand-unit expand@ red@)

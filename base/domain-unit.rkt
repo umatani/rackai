@@ -24,7 +24,7 @@
 ;; val? : Ast → Boolean
 (define val? Val?)
 
-;; stx? : Val → Boolean
+;; stx? : Ast → Boolean
 (define (stx? x)
   (and (Stx? x)
        #;
@@ -35,7 +35,7 @@
                 (stx? (Pair-a (Stx-e x)))
                 (stl? (Pair-d (Stx-e x)))))))
 
-;; stl? : Val → Boolean
+;; stl? : Ast → Boolean
 #;
 (define (stl? x)
   (or (Null? x)

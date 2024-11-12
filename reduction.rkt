@@ -70,66 +70,67 @@
        (with-syntax ([(b′ ...) (make-match-body #'(b ...))])
          #'(b₀ b′ ...))]))
 
-  (define (make-reducer-body ctx red-desc s maybe-args sub-clause-names)
+  (define (make-reducer-body ctx red-desc s maybe-args)
     (define (stx-rescope stx)
       (datum->syntax ctx (if (syntax? stx)
                            (syntax->datum stx)
                            stx)))
-    (define clause-map (reduction-desc-clause-map red-desc))
-    (define body (let ([super-id   (reduction-desc-super-id   red-desc)]
-                       [super-args (reduction-desc-super-args red-desc)])
-                   (if (syntax->datum super-id) ;; not #f
-                     (make-reducer-body
-                      ctx ;; super-id?
-                      (syntax-local-value super-id)
-                      s
-                      super-args
-                      (append sub-clause-names
-                              (clause-map-rule-names clause-map)))
-                     #'∅)))
-    (define body2
-      (let* ([args (or maybe-args #'())]
-             [params (if maybe-args
-                       (reduction-desc-params red-desc)
-                       #'())])
-        (unless (= (length (syntax->list params))
-                   (length (syntax->list args)))
-          (raise-syntax-error
-           'define-reduction
-           (format "red args arity mismatch: ~a ~a"
-                   (syntax->datum params) (syntax->datum args))))
-        (with-syntax ([(arg   ...) (stx-rescope args)]
-                      [(param ...) (stx-rescope params)])
-          #`(let-syntax ([param (make-rename-transformer #'arg)] ...)
-              #,(for/fold ([body body])
-                          ([clause (in-list
-                                    (clause-map-clauses
-                                     (clause-map-filter
-                                      (λ (name)
-                                        (and
-                                         (not (member name sub-clause-names))
-                                         (not (eq? name '#%default))))
-                                      clause-map)))])
-                  (syntax-case (stx-rescope clause) ()
-                    [(p b ... rule-name)
-                     #`(let ([nexts #,body])
-                         (match #,s
-                           [p (when (enable-tracing)
-                                (printf "→[~a]\n" 'rule-name)) 
-                              (∪ nexts
-                                 (do #,@(make-match-body #'(b ...))))]
-                           [_ nexts]))]))))))
-    (let ([default-clause (clause-map-find clause-map '#%default)])
-      (if default-clause
-        (syntax-case (stx-rescope default-clause) ()
-          [(p b ... _rule-name)
-           #`(let ([nexts #,body2])
-               (if (∅? nexts)
-                 (match #,s
-                   [p (do #,@(make-match-body #'(b ...)))]
-                   [_ ∅])
-                 nexts))])
-        body2)))
+
+    (define (m-r-b red-desc maybe-args sub-clause-names)
+      (define clause-map (reduction-desc-clause-map red-desc))
+      (define-values (body default-clause)
+        (let ([super-id   (reduction-desc-super-id   red-desc)]
+              [super-args (reduction-desc-super-args red-desc)])
+          (if (syntax->datum super-id) ;; not #f
+            (m-r-b (syntax-local-value super-id)
+                   super-args
+                   (append sub-clause-names (clause-map-rule-names clause-map)))
+            (values #'∅ #f))))
+      (values
+       (let* ([args (or maybe-args #'())]
+              [params (if maybe-args
+                        (reduction-desc-params red-desc)
+                        #'())])
+         (unless (= (length (syntax->list params))
+                    (length (syntax->list args)))
+           (raise-syntax-error
+            'define-reduction
+            (format "red args arity mismatch: ~a ~a"
+                    (syntax->datum params) (syntax->datum args))))
+         (with-syntax ([(arg   ...) (stx-rescope args)]
+                       [(param ...) (stx-rescope params)])
+           #`(let-syntax ([param (make-rename-transformer #'arg)] ...)
+               #,(for/fold ([body body])
+                           ([clause (in-list
+                                     (clause-map-clauses
+                                      (clause-map-filter
+                                       (λ (name)
+                                         (and
+                                          (not (member name sub-clause-names))
+                                          (not (eq? name '#%default))))
+                                       clause-map)))])
+                   (syntax-case (stx-rescope clause) ()
+                     [(p b ... rule-name)
+                      #`(let ([nexts #,body])
+                          (match #,s
+                            [p (when (enable-tracing)
+                                 (printf "→[~a]\n" 'rule-name)) 
+                               (∪ nexts
+                                  (do #,@(make-match-body #'(b ...))))]
+                            [_ nexts]))])))))
+       (or (clause-map-find clause-map '#%default) default-clause)))
+    
+    (define-values (body default-clause) (m-r-b red-desc maybe-args '()))
+    (if default-clause
+      (syntax-case (stx-rescope default-clause) ()
+        [(p b ... _rule-name)
+         #`(let ([nexts #,body])
+             (if (∅? nexts)
+               (match #,s
+                 [p (do #,@(make-match-body #'(b ...)))]
+                 [_ ∅])
+               nexts))])
+      body))
 
   (define-syntax-class red-spec
     (pattern name:id
@@ -286,7 +287,7 @@
                       (λ (s)
                         #,(make-reducer-body #'red-id
                                              (syntax-local-value #'red-id)
-                                             #'s #f '())))))))
+                                             #'s #f)))))))
            (define-unit M@ (import) (export M^))
 
            (define reducer (invoke-unit

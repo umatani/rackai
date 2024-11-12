@@ -14,17 +14,17 @@
 ;;;; Main
 
 (define-compound-unit/infer main-minus@
-  (import domain^ eval^ expand^ parser^)
-  (export common^ misc^ syntax^ env^ store^ evaluator^ menv^ mstore^ bind^
+  (import domain^ syntax^ eval^ expand^ parser^)
+  (export common^ misc^ env^ store^ evaluator^ menv^ mstore^ bind^
           run^)
-  (link   common@ misc@ syntax@ env@ store@ evaluator@ menv@ mstore@ bind@
+  (link   common@ misc@ env@ store@ evaluator@ menv@ mstore@ bind@
           expander@ io@ run@))
 
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export domain^ run^)
    (link main-minus@
-         domain@ eval@ parse@ parser@ expand@))
+         domain@ syntax@ eval@ parse@ parser@ expand@))
   (import) (export domain^ run^))
 
 (define interp (interpreter run δ α ≤ₐ))

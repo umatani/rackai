@@ -28,7 +28,7 @@
    α             ; (Setof Val) → (Setof Val)
    ≤ₐ            ; (Setof Val) (Setof Val) → Boolean
    val?          ; Ast → Boolean
-   stx?          ; Val → Boolean
+   stx?          ; Ast → Boolean
    ))
 
 ;; ----------------------------------------
@@ -42,8 +42,8 @@
 ;; ----------------------------------------
 ;; Evaluating AST:
 (define-signature eval^
-  (-->           ; δ →   State → (Setof State)                  (core, phases)
-                 ; δ → → State → (Setof State)                  (full)
+  (-->           ; δ →   State → (SetM State)                  (core, phases)
+                 ; δ → → State → (SetM State)                  (full)
    ))
 
 ;; ----------------------------------------
@@ -55,8 +55,8 @@
 ;; ----------------------------------------
 ;; The expand:
 (define-signature expand^
-  (==>           ; δ →   ζ → (Setof ζ)                          (core, phases)
-                 ; δ → → ζ → (Setof ζ)                          (full)
+  (==>           ; δ →   ζ → (SetM ζ)                          (core, phases)
+                 ; δ → → ζ → (SetM ζ)                          (full)
    ))
 
 ;; ----------------------------------------

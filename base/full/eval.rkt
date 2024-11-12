@@ -12,7 +12,7 @@
  "terms.rkt")
 (provide --> eval@)
 
-;; --> : State → (Setof State)
+;; --> : State → (SetM State)
 (define-reduction (--> δ ==> :=<1>)
   #:import [(only common^    push-cont)
             (only   misc^    lookup-cont lookup-val)
@@ -394,5 +394,5 @@
   (export eval^)
   (inherit [red@    reducer])
 
-  ;; --> : δ → → State → (Setof State)
+  ;; --> : δ → → State → (SetM State)
   (define (--> δ) (λ () (reducer δ (==> δ) :=))))

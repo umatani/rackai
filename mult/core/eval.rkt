@@ -11,7 +11,7 @@
 
 ;; Revised reduction rules
 
-;; --> : State → (Setof State)
+;; --> : State → (SetM State)
 (define-reduction (--> δ) #:super (base:--> δ <-)
   #:import [(only common^    push-cont)
             (only   misc^    lookup-cont lookup-val)
@@ -28,7 +28,7 @@
     (export  eval^)
     (inherit [red@ reducer])
 
-    ;; --> : δ → State → (Setof State)
+    ;; --> : δ → State → (SetM State)
     (define (--> δ) (reducer δ))))
 
 (define-eval-unit eval@ red@)

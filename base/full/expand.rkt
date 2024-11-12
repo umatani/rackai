@@ -15,7 +15,7 @@
 ;;   ζ ∷= ⟨⟨Ph, Stx, ξ⟩ ∪ Stx, κ, ⟨Σ, Scps, Scps⟩⟩
 ;;   κ ∷= ⟨⟨Ph, Stx, ξ⟩ ∪ Stx, Scps, Scps, 𝓁⟩
 
-;; ==> : ζ → (Setof ζ)
+;; ==> : ζ → (SetM ζ)
 (define-reduction (==> --> :=<1>)
   #:import [(only common^    push-κ regist-vars)
             (only   misc^    lookup-κ)
@@ -477,5 +477,5 @@
   (export  expand^)
   (inherit [red@    reducer])
   
-  ;; δ → → ζ → (Setof ζ)
+  ;; δ → → ζ → (SetM ζ)
   (define (==> δ) (λ () (reducer (--> δ) :=))))

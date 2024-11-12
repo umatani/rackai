@@ -1,5 +1,6 @@
 #lang racket/base
 (require
+ (only-in racket/exn     exn->string)
  (only-in racket/match   match-λ match-define)
  (only-in racket/list    first)
  (only-in racket/sandbox sandbox-make-code-inspector make-evaluator)
@@ -35,27 +36,27 @@
            #:mode     [mode      'eval]
            #:check    [reference #f])
     (match-define (interp run δ α ≤ₐ rslts) self)
-    (define v (run δ form mode))
-
-    (if (and reference (eq? mode 'eval))
-      (with-handlers ([exn:fail? (λ (_)
-                                   (hash-update! rslts 'fail add1)
-                                   'fail)])
-        (define ref-eval (if (boolean? reference)
+    (with-handlers ([exn:fail? (λ (e)
+                                 (printf "~a\n" (exn->string e))
+                                 (hash-update! rslts 'fail add1)
+                                 'fail)])
+      (define v (run δ form mode))
+      (if (and reference (eq? mode 'eval))
+        (let* ([ref-eval (if (boolean? reference)
                            raw-eval
-                           reference))
-        (let ([r (with-handlers
-                   ([exn:fail?
-                     (λ (e)
-                       (printf "error in reference model: ~a\n" e))])
-                   (ref-eval form))]
-              [a (α v)])
+                           reference)]
+               [r (with-handlers
+                    ([exn:fail?
+                      (λ (e)
+                        (printf "error in reference model: ~a\n" e))])
+                    (ref-eval form))]
+               [a (α v)])
           (cond
             [(and (≤ₐ r a)
                   (≤ₐ a r)) (hash-update! rslts 'exact   add1) 'exact]
             [(≤ₐ r a)       (hash-update! rslts 'inexact add1) 'inexact]
-            [else           (hash-update! rslts 'unsound add1) 'unsound])))
-      v)))
+            [else           (hash-update! rslts 'unsound add1) 'unsound]))
+        v))))
 
 
 ;; interpreter : Symbol (δ Sexp Symbol → (U Val (Setof Val))) δ

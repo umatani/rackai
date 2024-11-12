@@ -12,7 +12,7 @@
  (only-in "../../base/full/eval.rkt" [--> base:-->]))
 (provide --> define-eval-unit eval@)
 
-;; --> : State -> (Setof State)
+;; --> : State -> (SetM State)
 (define-reduction (--> δ ==>) #:super (base:--> δ ==> <-)
   #:import [(only common^    push-cont)
             (only   misc^    lookup-cont lookup-val)
@@ -78,7 +78,7 @@
     (export eval^)
     (inherit [red@    reducer])
 
-    ;; --> : δ → → State → (Setof State)
+    ;; --> : δ → → State → (SetM State)
     (define (--> δ) (λ () (reducer δ (==> δ))))))
 
 (define-eval-unit eval@ red@)
