@@ -14,7 +14,7 @@
  (prefix-in a:p: "../abs/phases.rkt")
  (prefix-in a:f: "../abs/full.rkt")
  (prefix-in n:c: "../abs/naive/core.rkt")
- ;; (prefix-in n:p: "../abs/naive/phases.rkt")
+ (prefix-in n:p: "../abs/naive/phases.rkt")
  ;; (prefix-in n:f: "../abs/naive/full.rkt")
  "suites.rkt")
 
@@ -33,7 +33,7 @@
    (cons 'abs:full     a:f:interp)
 
    (cons 'naive:core   n:c:interp)
-   ;; (cons 'naive:phases n:p:interp)
+   (cons 'naive:phases n:p:interp)
    ;; (cons 'naive:full   n:f:interp)
    ))
 
@@ -52,7 +52,7 @@
    'abs:full     '[core phases full       ]
 
    'naive:core   '[core             finite]
-   ;; 'naive:phases '[core phases      finite]
+   'naive:phases '[core phases      finite]
    ;; 'naive:full   '[core phases full finite]
    ))
 

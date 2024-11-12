@@ -7,25 +7,40 @@
  (only-in "../../reduction.rkt"          define-reduction
                                          define-unit-from-reduction
                                          enable-tracing)
- (only-in "../../nondet.rkt"             pure)
+ (only-in "../../nondet.rkt"             do := <- pure enable-checkpoint)
  (only-in "../../mix.rkt"                define-mixed-unit inherit)
  (only-in "../../set.rkt"                set ∅ ∅? set-add set→list)
  (only-in "../../syntax.rkt"             stx→datum snoc zip unzip prune at-phase)
  "../../test/suites.rkt"
  "../../base/phases/terms.rkt"
 
- (only-in "../../mult/phases/units.rkt"  [parse@ mult:parse@] parser@)
+ (only-in "../../mult/phases/units.rkt"  [syntax@ mult:syntax@]
+                                         [parse@ mult:parse@] parser@)
  (only-in "../../mult/phases/expand.rkt" [==> mult:==>] define-expand-unit)
  (only-in "../phases.rkt"                main-minus@)
- (only-in "domain.rkt"                   domain@ val-⊤ atom-⊤ num-⊤ sym-⊤
-                                         stx-⊤ list-⊤)
+ (only-in "domain.rkt"                   domain@)
  (only-in "core.rkt"                     eval@))
 (provide interp)
 
 
+;;;; Syntax manipulation
+
+(define-mixed-unit syntax@
+  (import)
+  (export syntax^)
+  (inherit (mult:syntax@ empty-ctx in-hole add [mult:flip flip] proper-stl?))
+
+  ;; flip : Ph Stx Scp → Stx
+  (define (flip ph stx scp)
+    (if (eq? stx 'stx-⊤)
+      'stx-⊤
+      (mult:flip ph stx scp)))
+  )
+
+
 ;;;; Expander
 
-;; ==> : ζ -> (Setof ζ)
+;; ==> : ζ -> (SetM ζ)
 (define-reduction (==> -->) #:super (mult:==> -->)
   #:import [(only common^    push-κ regist-vars)
             (only   misc^    lookup-κ)
@@ -37,9 +52,7 @@
             (only   bind^    bind resolve)
             (only  parse^    parse)]
 
-  #:default [(ζ (Stxξ ph stx ξ scpsₚ) κ Σ)
-             #:abort (format "default: ~a\n" (lst→list/recur (stx→datum stx)))]
-
+  #;
   [(InEval (list stx '● _sto)
            (ζ (Stxξ ph (Stx (Bool #f) _ctxᵢ) ξ scpsₚ)
               κ Σ))
@@ -51,17 +64,12 @@
       κ Σ)
    ex-macapp-abs]
 
-  ;; abstract value
-  [(ζ (Stxξ ph val _ξ _scpsₚ) κ Σ)
-   #:when (or (equal? val val-⊤)
-              (equal? val atom-⊤)
-              (equal? val num-⊤)
-              (equal? val sym-⊤)
-              (equal? val stx-⊤)
-              (equal? val list-⊤))
-   #:checkpoint (printf "ex-abs-⊤\n")
-   (ζ val κ Σ)
-   ex-abs-⊤])
+  ;; abstract values
+  [(ζ (Stxξ _ph 'stx-⊤ _ξ _scpsₚ) κ Σ)
+   #:checkpoint (printf "ex-stx-⊤\n")
+   (ζ 'stx-⊤ κ Σ)
+   ex-stx-⊤]
+  )
 
 (define-unit-from-reduction ex:red@ ==>)
 
@@ -77,10 +85,8 @@
 
   ; parse1 : Ph Stx Σ -> (SetM Ast)
   (define ((parse1 prs1 prs*) ph stx Σ)
-    (if (or (equal? stx val-⊤)
-            (equal? stx atom-⊤)
-            (equal? stx stx-⊤))
-      (pure val-⊤)
+    (if (eq? stx 'stx-⊤)
+      (pure 'val-⊤) ;; TODO: ast-⊤?
       ((mult:parse1 prs1 prs*) ph stx Σ)))
 
   ; parse : Ph Stx Σ -> (SetM Ast)
@@ -92,8 +98,8 @@
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export domain^ run^)
-   (link domain@ main-minus@
-         eval@ parse@ parser@ expand@))
+   (link main-minus@
+         domain@ syntax@ eval@ parse@ parser@ expand@))
   (import) (export domain^ run^))
 
 (define interp (interpreter run δ α ≤ₐ))

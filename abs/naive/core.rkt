@@ -22,6 +22,7 @@
  (only-in "domain.rkt"                 domain@))
 (provide eval@ interp)
 
+
 ;;;; Syntax manipulation
 
 (define-mixed-unit syntax@
@@ -50,36 +51,11 @@
             (only   bind^    bind resolve)
             (only  parse^    parse)]
 
-  #;
-  [(InEval (list stx '● _sto)
-           (ζ (Stxξ (Stx (Bool #f) (set _scpᵢ)) ξ)
-              κ Σ))
-   #:when (or (equal? stx val-⊤)
-              (equal? stx atom-⊤)
-              (equal? stx stx-⊤))
-   #:checkpoint (printf "ex-macapp-abs\n")
-   (ζ (Stxξ stx ξ)
-      κ Σ)
-   ex-macapp-abs]
-
   ;; abstract values
-
   [(ζ (Stxξ 'stx-⊤ ξ) κ Σ)
    #:checkpoint (printf "ex-stx-⊤\n")
-   (ζ 'stx-⊤ '● Σ)
-   ex-stx-⊤]
-
-  #;
-  [(ζ (Stxξ val ξ) κ Σ)
-   #:when (or (equal? val val-⊤)
-              (equal? val atom-⊤)
-              (equal? val num-⊤)
-              (equal? val sym-⊤)
-              (equal? val stx-⊤)
-              (equal? val list-⊤))
-   #:checkpoint (printf "ex-abs-⊤\n")
-   (ζ val κ Σ)
-   ex-abs-⊤])
+   (ζ 'stx-⊤ κ Σ)
+   ex-stx-⊤])
 
 (define-unit-from-reduction ex:red@ ==>)
 
@@ -96,7 +72,7 @@
   ; parse1 : Stx Σ -> (SetM Ast)
   (define ((parse1 prs1 prs*) stx Σ)
     (if (eq? stx 'stx-⊤)
-      (pure 'val-⊤) ;; TODO: ast-⊤?
+      (pure 'val-⊤)
       ((mult:parse1 prs1 prs*) stx Σ)))
 
   ; parse : Stx Σ -> (SetM Ast)
@@ -107,39 +83,32 @@
 
 ;; Revise --> to interpret abstract values (val-⊤, stx-⊤, etc.)
 ;; --> : State -> (Setof State)
-#;
+
 (define-reduction (--> δ) #:super (mult:--> δ)
   #:import [(only common^    push-cont)
             (only   misc^    lookup-cont lookup-val)
             (only    env^    extend-env* lookup-env)
             (only  store^    lookup-store update-store alloc-loc)]
+
   ;; β (val-⊤ ...)
-  [`(,f ,(KApp′ _args _env loc) ,sto)
-   #:when (equal? f val-⊤)
+  [`(val-⊤ ,(KApp′ _args _env loc) ,sto)
    #:checkpoint (printf "ev-β-abs\n")
    cnt <- (lookup-cont sto loc)
-   `(,f ,cnt ,sto)
+   `(val-⊤ ,cnt ,sto)
    ev-β-abs]
 
-  [`(,(VFun vars ast env) ,(KApp′ args _env loc) ,sto)
-   #:checkpoint (printf "ev-β\n")
-   `(,(Var nams) ...) := vars
-   (values locs sto′) := (alloc-loc* alloc-loc nams sto)
-                 env′ := (extend-env* env vars locs)
-                 sto″ := (update-store* update-store sto′ locs args)
-                  cnt <- (lookup-cont sto″ loc)
-   `(,(AstEnv ast env′) ,cnt ,sto″)
-   ev-β]
 
   ;; (if ⊤ ...)
+  #;
   [`(,(? val? val) ,(KIf _ast₁ ast₂ env loc) ,sto)
    #:when (or (equal? val val-⊤) (equal? val atom-⊤))
    #:checkpoint (printf "ev-if-abs-#f\n")
    cnt <- (lookup-cont sto loc)
    `(,(AstEnv ast₂ env) ,cnt ,sto)
-   ev-if-abs-#f])
+   ev-if-abs-#f]
+  )
 
-(define-unit-from-reduction ev:red@ mult:-->)
+(define-unit-from-reduction ev:red@ -->)
 
 (define-eval-unit eval@ ev:red@)
 

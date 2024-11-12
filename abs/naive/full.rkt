@@ -7,20 +7,35 @@
  (only-in "../../reduction.rkt"        define-reduction
                                        define-unit-from-reduction
                                        enable-tracing)
- (only-in "../../nondet.rkt"           pure)
+ (only-in "../../nondet.rkt"           do := <- pure enable-checkpoint)
  (only-in "../../mix.rkt"              define-mixed-unit inherit)
  (only-in "../../misc.rkt"             update-store* alloc-loc*)
  (only-in "../../set.rkt"              set ∅ set-add for/set)
  (only-in "../../syntax.rkt"           stx→datum snoc zip unzip prune at-phase)
  "../../test/suites.rkt"
  "../../base/full/terms.rkt"
- (only-in "../../mult/full/units.rkt"  [parse@ mult:parse@] parser@)
+ (only-in "../../mult/full/units.rkt"  [syntax@ mult:syntax@]
+                                       [parse@ mult:parse@] parser@)
  (only-in "../../mult/full/eval.rkt"   [--> mult:-->] define-eval-unit)
  (only-in "../../mult/full/expand.rkt" [==> mult:==>] define-expand-unit)
  (only-in "../full.rkt"                main-minus@)
- (only-in "domain.rkt"                 domain@ val-⊤ atom-⊤ num-⊤ sym-⊤
-                                       stx-⊤ list-⊤))
+ (only-in "domain.rkt"                 domain@))
 (provide interp)
+
+
+;;;; Syntax manipulation
+
+(define-mixed-unit syntax@
+  (import)
+  (export syntax^)
+  (inherit (mult:syntax@ empty-ctx in-hole add [mult:flip flip] proper-stl?))
+
+  ;; flip : Ph Stx Scp → Stx
+  (define (flip ph stx scp)
+    (if (eq? stx 'stx-⊤)
+      'stx-⊤
+      (mult:flip ph stx scp)))
+  )
 
 
 ;;;; Expander
@@ -36,9 +51,7 @@
             (only   bind^    bind resolve)
             (only  parse^    parse)]
 
-  #:default [(ζ (Stxξ ph stx ξ) κ Σ̂)
-             #:abort (format "default: ~a\n" (lst→list/recur (stx→datum stx)))]
-  
+  #;
   [(InEval (list stx '● _sto Σ̂)
            (ζ (Stxξ ph (Stx (Bool #f) _ctxᵢ) ξ)
               κ
@@ -52,21 +65,15 @@
       Σ̂)
    ex-macapp-abs]
 
-  ;; abstract value
-  [(ζ (Stxξ ph val ξ)
+  ;; abstract values
+  [(ζ (Stxξ ph 'stx-⊤ ξ)
       κ
       Σ̂)
-   #:when (or (equal? val val-⊤)
-              (equal? val atom-⊤)
-              (equal? val num-⊤)
-              (equal? val sym-⊤)
-              (equal? val stx-⊤)
-              (equal? val list-⊤))
-   #:checkpoint (printf "ex-abs-⊤\n")
-   (ζ val
+   #:checkpoint (printf "ex-stx-⊤\n")
+   (ζ 'stx-⊤
       κ
       Σ̂)
-   ex-abs-⊤])
+   ex-stx-⊤])
 
 (define-unit-from-reduction ex:red@ ==>)
 
@@ -82,10 +89,8 @@
 
   ; parse1 : Ph Stx Σ -> (SetM Ast)
   (define ((parse1 prs1 prs*) ph stx Σ)
-    (if (or (equal? stx val-⊤)
-            (equal? stx atom-⊤)
-            (equal? stx stx-⊤))
-      (pure val-⊤)
+    (if (eq? stx 'stx-⊤)
+      (pure 'val-⊤) ;; TODO: ast-⊤?
       ((mult:parse1 prs1 prs*) ph stx Σ)))
 
   ; parse : Ph Stx Σ -> (SetM Ast)
@@ -104,7 +109,9 @@
             (only mstore^    lookup-Σ update-Σ alloc-name alloc-scope alloc-𝓁)
             (only   bind^    bind resolve)
             (only  parse^    parse)]
+
   ;; (syntax-local-value <abs> _ ...)
+  #;
   [`(,(Prim 'syntax-local-value _stx)
      ,(KApp′ `(,(? id? id) ,_val ...) `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,Σ̂)
@@ -116,6 +123,7 @@
    ev-lval-abs]
 
   ;; (syntax-local-identifier-as-binding <abs>)
+  #;
   [`(,(Prim 'syntax-local-identifier-as-binding _stx)
      ,(KApp′ `(,(? id? id)) `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,Σ̂)
@@ -129,6 +137,7 @@
    ev-lbinder-abs]
 
   ;; (syntax-local-bind-syntaxes <abs> <abs> <abs>)
+  #;
   [`(,(Prim 'syntax-local-bind-syntaxes _stx)
      ,(KApp′ `(,ids ,rhs ,defs)
              `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
@@ -152,6 +161,7 @@
    ev-slbs-abs]
 
   ;; (local-expand <abs> contextv idstops defs?) ;; TODO: check other args
+  #;
   [`(,(Prim 'local-expand stx)
      ,(KApp′ `(,stx_arg ,_val_context ,_ids_stop ,_defs ...)
              `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
@@ -164,17 +174,17 @@
    `(,stx-⊤ ,cnt ,sto ,Σ̂)
    ev-lexpand-abs]
 
-  ;; β (<abs> ...)
-  [`(,f
+  ;; β (val-⊤ ...)
+  [`(val-⊤
      ,(KApp′ _args `(,_ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,Σ̂)
-   #:when (equal? f val-⊤)
    #:checkpoint (printf "ev-β-abs\n")
    cnt <- (lookup-cont sto loc)
-   `(,f ,cnt ,sto ,Σ̂)
+   `(val-⊤ ,cnt ,sto ,Σ̂)
    ev-β-abs]
 
   ;; (if <abs> ...)
+  #;
   [`(,(? val? val)
      ,(KIf _ast₁ ast₂ (list ph env maybe-scpᵢ ξ) loc)
      ,sto ,Σ̂)   
@@ -185,7 +195,8 @@
    `(,(AstEnv ph ast₂ env maybe-scpᵢ ξ)
      ,cnt
      ,sto ,Σ̂)
-   ev-if-abs-#f])
+   ev-if-abs-#f]
+  )
 
 (define-unit-from-reduction ev:red@ -->)
 
@@ -197,7 +208,8 @@
 (define-values/invoke-unit
   (compound-unit/infer
    (import) (export domain^ run^)
-   (link main-minus@ expand@ parse@ parser@ domain@ eval@))
+   (link main-minus@
+         domain@ syntax@ expand@ parse@ parser@ eval@))
   (import) (export domain^ run^))
 
 (define interp (interpreter run δ α ≤ₐ))

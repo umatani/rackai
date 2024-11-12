@@ -325,7 +325,7 @@
    ex-prim]
 
   ;; pop κ
-  [(ζ (? Stx? stx)
+  [(ζ (? stx? stx)
       (κ (Stxξ stxₖ ξ) 𝓁) Σ)
    κ₀ :=<1> (lookup-κ Σ 𝓁)
    (ζ (Stxξ (in-hole stxₖ stx) ξ)
@@ -333,7 +333,7 @@
    ex-pop-κ]
 
   ;; pop κ′
-  [(ζ (? Stx? stx)
+  [(ζ (? stx? stx)
       (κ (? (compose1 not Stxξ?) stxₖ) 𝓁) Σ)
    κ₀ :=<1> (lookup-κ Σ 𝓁)
    (ζ (in-hole stxₖ stx)

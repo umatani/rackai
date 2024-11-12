@@ -27,7 +27,7 @@
 
   ;; value
   [`(,(AstEnv (? val? val) _env) ,cnt ,sto)
-   #:checkpoint (printf "ev-val\n")
+   #:checkpoint (printf "ev-val: ~s\n" val)
    `(,val ,cnt ,sto)
    ev-val]
 
@@ -47,23 +47,24 @@
 
   ;; application
   [`(,(AstEnv (App lbl ast asts) env) ,cnt ,sto)
-   #:checkpoint (printf "ev-push-app\n")
+   #:checkpoint (printf "ev-push-app: (~a . ~a)\n" ast asts)
    (values loc sto′) := (push-cont sto lbl cnt)
    `(,(AstEnv ast env) ,(KApp '() asts env loc) ,sto′)
    ev-push-app]
 
   [`(,(? val? val) ,(KApp vals (cons ast asts) env loc) ,sto)
-   ;#:checkpoint (printf "ev-push-app₁\n")
+   ;#:checkpoint (printf "ev-pop-app₁\n")
    `(,(AstEnv ast env) ,(KApp (append vals (list val)) asts env loc) ,sto)
    ev-pop-app₁]
 
   [`(,(? val? val) ,(KApp '() '() env loc) ,sto)
-   ;#:checkpoint (printf "ev-push-app₂\n")
+   #:checkpoint (printf "ev-pop-app₂: (~s)\n" val)
    `(,val ,(KApp′ '() env loc) ,sto)
    ev-pop-app₂]
 
   [`(,(? val? val) ,(KApp (cons val′ vals) '() env loc) ,sto)
-   ;#:checkpoint (printf "ev-push-app₃\n")
+   #:checkpoint (printf "ev-pop-app₃: (~s . ~s)\n"
+                        val′ (append vals (list val)))
    `(,val′ ,(KApp′ (append vals (list val)) env loc) ,sto)
    ev-pop-app₃]
 

@@ -394,7 +394,7 @@
    ex-prim]
 
   ;; pop κ
-  [(ζ (? Stx? stx)
+  [(ζ (? stx? stx)
       (κ (Stxξ ph stxₖ ξ) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ _scpsₚ _scpsᵤ))
    κ₀ :=<1> (lookup-κ Σ 𝓁)
@@ -404,7 +404,7 @@
    ex-pop-κ]
 
   ;; pop κ′
-  [(ζ (? Stx? stx)
+  [(ζ (? stx? stx)
       (κ (? (compose1 not Stxξ?) stxₖ) scpsₚ scpsᵤ 𝓁)
       (Σ̂ Σ _scpsₚ _scpsᵤ))
    κ₀ :=<1> (lookup-κ Σ 𝓁)
