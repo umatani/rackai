@@ -17,7 +17,7 @@
 (define-reduction (==> -->) #:super (base:==> --> <-)
   #:import [(only common^    push-κ regist-vars)
             (only   misc^    lookup-κ)
-            (only domain^    val? stx?)
+            (only domain^    val? stx? lst→list/recur)
             (only syntax^    empty-ctx add flip in-hole proper-stl?)
             (only    env^    init-env)
             (only  store^    init-store)

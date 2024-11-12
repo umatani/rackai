@@ -20,7 +20,7 @@
 (define-reduction (==> --> :=<1>)
   #:import [(only common^    push-κ regist-vars)
             (only   misc^    lookup-κ)
-            (only domain^    val? stx?)
+            (only domain^    val? stx? lst→list/recur)
             (only syntax^    empty-ctx in-hole add flip proper-stl?)
             (only    env^    init-env)
             (only  store^    init-store)

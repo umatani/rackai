@@ -16,7 +16,7 @@
 (define-reduction (--> δ ==>) #:super (base:--> δ ==> <-)
   #:import [(only common^    push-cont)
             (only   misc^    lookup-cont lookup-val)
-            (only domain^    val? stx?)
+            (only domain^    val? stx? lst→list)
             (only syntax^    add flip)
             (only    env^    init-env lookup-env extend-env*)
             (only  store^    lookup-store update-store alloc-loc)

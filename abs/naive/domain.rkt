@@ -35,7 +35,7 @@
 (define-mixed-unit domain@
   (import)
   (export domain^)
-  (inherit [mult:domain@    α])
+  (inherit (mult:domain@    α lst→list lst→list/recur))
 
   ;; val? : Ast → Boolean
   (define (val? x)

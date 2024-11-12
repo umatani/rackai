@@ -1,7 +1,7 @@
 #lang racket/unit
 (require
  (only-in racket/function identity)
- (only-in racket/match    match*)
+ (only-in racket/match    match match*)
  (only-in racket/pretty   pretty-print)
  (only-in "../set.rkt"    ⊆)
  "../signatures.rkt"
@@ -97,3 +97,15 @@
     [((Prim 'printe _) `(,u ,v))
      (pretty-print (lst→list/recur u))
      v]))
+
+(define (lst→list l)
+  (match l
+    [(Null) '()]
+    [(Pair a d) (cons a (lst→list d))]))
+
+(define (lst→list/recur x)
+  (match x
+    [(Null) '()]
+    [(Pair a d) (cons (lst→list/recur a) (lst→list/recur d))]
+    [_ x]))
+

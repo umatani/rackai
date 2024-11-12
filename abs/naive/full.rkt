@@ -32,7 +32,8 @@
 
   ;; flip : Ph Stx Scp → Stx
   (define (flip ph stx scp)
-    (if (eq? stx 'stx-⊤)
+    (if (or (eq? stx 'stx-⊤)
+            (eq? stx 'val-⊤))
       'stx-⊤
       (mult:flip ph stx scp)))
   )

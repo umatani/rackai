@@ -24,11 +24,13 @@
 ;; ----------------------------------------
 ;; Implementation of Domains:
 (define-signature domain^
-  (δ             ; Prim (Listof Val) → Val
-   α             ; (Setof Val) → (Setof Val)
-   ≤ₐ            ; (Setof Val) (Setof Val) → Boolean
-   val?          ; Ast → Boolean
-   stx?          ; Ast → Boolean
+  (δ              ; Prim (Listof Val) → Val
+   α              ; (Setof Val) → (Setof Val)
+   ≤ₐ             ; (Setof Val) (Setof Val) → Boolean
+   val?           ; Ast → Boolean
+   stx?           ; Ast → Boolean
+   lst→list       ; List → (Listof Any)
+   lst→list/recur ; List → Any
    ))
 
 ;; ----------------------------------------

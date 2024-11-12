@@ -16,7 +16,7 @@
 (define-reduction (--> δ ==> :=<1>)
   #:import [(only common^    push-cont)
             (only   misc^    lookup-cont lookup-val)
-            (only domain^    val? stx?)
+            (only domain^    val? stx? lst→list)
             (only syntax^    add flip)
             (only    env^    init-env lookup-env extend-env*)
             (only  store^    lookup-store update-store
@@ -243,7 +243,7 @@
      ,(KApp′ `(,(? stx? stx_arg) ,_val_context ,ids_stop)
              `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
-   #:checkpoint (printf "ev-lexpand\n")
+   #:checkpoint (printf "ev-lexpand: ~s\n" ids_stop)
      ξ′ :=    (unstop-ξ ξ)
    nams :=<1> (resolve* ph (lst→list ids_stop) Σ)
     ats :=<1> (lookup-ξ* ξ′ nams)

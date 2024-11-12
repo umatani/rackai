@@ -19,7 +19,7 @@
 (define-reduction (==> --> :=<1>)
   #:import [(only common^    push-κ regist-vars)
             (only   misc^    lookup-κ)
-            (only domain^    val? stx?)
+            (only domain^    val? stx? lst→list/recur)
             (only syntax^    empty-ctx add flip in-hole proper-stl?)
             (only    env^    init-env)
             (only  store^    init-store)
@@ -247,7 +247,7 @@
            (ζ (Stxξ ph (Stx (Bool #f) ctxᵢ) ξ)
               κ
               _Σ̂))
-   #:checkpoint (printf "ex-macapp\n")
+   #:checkpoint (printf "ex-macapp: ~a\n" stx)
    (set scpᵢ) := (at-phase ctxᵢ ph)
    (ζ (Stxξ ph (flip ph stx scpᵢ) ξ)
       κ

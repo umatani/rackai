@@ -7,6 +7,7 @@
  "terms.rkt")
 
 (import
+ (only domain^    lst→list)
  (only syntax^    proper-stl?)
  (only   bind^    resolve))
 (export parse^)

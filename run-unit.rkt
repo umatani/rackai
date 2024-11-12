@@ -8,7 +8,8 @@
 
 ;;;; runner
 
-(import (only        io^    reader)
+(import (only    domain^    lst→list/recur)
+        (only        io^    reader)
         (only  expander^    expander)
         (only    parser^    parser)
         (only evaluator^    evaluator))

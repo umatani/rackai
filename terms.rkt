@@ -113,12 +113,17 @@
 
 ;;;; Extra utils
 
+(define (lst->list l)
+  (match l
+    [(Null) '()]
+    [(Pair a d) (cons a (lst->list d))]))
+
 ;; Lst pattern/constructor
 (define-match-expander Lst
   (λ (stx)
     (syntax-case stx (... ...)
       [(_ p (... ...))
-       #'(? List? (app lst→list (list p (... ...))))]
+       #'(? List? (app lst->list (list p (... ...))))]
       [p (syntax-parse #'p
            #:datum-literals [|.|]
            [(_) #'(Null)]
@@ -135,22 +140,6 @@
       [(_ y ys ... . xs:id)  #'(Pair y (Lst ys ... . xs))])))
 
 ;; List utils
-
-(define (lst→list l)
-  (match l
-    [(Null) '()]
-    [(Pair a d) (cons a (lst→list d))]))
-
-(define (list→lst l)
-  (match l
-    ['() (Null)]
-    [(cons a d) (Pair a (list→lst d))]))
-
-(define (lst→list/recur x)
-  (match x
-    [(Null) '()]
-    [(Pair a d) (cons (lst→list/recur a) (lst→list/recur d))]
-    [_ x]))
 
 ;; Additional constructor
 (define (id nam ctx) (Stx (Sym nam) ctx))
