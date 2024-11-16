@@ -29,6 +29,7 @@
    ≤ₐ             ; (Setof Val) (Setof Val) → Boolean
    val?           ; Ast → Boolean
    stx?           ; Ast → Boolean
+   id?            ; Ast → Boolean
    lst→list       ; List → (Listof Any)
    lst→list/recur ; List → Any
    ))
@@ -71,6 +72,7 @@
 (define-signature io^
   (reader        ; Sexp → Stx
    printer       ; Val → Sexp
+   all-ids       ; → (SetM Id)
    ))
 
 ;; ----------------------------------------
@@ -97,6 +99,7 @@
                  ; Σ 𝓁   → (U Val ξ κ)
    update-Σ      ; Σ Nam (Setof StoBind) → Σ
                  ; Σ 𝓁   (U Val ξ κ)     → Σ
+   all-nams      ; Σ → (Setof Nam)
 
 
    ;; ----------------------------------------
@@ -140,7 +143,8 @@
 (define-signature syntax^
   (empty-ctx     ; → Ctx
    in-hole       ; Stx Stx → Stx
-   add           ; Stx Scp -> Stx
-   flip          ; Stx Scp -> Stx
+   add           ; Stx Scp → Stx
+   flip          ; Stx Scp → Stx
+   prune         ; Ph Stx Scps → Stx
    proper-stl?   ; Val → Boolean
    ))

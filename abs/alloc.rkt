@@ -13,7 +13,7 @@
 (define-mixed-unit mstore@
   (import)
   (export  mstore^)
-  (inherit [mult:mstore@    init-Σ lookup-Σ update-Σ])
+  (inherit [mult:mstore@    init-Σ all-nams lookup-Σ update-Σ])
 
   ;; ----------------------------------------
   ;; Alloc name & scope helpers for expander:

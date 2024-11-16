@@ -7,14 +7,15 @@
  (only-in "../../reduction.rkt"          define-reduction
                                          define-unit-from-reduction
                                          enable-tracing)
- (only-in "../../nondet.rkt"             do := <- pure enable-checkpoint)
+ (only-in "../../nondet.rkt"             do := <- pure lift enable-checkpoint)
  (only-in "../../mix.rkt"                define-mixed-unit inherit)
  (only-in "../../set.rkt"                set ∅ ∅? set-add set→list)
- (only-in "../../syntax.rkt"             stx→datum snoc zip unzip prune at-phase)
+ (only-in "../../syntax.rkt"             stx→datum snoc zip unzip at-phase)
  "../../test/suites.rkt"
  "../../base/phases/terms.rkt"
 
  (only-in "../../mult/phases/units.rkt"  [syntax@ mult:syntax@]
+                                         [bind@ mult:bind@]
                                          [parse@ mult:parse@] parser@)
  (only-in "../../mult/phases/expand.rkt" [==> mult:==>] define-expand-unit)
  (only-in "../phases.rkt"                main-minus@)
@@ -28,7 +29,8 @@
 (define-mixed-unit syntax@
   (import)
   (export syntax^)
-  (inherit (mult:syntax@ empty-ctx in-hole add [mult:flip flip] proper-stl?))
+  (inherit (mult:syntax@    empty-ctx in-hole add
+                            [mult:flip flip] prune proper-stl?))
 
   ;; flip : Ph Stx Scp → Stx
   (define (flip ph stx scp)
@@ -38,13 +40,33 @@
   )
 
 
+;;;; Name resolution
+
+(define-mixed-unit bind@
+  (import
+   (only mstore^    lookup-Σ all-nams))
+  (export bind^)
+  (inherit (mult:bind@    bind [mult:resolve resolve]))
+
+  ;; resolve : Ph Id Σ → (SetM Nam)
+  (define (resolve ph id Σ)
+    (if (eq? id 'stx-⊤)
+      (do nam  <- (lift (all-nams Σ))
+          sb   <- (lookup-Σ Σ nam)
+          nam′ <- (lift (StoBind-nam sb))
+          (pure nam′))
+      (mult:resolve ph id Σ)))
+
+  )
+
+
 ;;;; Expander
 
 ;; ==> : ζ -> (SetM ζ)
 (define-reduction (==> -->) #:super (mult:==> -->)
   #:import [(only common^    push-κ regist-vars)
             (only   misc^    lookup-κ)
-            (only syntax^    empty-ctx add flip in-hole proper-stl?)
+            (only syntax^    empty-ctx add flip prune in-hole proper-stl?)
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
@@ -99,7 +121,7 @@
   (compound-unit/infer
    (import) (export domain^ run^)
    (link main-minus@
-         domain@ syntax@ eval@ parse@ parser@ expand@))
+         domain@ syntax@ bind@ eval@ parse@ parser@ expand@))
   (import) (export domain^ run^))
 
 (define interp (interpreter run δ α ≤ₐ))

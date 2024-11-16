@@ -145,11 +145,6 @@
 (define (id nam ctx) (Stx (Sym nam) ctx))
 
 ;; Additional predicates
-(define (id? x)
-  (match x
-    [(Stx (Sym _) _) #t]
-    [_ #f]))
-
 (define (cont? x)
   (or (Cont? x) (eq? x '●)))
 

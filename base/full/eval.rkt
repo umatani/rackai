@@ -6,7 +6,6 @@
  (only-in "../../set.rkt"    set ∅ set-add)
  (only-in "../../mix.rkt"    define-mixed-unit inherit)
  (only-in "../../misc.rkt"   update-store* alloc-loc*)
- (only-in "../../syntax.rkt" prune)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "terms.rkt")
@@ -16,8 +15,8 @@
 (define-reduction (--> δ ==> :=<1>)
   #:import [(only common^    push-cont)
             (only   misc^    lookup-cont lookup-val)
-            (only domain^    val? stx? lst→list)
-            (only syntax^    add flip)
+            (only domain^    val? stx? id? lst→list)
+            (only syntax^    add flip prune)
             (only    env^    init-env lookup-env extend-env*)
             (only  store^    lookup-store update-store
                              alloc-loc)
@@ -164,7 +163,7 @@
   [`(,(Prim 'syntax-local-identifier-as-binding _stx)
      ,(KApp′ `(,(? id? id)) `(,ph ,_env ,_maybe-scpᵢ ,_ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
-   #:checkpoint (printf "ev-lbinder\n")
+   #:checkpoint (printf "ev-lbinder: ~s\n" id)
    cnt :=<1> (lookup-cont sto loc)
    `(,(prune ph id scpsᵤ) ,cnt ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
    ev-lbinder]
@@ -211,7 +210,7 @@
                scpsₚ scpsᵤ)))
    ev-slbsm]
 
-  [(InExpand (ζ (? Stx? stx_arg′) '● (Σ̂ Σ _scpsₚ _scpsᵤ))
+  [(InExpand (ζ (? stx? stx_arg′) '● (Σ̂ Σ _scpsₚ _scpsᵤ))
              `(,(Prim 'syntax-local-bind-syntaxes2 _stx)
                ,(KApp′ `(,id ,(Defs scp 𝓁)) `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
                ,sto ,(Σ̂ _Σ scpsₚ scpsᵤ)))
@@ -256,7 +255,7 @@
                ∅ ∅)))
    ev-lexpand]
 
-  [(InExpand (ζ (? Stx? stx_arg′) '● Σ̂)
+  [(InExpand (ζ (? stx? stx_arg′) '● Σ̂)
              `(,(Prim 'local-expand _stx)
                ,(KApp′ '() `(,ph ,_env ,maybe-scpᵢ ,_ξ) loc)
                ,sto ,_Σ̂))
@@ -272,7 +271,7 @@
      ,(KApp′ `(,(? stx? stx_arg) ,_val_context ,ids_stop ,(Defs scp 𝓁))
              `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
      ,sto ,(Σ̂ Σ scpsₚ scpsᵤ))
-   #:checkpoint (printf "ev-lexpand-defs\n")
+   #:checkpoint (printf "ev-lexpand-defs: ~s\n" stx_arg)
    ξ_defs :=<1> (lookup-def-ξ Σ 𝓁)
        ξ′ :=    (unstop-ξ ξ_defs)
      nams :=<1> (resolve* ph (lst→list ids_stop) Σ)

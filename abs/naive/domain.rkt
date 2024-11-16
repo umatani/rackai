@@ -35,7 +35,8 @@
 (define-mixed-unit domain@
   (import)
   (export domain^)
-  (inherit (mult:domain@    α lst→list lst→list/recur))
+  (inherit (mult:domain@    α lst→list/recur
+                            [mult:id? id?] [mult:lst→list lst→list]))
 
   ;; val? : Ast → Boolean
   (define (val? x)
@@ -57,6 +58,12 @@
         (eq? x 'stx-⊤)
         (eq? x 'val-⊤)))
 
+  ;; id? : Ast → Boolean
+  (define (id? x)
+    (or (mult:id? x)
+        (eq? x 'stx-⊤)
+        (eq? x 'val-⊤)))
+
   ;; num? : Ast → Boolean
   (define (num? x)
     (or (Num? x)
@@ -75,6 +82,11 @@
     (define (∈ₐ v₁) (ormap (λ (v₂) (≤ᵥ v₁ v₂)) vs₂*))
     (andmap ∈ₐ vs₁*))
 
+  (define (lst→list l)
+    (if (eq? l 'pair-⊤)
+      'pair-⊤
+      (mult:lst→list l)))
+  
   ; δ : Prim (Listof Val) → (SetM Val)
   (define (δ op vs)
     (match* (op vs)

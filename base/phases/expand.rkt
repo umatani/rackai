@@ -4,7 +4,7 @@
  (only-in racket/match       match match-let)
  (only-in "../../set.rkt"    set ∅ set-add set→list)
  (only-in "../../mix.rkt"    define-mixed-unit inherit)
- (only-in "../../syntax.rkt" stx→datum snoc zip unzip prune at-phase)
+ (only-in "../../syntax.rkt" stx→datum snoc zip unzip at-phase)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "terms.rkt")
@@ -19,8 +19,8 @@
 (define-reduction (==> --> :=<1>)
   #:import [(only common^    push-κ regist-vars)
             (only   misc^    lookup-κ)
-            (only domain^    val? stx? lst→list/recur)
-            (only syntax^    empty-ctx add flip in-hole proper-stl?)
+            (only domain^    val? stx? id? lst→list/recur)
+            (only syntax^    empty-ctx add flip prune in-hole proper-stl?)
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)

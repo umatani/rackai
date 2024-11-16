@@ -25,8 +25,9 @@
                                       ● ,(init-store)))
         (when (not (val? val))
           (printf "eval: non value: ~a\n" val))
-        (when (not (eq? cnt '●))
-          (printf "eval: remaining cont: ~a\n" cnt))
+        ;; possible in abs
+        ;; (when (not (eq? cnt '●))
+        ;;   (printf "eval: remaining cont: ~a\n" cnt))
         (pure val))))
 
 
@@ -49,8 +50,9 @@
                                             ● ,(init-store) ,Σ̂))
         (when (not (val? val))
           (printf "eval: non value: ~a\n" val))
-        (when (not (eq? cnt '●))
-          (printf "eval: remaining cont: ~a\n" cnt))
+        ;; possible in abs
+        ;; (when (not (eq? cnt '●))
+        ;;   (printf "eval: remaining cont: ~a\n" cnt))
         (pure (cons val Σ̂′))))
 
   ;; evaluator : δ Ast → (SetM Val)

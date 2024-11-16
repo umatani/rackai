@@ -13,7 +13,7 @@
 (define-mixed-unit syntax@
   (import)
   (export  syntax^)
-  (inherit [phases:syntax@ empty-ctx add flip proper-stl?])
+  (inherit [phases:syntax@ empty-ctx add flip prune proper-stl?])
 
   ; in-hole : Stx Stx -> Stx
   (define (in-hole stx v)

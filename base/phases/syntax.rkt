@@ -6,7 +6,9 @@
  (only-in "../../mix.rkt"     define-mixed-unit inherit)
  "../../signatures.rkt"
  "terms.rkt"
- (only-in "../../syntax.rkt"  map-ctx in-hole-stl at-phase update-ctx ⊕)
+ (only-in "../../misc.rkt"    subtract)
+ (only-in "../../syntax.rkt"  map-ctx in-hole-stl at-phase update-ctx ⊕
+          )
  (only-in "../core/units.rkt" [syntax@ core:syntax@]))
 (provide syntax@)
 
@@ -45,4 +47,12 @@
   (define (flip ph stx scp)
     (map-ctx stx
              (λ (ctx)
-               (update-ctx ctx ph (⊕ scp (at-phase ctx ph)))))))
+               (update-ctx ctx ph (⊕ scp (at-phase ctx ph))))))
+
+  ;; prune : Ph Stx Scps → Stx
+  ;;   Recursively removes a set of scopes from a syntax object at a given phase
+  (define (prune ph stx scps)
+    (map-ctx stx
+             (λ (ctx)
+               (update-ctx ctx ph (subtract (at-phase ctx ph) scps)))))
+  )

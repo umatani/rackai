@@ -15,7 +15,7 @@
  (prefix-in a:f: "../abs/full.rkt")
  (prefix-in n:c: "../abs/naive/core.rkt")
  (prefix-in n:p: "../abs/naive/phases.rkt")
- ;; (prefix-in n:f: "../abs/naive/full.rkt")
+ (prefix-in n:f: "../abs/naive/full.rkt")
  "suites.rkt")
 
 (define interpreters
@@ -34,7 +34,7 @@
 
    (cons 'naive:core   n:c:interp)
    (cons 'naive:phases n:p:interp)
-   ;; (cons 'naive:full   n:f:interp)
+   (cons 'naive:full   n:f:interp)
    ))
 
 (define suites
@@ -53,7 +53,7 @@
 
    'naive:core   '[core             finite]
    'naive:phases '[core phases      finite]
-   ;; 'naive:full   '[core phases full finite]
+   'naive:full   '[core phases full finite]
    ))
 
 (define (run-all interpreters suites mode reference verbose?)

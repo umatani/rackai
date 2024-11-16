@@ -66,7 +66,9 @@
     (define ζᵢ   (f:ζ (f:Stxξ ph stx ξ) '● Σ̂))
 
     (do ζ′ <- (apply-reduction* (==>δ) ζᵢ)
-        ;; mult の場合のみ stuck が生じる．
+        (when (InEval? ζ′)
+          (printf "expander: stuck in InEval: ~s\n" ζ′))
+        ;; mult の場合，absでなくても stuck が生じる．
         ;; その原因は，set-box!とbind-syntaxesがstoreへのassignmentで
         ;; あることによりstore中の値の多重化が生じること．
         (f:ζ stx′ κ′ Σ̂′) <- (if (not (InEval? ζ′))

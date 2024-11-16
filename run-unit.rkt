@@ -34,7 +34,7 @@
                                    mode))))))))))
   (for ([x (in-set m)]
         #:when (Left? x))
-    (printf "[error] ~a\n" (Left-msg x)))
+    (printf "[info] ~a" (Left-msg x)))
   (for/set ([x (in-set m)]
             #:when (Right? x))
     (Right-value x)))

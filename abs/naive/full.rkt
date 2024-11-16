@@ -7,14 +7,15 @@
  (only-in "../../reduction.rkt"        define-reduction
                                        define-unit-from-reduction
                                        enable-tracing)
- (only-in "../../nondet.rkt"           do := <- pure enable-checkpoint)
+ (only-in "../../nondet.rkt"           do := <- pure lift enable-checkpoint)
  (only-in "../../mix.rkt"              define-mixed-unit inherit)
  (only-in "../../misc.rkt"             update-store* alloc-loc*)
- (only-in "../../set.rkt"              set ∅ set-add for/set)
- (only-in "../../syntax.rkt"           stx→datum snoc zip unzip prune at-phase)
+ (only-in "../../set.rkt"              set ∅ set-add set→list ∪ for/set)
+ (only-in "../../syntax.rkt"           stx→datum snoc zip unzip at-phase)
  "../../test/suites.rkt"
  "../../base/full/terms.rkt"
  (only-in "../../mult/full/units.rkt"  [syntax@ mult:syntax@]
+                                       [bind@ mult:bind@]
                                        [parse@ mult:parse@] parser@)
  (only-in "../../mult/full/eval.rkt"   [--> mult:-->] define-eval-unit)
  (only-in "../../mult/full/expand.rkt" [==> mult:==>] define-expand-unit)
@@ -28,7 +29,16 @@
 (define-mixed-unit syntax@
   (import)
   (export syntax^)
-  (inherit (mult:syntax@ empty-ctx in-hole add [mult:flip flip] proper-stl?))
+  (inherit (mult:syntax@    empty-ctx in-hole
+                            [mult:add add]
+                            [mult:flip flip]
+                            [mult:prune prune] proper-stl?))
+  ;; add : Ph Stx Scp → Stx
+  (define (add ph stx scp)
+    (if (or (eq? stx 'stx-⊤)
+            (eq? stx 'val-⊤))
+      'stx-⊤
+      (mult:add ph stx scp)))
 
   ;; flip : Ph Stx Scp → Stx
   (define (flip ph stx scp)
@@ -36,6 +46,36 @@
             (eq? stx 'val-⊤))
       'stx-⊤
       (mult:flip ph stx scp)))
+
+  ;; prune : Ph Stx Scps → Stx
+  ;;   Recursively removes a set of scopes from a syntax object at a given phase
+  (define (prune ph stx scps)
+    (if (or (eq? stx 'stx-⊤)
+            (eq? stx 'val-⊤))
+      'stx-⊤
+      (mult:prune ph stx scps)))
+
+  )
+
+
+
+;;;; Name resolution
+
+(define-mixed-unit bind@
+  (import
+   (only mstore^    lookup-Σ all-nams))
+  (export bind^)
+  (inherit (mult:bind@    bind [mult:resolve resolve]))
+
+  ;; resolve : Ph Id Σ → (SetM Nam)
+  (define (resolve ph id Σ)
+    (if (eq? id 'stx-⊤)
+      (do nam  <- (lift (all-nams Σ))
+          sb   <- (lookup-Σ Σ nam)
+          nam′ <- (lift (StoBind-nam sb))
+          (pure nam′))
+      (mult:resolve ph id Σ)))
+
   )
 
 
@@ -44,7 +84,7 @@
 (define-reduction (==> -->) #:super (mult:==> -->)
   #:import [(only common^    push-κ regist-vars)
             (only   misc^    lookup-κ)
-            (only syntax^    empty-ctx add flip in-hole proper-stl?)
+            (only syntax^    empty-ctx add flip prune in-hole proper-stl?)
             (only    env^    init-env)
             (only  store^    init-store)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
@@ -70,7 +110,7 @@
   [(ζ (Stxξ ph 'stx-⊤ ξ)
       κ
       Σ̂)
-   #:checkpoint (printf "ex-stx-⊤\n")
+   #:checkpoint (printf "ex-stx-⊤:\n")
    (ζ 'stx-⊤
       κ
       Σ̂)
@@ -102,14 +142,31 @@
 
 (define-reduction (--> δ ==>) #:super (mult:--> δ ==>)
   #:import [(only common^    push-cont)
+            (only     io^    all-ids)
             (only   misc^    lookup-cont lookup-val)
-            (only syntax^    add flip)
+            (only syntax^    add flip prune)
             (only    env^    init-env lookup-env extend-env*)
             (only  store^    lookup-store update-store alloc-loc)
             (only   menv^    init-ξ lookup-ξ extend-ξ)
-            (only mstore^    lookup-Σ update-Σ alloc-name alloc-scope alloc-𝓁)
+            (only mstore^    lookup-Σ update-Σ all-nams
+                             alloc-name alloc-scope alloc-𝓁)
             (only   bind^    bind resolve)
             (only  parse^    parse)]
+
+  #:do [;; resolve* : Ph (Listof Id) Σ → (SetM (Listof Nam))
+        (define (resolve* ph ids Σ)
+          (match ids
+            ['pair-⊤ (pure (set→list (for/fold ([nams ∅])
+                                               ([nam (all-nams Σ)])
+                                       (do sb <- (lookup-Σ Σ nam)
+                                           (∪ nams (StoBind-nam sb))))))]
+            ['() (pure '())]
+            [(cons id ids)
+             (do nam  <- (resolve  ph id  Σ)
+                 nams <- (resolve* ph ids Σ)
+                 (pure (cons nam nams)))]))
+
+        ]
 
   ;; (syntax-local-value <abs> _ ...)
   #;
@@ -161,6 +218,32 @@
    `(,list-⊤ ,cnt ,sto ,Σ̂)
    ev-slbs-abs]
 
+  ;; create definition binding (for a variable)
+  [`(,(Prim 'syntax-local-bind-syntaxes stx)
+     ,(KApp′ `(pair-⊤ ,(Bool #f) ,(Defs scp 𝓁))
+             `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
+     ,sto ,Σ̂)
+   #:checkpoint (printf "ev-slbsv-abs\n")
+   id′ <- (all-ids)
+   `(,(Prim 'syntax-local-bind-syntaxes stx)
+     ,(KApp′ `(,(Lst id′) ,(Bool #f) ,(Defs scp 𝓁))
+             `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
+     ,sto ,Σ̂)
+   ev-slbsv-pair-⊤]
+
+  ;; create macro definition binding
+  [`(,(Prim 'syntax-local-bind-syntaxes stx)
+     ,(KApp′ `(pair-⊤ ,(? stx? stx_arg) ,(Defs scp 𝓁))
+             `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
+     ,sto ,Σ̂)
+   #:checkpoint (printf "ev-slbsm\n")
+   id′ <- (all-ids)
+   `(,(Prim 'syntax-local-bind-syntaxes stx)
+     ,(KApp′ `(,(Lst id′) ,stx_arg ,(Defs scp 𝓁))
+             `(,ph ,env ,maybe-scpᵢ ,ξ) loc)
+     ,sto ,Σ̂)
+   ev-slbsm-pair-⊤]
+  
   ;; (local-expand <abs> contextv idstops defs?) ;; TODO: check other args
   #;
   [`(,(Prim 'local-expand stx)
@@ -210,7 +293,7 @@
   (compound-unit/infer
    (import) (export domain^ run^)
    (link main-minus@
-         domain@ syntax@ expand@ parse@ parser@ eval@))
+         domain@ syntax@ bind@ expand@ parse@ parser@ eval@))
   (import) (export domain^ run^))
 
 (define interp (interpreter run δ α ≤ₐ))

@@ -9,7 +9,7 @@
 ;; Non-deterministic parsing
 
 (import
- (only domain^    lst→list lst→list/recur)
+ (only domain^    id? lst→list lst→list/recur)
  (only syntax^    proper-stl?)
  (only   bind^    resolve))
 (export parse^)

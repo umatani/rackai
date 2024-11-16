@@ -1,7 +1,7 @@
 #lang racket/unit
 (require
  (only-in racket/match match-let)
- (only-in "../set.rkt" ∅)
+ (only-in "../set.rkt" ∅ for/set)
  "../signatures.rkt"
  "../terms.rkt")
 
@@ -26,6 +26,12 @@
 (define (update-Σ Σ₀ k v)
   (Σ (Σ-size Σ₀)
     (hash-set (Σ-tbl Σ₀) k v)))
+
+;; all-nams : Σ → (Setof Nam)
+(define (all-nams Σ₀)
+  (for/set ([k (hash-keys (Σ-tbl Σ₀))]
+            #:when (symbol? k))
+    k))
         
 
 ;; ----------------------------------------

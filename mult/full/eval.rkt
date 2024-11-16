@@ -5,7 +5,6 @@
  (only-in "../../set.rkt"            set ∅ ∅? set-add for/set)
  (only-in "../../mix.rkt"            define-mixed-unit inherit)
  (only-in "../../misc.rkt"           update-store* alloc-loc*)
- (only-in "../../syntax.rkt"         prune)
  "../../reduction.rkt"
  "../../signatures.rkt"
  "../../base/full/terms.rkt"
@@ -16,8 +15,8 @@
 (define-reduction (--> δ ==>) #:super (base:--> δ ==> <-)
   #:import [(only common^    push-cont)
             (only   misc^    lookup-cont lookup-val)
-            (only domain^    val? stx? lst→list)
-            (only syntax^    add flip)
+            (only domain^    val? stx? id? lst→list)
+            (only syntax^    add flip prune)
             (only    env^    init-env lookup-env extend-env*)
             (only  store^    lookup-store update-store alloc-loc)
             (only   menv^    init-ξ lookup-ξ extend-ξ)

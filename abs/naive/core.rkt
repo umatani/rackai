@@ -7,7 +7,7 @@
  (only-in "../../reduction.rkt"        define-reduction
                                        define-unit-from-reduction
                                        enable-tracing)
- (only-in "../../nondet.rkt"           do := <- pure enable-checkpoint)
+ (only-in "../../nondet.rkt"           do := <- pure lift enable-checkpoint)
  (only-in "../../set.rkt"              set ∅? set→list)
  (only-in "../../mix.rkt"              define-mixed-unit inherit)
  (only-in "../../misc.rkt"             update-store* alloc-loc*)
@@ -15,6 +15,7 @@
  "../../test/suites.rkt"
  "../../base/core/terms.rkt"
  (only-in "../../mult/core/units.rkt"  [syntax@ mult:syntax@]
+                                       [bind@ mult:bind@]
                                        [parse@ mult:parse@] parser@)
  (only-in "../../mult/core/eval.rkt"   [--> mult:-->] define-eval-unit)
  (only-in "../../mult/core/expand.rkt" [==> mult:==>] define-expand-unit)
@@ -28,13 +29,34 @@
 (define-mixed-unit syntax@
   (import)
   (export syntax^)
-  (inherit (mult:syntax@ empty-ctx in-hole add [mult:flip flip] proper-stl?))
+  (inherit (mult:syntax@     empty-ctx in-hole add
+                             [mult:flip flip] prune proper-stl?))
 
   ;; flip : Stx Scp → Stx
   (define (flip stx scp)
     (if (eq? stx 'stx-⊤)
       'stx-⊤
       (mult:flip stx scp))))
+
+
+;;;; Name resolution
+
+(define-mixed-unit bind@
+  (import
+   (only mstore^    lookup-Σ all-nams))
+  (export bind^)
+  (inherit (mult:bind@    bind [mult:resolve resolve]))
+
+  ;; resolve : Id Σ → (SetM Nam)
+  (define (resolve id Σ)
+    (if (eq? id 'stx-⊤)
+      (do nam  <- (lift (all-nams Σ))
+          sb   <- (lookup-Σ Σ nam)
+          nam′ <- (lift (StoBind-nam sb))
+          (pure nam′))
+      (mult:resolve id Σ)))
+
+  )
 
 
 ;;;; Expander
@@ -119,7 +141,7 @@
   (compound-unit/infer
    (import) (export domain^ run^)
    (link  main-minus@
-          domain@ syntax@ eval@ parse@ parser@ expand@))
+          domain@ syntax@ bind@ eval@ parse@ parser@ expand@))
   (import) (export domain^ run^))
 
 (define interp (interpreter run δ α ≤ₐ))

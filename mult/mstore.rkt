@@ -3,7 +3,7 @@
  racket/unit
  (only-in "../nondet.rkt"     lift)
  (only-in "../mix.rkt"        define-mixed-unit inherit)
- (only-in "../set.rkt"        ∅ set-add)
+ (only-in "../set.rkt"        ∅ set-add for/set)
  "../signatures.rkt"
  "../terms.rkt"
  (only-in "../base/units.rkt" [mstore@ base:mstore@]))
@@ -12,7 +12,7 @@
 (define-mixed-unit mstore@
   (import)
   (export  mstore^)
-  (inherit [base:mstore@    init-Σ alloc-name alloc-scope alloc-𝓁])
+  (inherit [base:mstore@    init-Σ all-nams alloc-name alloc-scope alloc-𝓁])
 
   ;;;; Set-based Σ
 

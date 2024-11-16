@@ -2,7 +2,6 @@
 (require
  (only-in racket/match match match* match-λ)
  (only-in "set.rkt"    ∅ ∈ set-add set-remove set-subtract)
- (only-in "misc.rkt"   subtract)
  "terms.rkt")
 (provide (all-defined-out))
 
@@ -116,10 +115,3 @@
 ;;   Updates the mapping of a `ctx` at a particular phase
 (define (update-ctx ctx ph scps)
   (hash-set ctx ph scps))
-
-;; prune : Ph Stx Scps → Stx
-;;   Recursively removes a set of scopes from a syntax object at a given phase
-(define (prune ph stx scps)
-  (map-ctx stx
-           (λ (ctx)
-             (update-ctx ctx ph (subtract (at-phase ctx ph) scps)))))

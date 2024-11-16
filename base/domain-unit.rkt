@@ -35,6 +35,13 @@
                 (stx? (Pair-a (Stx-e x)))
                 (stl? (Pair-d (Stx-e x)))))))
 
+;; id? : Ast → Boolean
+(define (id? x)
+  (match x
+    [(Stx (Sym _) _) #t]
+    [_ #f]))
+
+
 ;; stl? : Ast → Boolean
 #;
 (define (stl? x)

@@ -42,4 +42,9 @@
   ;; proper-stl? : Val → Boolean
   (define (proper-stl? x)
     (or (Null? x)
-        (and (Pair? x) (stx? (Pair-a x)) (proper-stl? (Pair-d x))))))
+        (and (Pair? x) (stx? (Pair-a x)) (proper-stl? (Pair-d x)))))
+
+  ;; prune : Ph Stx Scps → Stx
+  (define (prune ph stx scps)
+    (error 'prune "internal error: must not be used in core."))
+  )
